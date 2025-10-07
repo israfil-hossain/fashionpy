@@ -1,4 +1,5 @@
 import { Hero } from "./Hero/Hero"
+import { HeroCarousel } from "./HeroCarousel/HeroCarousel"
 import { HomeProductSection } from "./HomeProductSection/HomeProductSection"
 import { HomeCategories } from "./HomeCategories/HomeCategories"
 import { BannerSection } from "./BannerSection/BannerSection"
@@ -14,6 +15,7 @@ import { OrdersPagination } from "../organisms/OrdersPagination/OrdersPagination
 
 export {
   Hero,
+  HeroCarousel,
   HomeProductSection,
   HomeCategories,
   BannerSection,

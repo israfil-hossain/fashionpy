@@ -34,6 +34,7 @@
     "react-i18next": "^15.5.2",
     "react-instantsearch": "^7.15.3",
     "react-instantsearch-nextjs": "^0.4.4",
+    "swiper": "^12.0.2",
     "tailwind-merge": "^2.6.0",
     "talkjs": "^0.37.0",
     "uuid": "^11.0.5",
@@ -66,5 +67,6 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

@@ -1,7 +1,7 @@
 import {
   BannerSection,
   BlogSection,
-  Hero,
+  HeroCarousel,
   HomeCategories,
   HomeProductSection,
   ShopByStyleSection,
@@ -127,9 +127,9 @@ export default async function Home({
       <link
         rel="preload"
         as="image"
-        href="/images/hero/Image.jpg"
-        imageSrcSet="/images/hero/Image.jpg 700w"
-        imageSizes="(min-width: 1024px) 50vw, 100vw"
+        href="/images/hero/banner-1.jpg"
+        imageSrcSet="/images/hero/banner-1.jpg 700w"
+        imageSizes="100vw"
       />
       {/* Organization JSON-LD */}
       <Script
@@ -160,21 +160,7 @@ export default async function Home({
         }}
       />
 
-      <Hero
-        image="/images/hero/Image.jpg"
-        heading="Snag your style in a flash"
-        paragraph="Buy, sell, and discover pre-loved gems from the trendiest brands."
-        buttons={[
-          { label: "Buy now", path: "/categories" },
-          {
-            label: "Sell now",
-            path:
-              process.env.NEXT_PUBLIC_ALGOLIA_ID === "UO3C5Y8NHX"
-                ? "https://vendor-sandbox.vercel.app/"
-                : "https://vendor.mercurjs.com",
-          },
-        ]}
-      />
+      <HeroCarousel />
       <div className="px-4 lg:px-8 w-full">
         <HomeProductSection heading="trending listings" locale={locale} home />
       </div>

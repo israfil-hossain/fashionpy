@@ -1,67 +1,109 @@
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import footerLinks from "@/data/footerLinks"
+import { Newsletter } from "../Newsletter/Newsletter"
 
 export function Footer() {
+  const currentYear = new Date().getFullYear()
+
   return (
-    <footer className="bg-primary container">
-      <div className="grid grid-cols-1 lg:grid-cols-3">
-        {/* Customer Services Column */}
-        <div className="p-6 border rounded-sm">
-          <h2 className="heading-sm text-primary mb-3 uppercase">
-            Customer services
-          </h2>
-          <nav className="space-y-3" aria-label="Customer services navigation">
-            {footerLinks.customerServices.map(({ label, path }) => (
-              <LocalizedClientLink
-                key={label}
-                href={path}
-                className="block label-md"
-              >
-                {label}
-              </LocalizedClientLink>
-            ))}
-          </nav>
-        </div>
+    <footer className="bg-primary mt-16">
+      {/* Newsletter Section */}
+      <Newsletter />
 
-        {/* About Column */}
-        <div className="p-6 border rounded-sm">
-          <h2 className="heading-sm text-primary mb-3 uppercase">About</h2>
-          <nav className="space-y-3" aria-label="About navigation">
-            {footerLinks.about.map(({ label, path }) => (
-              <LocalizedClientLink
-                key={label}
-                href={path}
-                className="block label-md"
-              >
-                {label}
-              </LocalizedClientLink>
-            ))}
-          </nav>
-        </div>
+      {/* Main Footer Content */}
+      <div className="bg-gradient-to-b from-brand-25 to-white py-12 px-4 lg:px-8">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+            {/* PAGES Column */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 mb-6 uppercase tracking-wider">
+                PAGES
+              </h3>
+              <nav className="space-y-3" aria-label="Pages navigation">
+                {footerLinks.pages.map(({ label, path }) => (
+                  <LocalizedClientLink
+                    key={label}
+                    href={path}
+                    className="block text-gray-700 hover:text-brand-500 transition-colors duration-200 text-base"
+                  >
+                    {label}
+                  </LocalizedClientLink>
+                ))}
+              </nav>
+            </div>
 
-        {/* Connect Column */}
-        <div className="p-6 border rounded-sm">
-          <h2 className="heading-sm text-primary mb-3 uppercase">connect</h2>
-          <nav className="space-y-3" aria-label="Social media navigation">
-            {footerLinks.connect.map(({ label, path }) => (
-              <a
-                aria-label={`Go to ${label} page`}
-                title={`Go to ${label} page`}
-                key={label}
-                href={path}
-                className="block label-md"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {label}
-              </a>
-            ))}
-          </nav>
-        </div>
-      </div>
+            {/* CATEGORY Column */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 mb-6 uppercase tracking-wider">
+                CATEGORY
+              </h3>
+              <nav className="space-y-3" aria-label="Category navigation">
+                {footerLinks.category.map(({ label, path }) => (
+                  <LocalizedClientLink
+                    key={label}
+                    href={path}
+                    className="block text-gray-700 hover:text-brand-500 transition-colors duration-200 text-base"
+                  >
+                    {label}
+                  </LocalizedClientLink>
+                ))}
+              </nav>
+            </div>
 
-      <div className="py-6 border rounded-sm ">
-        <p className="text-md text-secondary text-center ">© 2024 Fleek</p>
+            {/* BRAND Column */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 mb-6 uppercase tracking-wider">
+                BRAND
+              </h3>
+              <nav className="space-y-3" aria-label="Brand navigation">
+                {footerLinks.brand.map(({ label, path }, index) => (
+                  <a
+                    key={`${label}-${index}`}
+                    href={path}
+                    className="block text-gray-700 hover:text-brand-500 transition-colors duration-200 text-base"
+                  >
+                    {label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+
+            {/* FOLLOW US Column */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 mb-6 uppercase tracking-wider">
+                FOLLOW US
+              </h3>
+              <nav className="space-y-3" aria-label="Social media navigation">
+                {footerLinks.followUs.map(({ label, path }) => (
+                  <a
+                    aria-label={`Follow us on ${label}`}
+                    title={`Follow us on ${label}`}
+                    key={label}
+                    href={path}
+                    className="block text-gray-700 hover:text-brand-500 transition-colors duration-200 text-base"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          {/* Bottom Copyright Section */}
+          <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <LocalizedClientLink
+              href="/privacy-policy"
+              className="text-gray-600 hover:text-brand-500 transition-colors duration-200 text-sm"
+            >
+              Privacy Policy
+            </LocalizedClientLink>
+            <p className="text-gray-600 text-sm text-center">
+              Copyright © {currentYear} Fashionpy, All Rights Reserved.
+            </p>
+          </div>
+        </div>
       </div>
     </footer>
   )

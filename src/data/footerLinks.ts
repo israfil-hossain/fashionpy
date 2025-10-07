@@ -1,21 +1,27 @@
 const links = {
-  customerServices: [
-    { label: 'FAQs', path: '#' },
-    { label: 'Track Order', path: '#' },
-    { label: 'Returns', path: '#' },
-    { label: 'Delivery', path: '#' },
-    { label: 'Payment', path: '#' },
-  ],
-  about: [
-    { label: 'About us', path: '#' },
+  pages: [
+    { label: 'Shop', path: '/categories' },
+    { label: 'Collections', path: '/collections' },
     { label: 'Blog', path: '#' },
-    { label: 'Privacy Policy', path: '#' },
-    { label: 'Terms & Conditions', path: '#' },
+    { label: 'About', path: '#' },
   ],
-  connect: [
-    { label: 'Facebook', path: 'https://facebook.com' },
+  category: [
+    { label: 'Cloths', path: '/categories/cloths' },
+    { label: 'Accessories', path: '/categories/accessories' },
+    { label: 'Electronics', path: '/categories/electronics' },
+    { label: 'Cosmetics', path: '/categories/cosmetics' },
+  ],
+  brand: [
+    { label: 'Brand Name', path: '#' },
+    { label: 'Brand Name', path: '#' },
+    { label: 'Brand Name', path: '#' },
+    { label: 'Brand Name', path: '#' },
+  ],
+  followUs: [
     { label: 'Instagram', path: 'https://instagram.com' },
-    { label: 'LinekdIn', path: 'https://linkedin.com' },
+    { label: 'Tiktok', path: 'https://tiktok.com' },
+    { label: 'X', path: 'https://x.com' },
+    { label: 'Facebook', path: 'https://facebook.com' },
   ],
 };
 

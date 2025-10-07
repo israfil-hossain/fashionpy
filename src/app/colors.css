@@ -15,17 +15,18 @@
     --neutral-1000: 9, 9, 9;
 
     /* Brand colors are used across all interactive elements such as buttons, links, inputs, etc. This color can define the overall feel and can elicit emotion. */
-    --brand-25: 247, 247, 247;
-    --brand-50: 238, 238, 238;
-    --brand-100: 226, 226, 226;
-    --brand-200: 198, 198, 198;
-    --brand-300: 163, 163, 163;
-    --brand-400: 115, 115, 115;
-    --brand-500: 82, 82, 82;
-    --brand-600: 64, 64, 64;
-    --brand-700: 27, 27, 27;
-    --brand-800: 22, 22, 22;
-    --brand-900: 9, 9, 9;
+    /* Fashionpy brand color palette - vibrant magenta/pink (#b7016b) */
+    --brand-25: 254, 242, 249;
+    --brand-50: 253, 230, 244;
+    --brand-100: 251, 207, 234;
+    --brand-200: 247, 161, 215;
+    --brand-300: 241, 115, 196;
+    --brand-400: 231, 69, 177;
+    --brand-500: 183, 1, 107;
+    --brand-600: 147, 1, 86;
+    --brand-700: 110, 1, 64;
+    --brand-800: 73, 1, 43;
+    --brand-900: 37, 0, 21;
     
     /* Red colors are used across error states and in "destructive" actions. */
     --red-25: 254, 243, 242;
