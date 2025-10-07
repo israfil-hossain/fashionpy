@@ -15,7 +15,7 @@ import CountrySelector from "@/components/molecules/CountrySelector/CountrySelec
 import { listRegions } from "@/lib/data/regions"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import { MessageButton } from "@/components/molecules/MessageButton/MessageButton"
-import { SellNowButton } from "@/components/cells/SellNowButton/SellNowButton"
+import { AnnouncementBar } from "../AnnouncementBar/AnnouncementBar"
 
 export const Header = async () => {
   const cart = await retrieveCart().catch(() => null)
@@ -39,37 +39,37 @@ export const Header = async () => {
 
   return (
     <header>
-      <div className="flex py-2 lg:px-8 px-4">
+      {/* Marketing Announcement Bar */}
+      <AnnouncementBar />
+
+      <div className="flex py-1.5 lg:py-2 lg:px-8 px-4">
         <div className="flex items-center lg:w-1/3">
           <MobileNavbar
             parentCategories={parentCategories}
             childrenCategories={categories}
           />
-          <div className="hidden lg:block">
-            <SellNowButton />
-          </div>
         </div>
         <div className="flex lg:justify-center lg:w-1/3 items-center pl-4 lg:pl-0">
           <LocalizedClientLink href="/" className="text-2xl font-bold">
             <Image
               src="/fashionpy.png"
-              width={150}
-              height={40}
+              width={130}
+              height={35}
               alt="Fashionpy"
               priority
               className="hidden lg:block"
             />
             <Image
               src="/f_logo.png"
-              width={40}
-              height={40}
+              width={35}
+              height={35}
               alt="Fashionpy"
               priority
               className="lg:hidden"
             />
           </LocalizedClientLink>
         </div>
-        <div className="flex items-center justify-end gap-2 lg:gap-4 w-full lg:w-1/3 py-2">
+        <div className="flex items-center justify-end gap-2 lg:gap-3 w-full lg:w-1/3 py-1">
           <CountrySelector regions={regions} />
           {user && <MessageButton />}
           <UserDropdown user={user} />

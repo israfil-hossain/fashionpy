@@ -31,6 +31,13 @@ export const metadata: Metadata = {
       "x-default": process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
     },
   },
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/f_logo.png", type: "image/png" },
+    ],
+    apple: "/f_logo.png",
+  },
 }
 
 export default async function RootLayout({

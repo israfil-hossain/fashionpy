@@ -1,12 +1,30 @@
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import footerLinks from "@/data/footerLinks"
 import { Newsletter } from "../Newsletter/Newsletter"
+import { SellNowButton } from "@/components/cells/SellNowButton/SellNowButton"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
     <footer className="bg-primary mt-16">
+      {/* Sell Now Section */}
+      <div className="bg-gradient-to-r from-brand-600 to-brand-500 py-8 px-4 lg:px-8">
+        <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="text-center md:text-left">
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+              Start Selling on Fashionpy
+            </h3>
+            <p className="text-white/90 text-base md:text-lg">
+              Join thousands of sellers and grow your business with us
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <SellNowButton />
+          </div>
+        </div>
+      </div>
+
       {/* Newsletter Section */}
       <Newsletter />
 

@@ -23,6 +23,8 @@ import { AlgoliaProductSidebar } from "./ProductSidebar/AlgoliaProductSidebar"
 import { Addresses } from "./Addressess/Addresses"
 import { ReviewsToWrite } from "./Reviews/ReviewsToWrite"
 import { ReviewsWritten } from "./Reviews/ReviewsWritten"
+import { AnnouncementBar } from "./AnnouncementBar/AnnouncementBar"
+import { Newsletter } from "./Newsletter/Newsletter"
 
 export {
   ProductCard,
@@ -50,4 +52,6 @@ export {
   Addresses,
   ReviewsToWrite,
   ReviewsWritten,
+  AnnouncementBar,
+  Newsletter,
 }
