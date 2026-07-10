@@ -21,12 +21,13 @@ export const NavbarSearch = () => {
   }
 
   return (
-    <form className="flex items-center" method="POST" onSubmit={submitHandler}>
+    <form className="flex items-center w-full" method="POST" onSubmit={submitHandler}>
       <Input
         icon={<SearchIcon />}
         placeholder="Search product"
         value={search}
         changeValue={setSearch}
+        className="!py-[8px] h-9"
       />
       <input type="submit" className="hidden" />
     </form>

@@ -20,7 +20,7 @@ export const CategoryNavbar = ({
         href="/categories"
         onClick={() => (onClose ? onClose(false) : null)}
         className={cn(
-          "label-md uppercase px-4 my-3 md:my-0 flex items-center justify-between"
+          "text-xs uppercase px-3 my-3 md:my-0 flex items-center justify-between font-medium"
         )}
       >
         All Products
@@ -31,7 +31,7 @@ export const CategoryNavbar = ({
           href={`/categories/${handle}`}
           onClick={() => (onClose ? onClose(false) : null)}
           className={cn(
-            "label-md uppercase px-4 my-3 md:my-0 flex items-center justify-between",
+            "text-xs uppercase px-3 my-3 md:my-0 flex items-center justify-between font-medium",
             handle === category && "md:border-b md:border-primary"
           )}
         >

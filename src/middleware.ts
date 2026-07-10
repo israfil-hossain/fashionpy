@@ -24,39 +24,49 @@ async function getRegionMap(cacheId: string) {
     regionMapUpdated < Date.now() - 3600 * 1000
   ) {
     // Fetch regions from Medusa. We can't use the JS client here because middleware is running on Edge and the client needs a Node environment.
-    const { regions } = await fetch(`${BACKEND_URL}/store/regions`, {
-      headers: {
-        "x-publishable-api-key": PUBLISHABLE_API_KEY!,
-      },
-      next: {
-        revalidate: 3600,
-        tags: [`regions-${cacheId}`],
-      },
-      cache: "force-cache",
-    }).then(async (response) => {
-      const json = await response.json()
+    try {
+      const { regions } = await fetch(`${BACKEND_URL}/store/regions`, {
+        headers: {
+          "x-publishable-api-key": PUBLISHABLE_API_KEY!,
+        },
+        next: {
+          revalidate: 3600,
+          tags: [`regions-${cacheId}`],
+        },
+        cache: "force-cache",
+      }).then(async (response) => {
+        const json = await response.json()
 
-      if (!response.ok) {
-        throw new Error(json.message)
+        if (!response.ok) {
+          throw new Error(json.message)
+        }
+
+        return json
+      })
+
+      if (!regions?.length) {
+        throw new Error(
+          "No regions found. Please set up regions in your Medusa Admin."
+        )
       }
 
-      return json
-    })
+      // Create a map of country codes to regions.
+      regions.forEach((region: HttpTypes.StoreRegion) => {
+        region.countries?.forEach((c) => {
+          regionMapCache.regionMap.set(c.iso_2 ?? "", region)
+        })
+      })
 
-    if (!regions?.length) {
+      regionMapCache.regionMapUpdated = Date.now()
+    } catch (error) {
+      console.error(
+        `Failed to fetch regions from ${BACKEND_URL}/store/regions:`,
+        error
+      )
       throw new Error(
-        "No regions found. Please set up regions in your Medusa Admin."
+        `Unable to fetch regions from Medusa backend. Please ensure your Medusa backend is running at ${BACKEND_URL} and the NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY is correct.`
       )
     }
-
-    // Create a map of country codes to regions.
-    regions.forEach((region: HttpTypes.StoreRegion) => {
-      region.countries?.forEach((c) => {
-        regionMapCache.regionMap.set(c.iso_2 ?? "", region)
-      })
-    })
-
-    regionMapCache.regionMapUpdated = Date.now()
   }
 
   return regionMapCache.regionMap
@@ -120,11 +130,20 @@ export async function middleware(request: NextRequest) {
     })
   }
 
-  const regionMap = await getRegionMap(cacheId)
-  const countryCode = regionMap && (await getCountryCode(request, regionMap))
+  let regionMap
+  let countryCode
+
+  try {
+    regionMap = await getRegionMap(cacheId)
+    countryCode = regionMap && (await getCountryCode(request, regionMap))
+  } catch (error) {
+    // If backend is unavailable, use default region
+    console.warn("Backend unavailable, using default region:", DEFAULT_REGION)
+    countryCode = DEFAULT_REGION
+  }
 
   const urlHasCountryCode =
-    countryCode && request.nextUrl.pathname.split("/")[1].includes(countryCode)
+    countryCode && request.nextUrl.pathname.split("/")[1] === countryCode
 
   // If no country code in URL but we can resolve one, redirect to locale-prefixed path
   if (!urlHasCountryCode && countryCode) {

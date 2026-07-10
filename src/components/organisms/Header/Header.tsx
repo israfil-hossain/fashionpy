@@ -16,6 +16,7 @@ import { listRegions } from "@/lib/data/regions"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import { MessageButton } from "@/components/molecules/MessageButton/MessageButton"
 import { AnnouncementBar } from "../AnnouncementBar/AnnouncementBar"
+import { NavbarSearch } from "@/components/molecules"
 
 export const Header = async () => {
   const cart = await retrieveCart().catch(() => null)
@@ -38,55 +39,49 @@ export const Header = async () => {
   }
 
   return (
-    <header>
-      {/* Marketing Announcement Bar */}
+    <header className="h-[120px] flex flex-col">
+      {/* Marketing Announcement Bar - 28px */}
       <AnnouncementBar />
 
-      <div className="flex py-1.5 lg:py-2 lg:px-8 px-4">
-        <div className="flex items-center lg:w-1/3">
-          <MobileNavbar
-            parentCategories={parentCategories}
-            childrenCategories={categories}
-          />
+      {/* Main Header Section - 52px */}
+      <div className="flex h-[52px] lg:px-8 px-4 items-center border-b">
+        {/* Left Section: Search Bar */}
+        <div className="flex items-center flex-1">
+          <div className="hidden md:flex w-full max-w-lg lg:max-w-xl">
+            <NavbarSearch />
+          </div>
+          <div className="md:hidden">
+            <MobileNavbar
+              parentCategories={parentCategories}
+              childrenCategories={categories}
+            />
+          </div>
         </div>
-        <div className="flex lg:justify-center lg:w-1/3 items-center pl-4 lg:pl-0">
-          <LocalizedClientLink href="/" className="text-2xl font-bold">
+
+        {/* Center Section: Logo */}
+        <div className="flex justify-center items-center px-4">
+          <LocalizedClientLink href="/">
+            
             <Image
               src="/fashionpy.png"
-              width={130}
-              height={35}
+              width={90}
+              height={28}
               alt="Fashionpy"
               priority
-              className="hidden lg:block"
-            />
-            <Image
-              src="/f_logo.png"
-              width={35}
-              height={35}
-              alt="Fashionpy"
-              priority
-              className="lg:hidden"
+              className=""
             />
           </LocalizedClientLink>
         </div>
-        <div className="flex items-center justify-end gap-2 lg:gap-3 w-full lg:w-1/3 py-1">
-          <CountrySelector regions={regions} />
-          {user && <MessageButton />}
-          <UserDropdown user={user} />
-          {user && (
-            <LocalizedClientLink href="/user/wishlist" className="relative">
-              <HeartIcon size={20} />
-              {Boolean(wishlistCount) && (
-                <Badge className="absolute -top-2 -right-2 w-4 h-4 p-0">
-                  {wishlistCount}
-                </Badge>
-              )}
-            </LocalizedClientLink>
-          )}
 
+        {/* Right Section: Country, Profile, Cart */}
+        <div className="flex items-center justify-end gap-2 lg:gap-3 flex-1">
+          <CountrySelector regions={regions} />
+          <UserDropdown user={user} />
           <CartDropdown cart={cart} />
         </div>
       </div>
+
+      {/* Navigation Bar - 40px */}
       <Navbar categories={categories} />
     </header>
   )

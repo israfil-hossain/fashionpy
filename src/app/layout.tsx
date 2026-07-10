@@ -32,10 +32,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [
-      { url: "/favicon.png", type: "image/png" },
-      { url: "/f_logo.png", type: "image/png" },
-    ],
+    icon: "/f_logo.png",
     apple: "/f_logo.png",
   },
 }
@@ -53,7 +50,7 @@ export default async function RootLayout({
   const htmlLang = locale || "en"
 
   return (
-    <html lang={htmlLang} className="">
+    <html lang={htmlLang} className="light">
       <Head>
         <link
           rel="preconnect"

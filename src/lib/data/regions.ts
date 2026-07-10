@@ -5,7 +5,7 @@ import medusaError from "@/lib/helpers/medusa-error"
 import { HttpTypes } from "@medusajs/types"
 import { getCacheOptions } from "./cookies"
 
-export const listRegions = async () => {
+export const listRegions = async (): Promise<HttpTypes.StoreRegion[] | null> => {
   const next = {
     ...(await getCacheOptions("regions")),
     revalidate: 3600,
@@ -18,7 +18,10 @@ export const listRegions = async () => {
       cache: "force-cache",
     })
     .then(({ regions }) => regions)
-    .catch(medusaError)
+    .catch((error) => {
+      console.warn("Unable to fetch regions from backend:", error.message)
+      return null
+    })
 }
 
 export const retrieveRegion = async (id: string) => {

@@ -15,10 +15,16 @@ export default async function RootLayout({
   const { locale } = await params
 
   const user = await retrieveCustomer()
-  const regionCheck = await checkRegion(locale)
 
-  if (!regionCheck) {
-    return redirect("/")
+  // Only check region if backend is available to avoid redirect loops
+  try {
+    const regionCheck = await checkRegion(locale)
+    if (!regionCheck) {
+      return redirect("/")
+    }
+  } catch (error) {
+    // Silently skip region check if backend unavailable
+    console.warn("Skipping region check:", error)
   }
 
   if (!APP_ID || !user)
