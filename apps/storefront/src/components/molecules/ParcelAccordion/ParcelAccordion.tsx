@@ -11,7 +11,7 @@ export const ParcelAccordion = ({
   orderDisplayId,
   createdAt,
   total,
-  currency_code = 'eur',
+  currency_code = 'bdt',
   orders
 }: {
   orderId: string;

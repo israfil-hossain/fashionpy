@@ -796,8 +796,8 @@ export const CreatePromotionForm = () => {
                                     onValueChange={value => {
                                       onChange(value ? parseInt(value) : '');
                                     }}
-                                    code={currencyCode || 'USD'}
-                                    symbol={currencyCode ? getCurrencySymbol(currencyCode) : '$'}
+                                    code={currencyCode || 'bdt'}
+                                    symbol={currencyCode ? getCurrencySymbol(currencyCode) : getCurrencySymbol('bdt')}
                                     value={value}
                                     disabled={!currencyCode}
                                   />

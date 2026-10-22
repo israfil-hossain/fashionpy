@@ -27,16 +27,17 @@
   },
   "dependencies": {
     "@medusajs/admin-sdk": "2.21.2",
-    "@medusajs/cli": "2.21.2",
-    "@medusajs/framework": "2.21.2",
-    "@medusajs/dashboard": "2.21.2",
     "@medusajs/admin-shared": "2.21.2",
-    "@medusajs/medusa": "2.21.2",
+    "@medusajs/cli": "2.21.2",
+    "@medusajs/dashboard": "2.21.2",
     "@medusajs/draft-order": "2.21.2",
+    "@medusajs/framework": "2.21.2",
+    "@medusajs/medusa": "2.21.2",
+    "@mercurjs/cli": "*",
     "@mercurjs/core": "*",
     "@mercurjs/types": "*",
     "http-proxy-middleware": "^3.0.3",
-    "@mercurjs/cli": "*"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@medusajs/test-utils": "2.21.2",

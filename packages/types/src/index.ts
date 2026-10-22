@@ -24,6 +24,9 @@ export * from "./promotion-cost"
 // Review types
 export * from "./review"
 
+// Hero banner types
+export * from "./hero-banner"
+
 // Product types — explicit re-export overrides Medusa's product surface.
 // Mercur's runtime enums and Mercur-extended DTOs (Omit + intersection over
 // upstream) win over the wholesale `export * from "@medusajs/types"` above.

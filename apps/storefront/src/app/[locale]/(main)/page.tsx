@@ -1,9 +1,12 @@
 import {
   BannerSection,
   BlogSection,
-  Hero,
-  HomeCategories,
-  HomeProductSection,
+  HeroCarousel,
+  TrustBarSection,
+  CategoryStrip,
+  TabbedProductGrid,
+  NewArrivalsSection,
+  BestDealsSection,
   ShopByStyleSection,
 } from "@/components/sections"
 
@@ -11,6 +14,7 @@ import type { Metadata } from "next"
 import { headers } from "next/headers"
 import Script from "next/script"
 import { listRegions } from "@/lib/data/regions"
+import { listHeroBanners } from "@/lib/data/hero-banners"
 import {
   buildHreflangAlternates,
   getStorefrontLocales,
@@ -45,7 +49,7 @@ export async function generateMetadata({
 
   const title = "Home"
   const description =
-    "Welcome to Mercur B2C Demo! Create a modern marketplace that you own and customize in every aspect with high-performance, fully customizable storefront."
+    "Welcome to FashionPy! Create a modern marketplace that you own and customize in every aspect with high-performance, fully customizable storefront."
   const ogImage = "/B2C_Storefront_Open_Graph.png"
 
   return {
@@ -69,13 +73,13 @@ export async function generateMetadata({
     openGraph: {
       title: `${title} | ${
         process.env.NEXT_PUBLIC_SITE_NAME ||
-        "Mercur B2C Demo - Marketplace Storefront"
+        "FashionPy - Marketplace Storefront"
       }`,
       description,
       url: canonical,
       siteName:
         process.env.NEXT_PUBLIC_SITE_NAME ||
-        "Mercur B2C Demo - Marketplace Storefront",
+        "FashionPy - Marketplace Storefront",
       type: "website",
       images: [
         {
@@ -84,7 +88,7 @@ export async function generateMetadata({
           height: 630,
           alt:
             process.env.NEXT_PUBLIC_SITE_NAME ||
-            "Mercur B2C Demo - Marketplace Storefront",
+            "FashionPy - Marketplace Storefront",
         },
       ],
     },
@@ -111,17 +115,12 @@ export default async function Home({
 
   const siteName =
     process.env.NEXT_PUBLIC_SITE_NAME ||
-    "Mercur B2C Demo - Marketplace Storefront"
+    "FashionPy - Marketplace Storefront"
+
+  const heroSlides = await listHeroBanners()
 
   return (
-    <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start text-primary">
-      <link
-        rel="preload"
-        as="image"
-        href="/images/hero/Image.jpg"
-        imageSrcSet="/images/hero/Image.jpg 700w"
-        imageSizes="(min-width: 1024px) 50vw, 100vw"
-      />
+    <main className="min-h-screen bg-[#FFF5F8] text-primary">
       <Script
         id="ld-org"
         type="application/ld+json"
@@ -149,29 +148,23 @@ export default async function Home({
         }}
       />
 
-      <Hero
-        image="/images/hero/Image.jpg"
-        heading="Snag your style in a flash"
-        paragraph="Buy, sell, and discover pre-loved gems from the trendiest brands."
-        buttons={[
-          { label: "Buy now", path: "/categories" },
-          {
-            label: "Sell now",
-            path:
-              process.env.NEXT_PUBLIC_VENDOR_URL ||
-              "https://vendor.mercurjs.com",
-          },
-        ]}
-      />
-      <div className="px-4 lg:px-8 w-full">
-        <HomeProductSection heading="trending listings" locale={locale} home />
+      <HeroCarousel slides={heroSlides} />
+      <div className="px-4 pt-3 lg:px-16">
+        <TrustBarSection />
       </div>
-      <div className="px-4 lg:px-8 w-full">
-        <HomeCategories heading="SHOP BY CATEGORY" />
+      <div className="pt-3">
+        <CategoryStrip />
       </div>
-      <BannerSection />
-      <ShopByStyleSection />
-      <BlogSection />
+      <div className="w-full px-4 pb-10 pt-4 lg:px-16">
+        <div className="space-y-10 rounded-xl bg-white px-4 py-6 shadow-sm sm:px-6 lg:px-8">
+          <BestDealsSection locale={locale} />
+          <TabbedProductGrid locale={locale} />
+          <NewArrivalsSection locale={locale} />
+          <BannerSection />
+          <ShopByStyleSection />
+          <BlogSection />
+        </div>
+      </div>
     </main>
   )
 }

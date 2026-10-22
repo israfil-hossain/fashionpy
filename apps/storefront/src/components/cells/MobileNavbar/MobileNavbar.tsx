@@ -37,45 +37,54 @@ export const MobileNavbar = ({
 
   return (
     <div
-      className="lg:hidden"
       data-testid="mobile-navbar"
     >
       <div
         onClick={() => setIsOpen(true)}
         data-testid="mobile-menu-toggle"
+        className="cursor-pointer rounded-full p-1 transition-colors hover:bg-white/15"
       >
-        <HamburgerMenuIcon />
+        <HamburgerMenuIcon color="#ffffff" />
       </div>
       {isOpen && (
         <div
-          className="fixed left-0 top-0 z-20 h-full w-full bg-primary"
-          data-testid="mobile-menu-drawer"
+          className="fixed inset-0 z-[60]"
+          data-testid="mobile-menu-overlay"
         >
           <div
-            className="flex items-center justify-between border-b p-4"
-            data-testid="mobile-menu-header"
+            className="absolute inset-0 bg-black/40"
+            onClick={closeMenuHandler}
+          />
+          <div
+            className="absolute left-0 top-0 h-full w-full max-w-[380px] overflow-y-auto bg-primary shadow-xl"
+            data-testid="mobile-menu-drawer"
           >
-            <h2 className="heading-md uppercase text-primary">Menu</h2>
-            <IconButton
-              icon={<CloseIcon size={20} />}
-              onClick={() => closeMenuHandler()}
-              variant="icon"
-              size="small"
-              data-testid="mobile-menu-close-button"
-            />
-          </div>
-          <div className="">
-            <HeaderCategoryNavbar
-              onClose={closeMenuHandler}
-              categories={categories}
-              parentCategories={parentCategories}
-            />
-            <div className="p-4">
-              <MobileCategoryNavbar
+            <div
+              className="flex items-center justify-between border-b p-4"
+              data-testid="mobile-menu-header"
+            >
+              <h2 className="heading-md uppercase text-primary">Menu</h2>
+              <IconButton
+                icon={<CloseIcon size={20} />}
+                onClick={() => closeMenuHandler()}
+                variant="icon"
+                size="small"
+                data-testid="mobile-menu-close-button"
+              />
+            </div>
+            <div className="">
+              <HeaderCategoryNavbar
                 onClose={closeMenuHandler}
                 categories={categories}
                 parentCategories={parentCategories}
               />
+              <div className="p-4">
+                <MobileCategoryNavbar
+                  onClose={closeMenuHandler}
+                  categories={categories}
+                  parentCategories={parentCategories}
+                />
+              </div>
             </div>
           </div>
         </div>

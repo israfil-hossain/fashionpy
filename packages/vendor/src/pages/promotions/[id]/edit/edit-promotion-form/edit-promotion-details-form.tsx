@@ -345,11 +345,11 @@ export const EditPromotionDetailsForm = ({ promotion }: EditPromotionFormProps) 
                                 onValueChange={val => {
                                   onChange(val ? parseInt(val) : '');
                                 }}
-                                code={currencyCode || 'USD'}
+                                code={currencyCode || 'bdt'}
                                 symbol={
                                   currencyCode
                                     ? getCurrencySymbol(currencyCode)
-                                    : '$'
+                                    : getCurrencySymbol('bdt')
                                 }
                                 value={value}
                               />

@@ -1,5 +1,6 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   CategoryCell,
@@ -22,10 +23,13 @@ import {
   VariantHeader,
 } from "../../../components/table/table-cells/product/variant-cell";
 import { HttpTypes } from "@mercurjs/types";
+import { MoneyAmountCell } from "../../../components/table/table-cells/common/money-amount-cell";
+import { PlaceholderCell } from "../../../components/table/table-cells/common/placeholder-cell";
 
 const columnHelper = createColumnHelper<HttpTypes.VendorProduct>();
 
 export const useProductTableColumns = () => {
+  const { t } = useTranslation();
   return useMemo(
     () => [
       columnHelper.display({
@@ -49,11 +53,40 @@ export const useProductTableColumns = () => {
         header: () => <VariantHeader />,
         cell: ({ row }) => <VariantCell variants={row.original.variants} />,
       }),
+      columnHelper.display({
+        id: "price",
+        header: () => (
+          <div className="flex h-full w-full items-center">
+            <span>{t("fields.price")}</span>
+          </div>
+        ),
+        cell: ({ row }) => {
+          const variants = row.original.variants ?? [];
+          let amount: number | null = null;
+          let currencyCode = "usd";
+          for (const v of variants) {
+            const offers = (v as any).offers ?? [];
+            for (const offer of offers) {
+              const prices = (offer as any).prices ?? [];
+              if (prices.length) {
+                amount = prices[0].amount;
+                currencyCode = prices[0].currency_code ?? currencyCode;
+                break;
+              }
+            }
+            if (amount !== null) break;
+          }
+          if (amount === null) {
+            return <PlaceholderCell />;
+          }
+          return <MoneyAmountCell currencyCode={currencyCode} amount={amount} />;
+        },
+      }),
       columnHelper.accessor("status", {
         header: () => <ProductStatusHeader />,
         cell: ({ row }) => <ProductStatusCell status={row.original.status} />,
       }),
     ],
-    [],
+    [t],
   );
 };

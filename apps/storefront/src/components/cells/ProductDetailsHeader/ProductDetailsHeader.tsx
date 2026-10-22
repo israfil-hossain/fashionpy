@@ -19,6 +19,8 @@ import { CompareOffersModal } from "@/components/organisms/CompareOffersModal/Co
 import { SellerDTO } from "@mercurjs/types"
 import { toast } from "@/lib/helpers/toast"
 import { useCartContext } from "@/components/providers"
+import { WishlistButton } from "@/components/cells/WishlistButton/WishlistButton"
+import { Wishlist } from "@/types/wishlist"
 
 const optionsAsKeymap = (
   variantOptions: HttpTypes.StoreProductVariant["options"]
@@ -42,12 +44,14 @@ export const ProductDetailsHeader = ({
   user,
   offers = [],
   seller,
+  wishlist,
 }: {
   product: HttpTypes.StoreProduct
   locale: string
   user: HttpTypes.StoreCustomer | null
   offers?: StoreOffer[]
   seller?: SellerDTO
+  wishlist?: Wishlist[]
 }) => {
   const { addToCart, onAddToCart, cart, isAddingItem } = useCartContext()
   const { allSearchParams } = useGetAllSearchParams()
@@ -91,7 +95,7 @@ export const ProductDetailsHeader = ({
   const offerCurrency =
     winnerOffer?.calculated_price?.currency_code ||
     variantPrice?.currency_code ||
-    "eur"
+    "bdt"
   const offerStock = winnerOffer ? getOfferStock(winnerOffer) : 0
   const hasOffer = !!winnerOffer && offerAmount !== null
 
@@ -163,6 +167,13 @@ export const ProductDetailsHeader = ({
               </span>
             )}
           </div>
+        </div>
+        <div>
+          <WishlistButton
+            productId={product.id}
+            wishlist={wishlist}
+            user={user}
+          />
         </div>
       </div>
       {hasAnyPrice && (

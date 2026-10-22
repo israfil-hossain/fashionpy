@@ -33,9 +33,9 @@ export const blogPosts: BlogPost[] = [
 
 export function BlogSection() {
   return (
-    <section className='bg-tertiary container'>
-      <div className='flex items-center justify-between mb-12'>
-        <h2 className='heading-lg text-tertiary'>
+    <section>
+      <div className='flex items-center justify-center mb-8'>
+        <h2 className='heading-md uppercase text-gray-900'>
           STAY UP TO DATE
         </h2>
       </div>

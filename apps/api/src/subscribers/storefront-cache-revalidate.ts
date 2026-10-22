@@ -36,7 +36,12 @@ const buildTags = async (
   eventName: string,
   payload: EventPayload
 ): Promise<string[]> => {
-  const tags = new Set<string>(["products"])
+  const tags = new Set<string>()
+
+  if (eventName === "store.updated") {
+    tags.add("store")
+    return [...tags]
+  }
 
   const isOffer = eventName.startsWith("offer.")
   const productId = isOffer ? payload.product_id : payload.id
@@ -104,6 +109,7 @@ export const config: SubscriberConfig = {
     ProductWorkflowEvents.PUBLISHED,
     ProductWorkflowEvents.REJECTED,
     "product.updated",
+    "store.updated",
   ],
   context: {
     subscriberId: "storefront-cache-revalidate-handler",

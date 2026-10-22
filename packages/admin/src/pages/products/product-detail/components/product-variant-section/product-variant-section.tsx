@@ -91,6 +91,18 @@ export const ProductVariantSection = ({
             <Link to="variants/create">{t("actions.create")}</Link>
           </Button>
         </PermissionAction>
+        <PermissionAction permission="offers:edit">
+          <Button
+            size="small"
+            variant="secondary"
+            asChild
+            data-testid="product-offers-create-button"
+          >
+            <Link to={`/offers/create?product_id=${product.id}`}>
+              {t("offers.create.header")}
+            </Link>
+          </Button>
+        </PermissionAction>
       </div>
       <_DataTable
         table={table}

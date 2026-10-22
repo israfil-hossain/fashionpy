@@ -166,6 +166,7 @@ declare module "@mercurjs/dashboard-sdk" {
     "products": true
     "promotions": true
     "reviews": true
+    "settings/users": true
   }
 
   interface NavGroupRegistry {

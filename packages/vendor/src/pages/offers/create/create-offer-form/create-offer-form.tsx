@@ -61,12 +61,19 @@ const attachErrorToRow = (
   return false;
 };
 
-export const CreateOfferForm = () => {
+export const CreateOfferForm = ({
+  defaultValues,
+}: {
+  defaultValues?: Partial<CreateOfferFormValues>
+} = {}) => {
   const { t } = useTranslation();
   const { handleSuccess } = useRouteModal();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<CreateOfferFormValues>({
-    defaultValues: DEFAULTS,
+    defaultValues: {
+      ...DEFAULTS,
+      ...defaultValues,
+    },
     resolver: zodResolver(CreateOfferSchema),
   });
 

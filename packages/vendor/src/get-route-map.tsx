@@ -77,6 +77,15 @@ export function getRouteMap({
                 lazy: () => import("./pages/home"),
               },
               {
+                path: "/analytics",
+                errorElement: <ErrorBoundary />,
+                handle: {
+                  breadcrumb: () => t("analytics.title", "Analytics"),
+                  permissions: "orders:view",
+                },
+                lazy: () => import("./pages/analytics"),
+              },
+              {
                 path: "/products",
                 errorElement: <ErrorBoundary />,
                 handle: { breadcrumb: () => t("products.domain"), permissions: "products:view" },

@@ -68,7 +68,7 @@ function transformOrderGroups(
       ? `${firstOrder.customer.first_name ?? ""} ${firstOrder.customer.last_name ?? ""}`.trim()
       : "-";
 
-    const currencyCode = firstOrder?.currency_code ?? "usd";
+    const currencyCode = firstOrder?.currency_code ?? "bdt";
 
     const children: OrderGroupRow[] = orders.map((order: any) => {
       const name = order.customer
@@ -87,7 +87,7 @@ function transformOrderGroups(
         payment_status: order.payment_status ?? null,
         fulfillment_status: order.fulfillment_status ?? null,
         total: order.total ?? null,
-        currency_code: order.currency_code ?? "usd",
+        currency_code: order.currency_code ?? "bdt",
         children: [],
       };
     });

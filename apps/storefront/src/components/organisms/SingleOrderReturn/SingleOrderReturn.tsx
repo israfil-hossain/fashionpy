@@ -58,7 +58,7 @@ export const SingleOrderReturn = ({
       }
     })
 
-  const currency_code = item.order.currency_code || "usd"
+  const currency_code = item.order.currency_code || "bdt"
 
   const total = filteredItems.reduce((acc: number, item: any) => {
     return acc + item.unit_price

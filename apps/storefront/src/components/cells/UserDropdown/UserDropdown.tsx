@@ -15,8 +15,10 @@ import { useState } from "react"
 
 export const UserDropdown = ({
   isLoggedIn,
+  iconColor,
 }: {
   isLoggedIn: boolean
+  iconColor?: string
 }) => {
   const [open, setOpen] = useState(false)
 
@@ -34,7 +36,7 @@ export const UserDropdown = ({
         className="relative"
         aria-label="Go to user profile"
       >
-        <ProfileIcon size={20} />
+        <ProfileIcon size={20} color={iconColor} />
       </LocalizedClientLink>
       <Dropdown show={open}>
         {isLoggedIn ? (
@@ -55,6 +57,8 @@ export const UserDropdown = ({
             </NavigationItem>
             <NavigationItem href="/user/returns">Returns</NavigationItem> */}
             <NavigationItem href="/user/addresses">Addresses</NavigationItem>
+            <NavigationItem href="/user/reviews">Reviews</NavigationItem>
+            <NavigationItem href="/user/wishlist">Wishlist</NavigationItem>
             <Divider />
             <NavigationItem href="/user/settings">Settings</NavigationItem>
             <LogoutButton />

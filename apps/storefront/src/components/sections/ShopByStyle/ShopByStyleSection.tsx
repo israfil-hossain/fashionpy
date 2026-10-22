@@ -33,9 +33,9 @@ export const styles: Style[] = [
 
 export function ShopByStyleSection() {
   return (
-    <section className="bg-primary container">
-      <h2 className="heading-lg text-primary mb-12">SHOP BY STYLE</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center">
+    <section>
+      <h2 className="heading-md uppercase text-gray-900 mb-8 text-center">SHOP BY STYLE</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center overflow-hidden rounded-xl border border-gray-100">
         <div className="py-[52px] px-[58px] h-full border rounded-sm">
           {styles.map((style) => (
             <LocalizedClientLink

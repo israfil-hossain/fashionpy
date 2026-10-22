@@ -28,6 +28,8 @@ import { ProductFilter } from './ProductFilter/ProductFilter';
 import { ProductPageDetails } from './ProductPageDetails/ProductPageDetails';
 import { SellerRatingFilter } from './SellerRatingFilter/SellerRatingFilter';
 import { SizeFilter } from './SizeFilter/SizeFilter';
+import { WishlistButton } from './WishlistButton/WishlistButton';
+import { WishlistItem } from './WishlistItem/WishlistItem';
 
 export {
   Navbar,
@@ -59,5 +61,7 @@ export {
   OrderAddresses,
   OrderProductListItem,
   OrderTimeline,
-  ProductAdditionalAttributes
+  ProductAdditionalAttributes,
+  WishlistButton,
+  WishlistItem
 };

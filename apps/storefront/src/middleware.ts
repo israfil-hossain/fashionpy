@@ -4,9 +4,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PROTECTED_ROUTES } from './lib/constants';
 import { isTokenExpired } from './lib/helpers/token';
 
+// Force middleware to run on Node.js runtime (required for fetch API)
+export const runtime = 'nodejs';
+
 const BACKEND_URL = process.env.MEDUSA_BACKEND_URL;
 const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || 'us';
+const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || 'bd';
 
 const makeAuthRedirect = (
   req: NextRequest,
@@ -42,24 +45,19 @@ async function getRegionMap(cacheId: string) {
 
   if (!regionMap.keys().next().value || regionMapUpdated < Date.now() - 3600 * 1000) {
     // We can't use the JS client here because middleware is running on Edge and the client needs a Node environment.
-    const { regions } = await fetch(`${BACKEND_URL}/store/regions`, {
+    const url = `${BACKEND_URL}/store/regions`;
+    const response = await fetch(url, {
       headers: {
         'x-publishable-api-key': PUBLISHABLE_API_KEY!
-      },
-      next: {
-        revalidate: 3600,
-        tags: [`regions-${cacheId}`]
-      },
-      cache: 'force-cache'
-    }).then(async response => {
-      const json = await response.json();
-
-      if (!response.ok) {
-        throw new Error(json.message);
       }
-
-      return json;
     });
+    const json = await response.json();
+
+    if (!response.ok) {
+      throw new Error(json.message);
+    }
+
+    const { regions } = json;
 
     if (!regions?.length) {
       throw new Error('No regions found. Please set up regions in your Medusa Admin.');

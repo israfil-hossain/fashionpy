@@ -14,6 +14,25 @@ session detail aggressively. The per-spec source of truth lives in
   `bun run test:integration:http -- <pattern>`
 - **Current blocker**: none
 
+## Session — Bangladesh / BDT default (branch work in progress, uncommitted)
+
+Platform now defaults to Bangladesh + BDT end to end. Seeds (`apps/api/src/scripts/seed.ts` +
+`templates/basic/packages/api/src/scripts/seed.ts`): countries `["bd"]`, store
+`supported_currencies = [bdt (default)]`, region "Bangladesh" (`currency_code: bdt`), demo seller
+addresses in BD cities, sellers `currency_code: bdt`, shipping prices `bdt 150`, offer prices
+scaled to BDT via `BDT_SCALE = 130` (catalog EUR-scale numbers → realistic ৳, e.g. 155 → ৳20,150);
+removed the usd/eur dual-price rows. Storefront: `NEXT_PUBLIC_DEFAULT_REGION=bd` (.env +
+.env.template), middleware/hreflang/region-map fallbacks → `bd`, all `|| "eur"`/`|| "usd"`
+currency fallbacks → `bdt`, added `bd: "en-BD"` hreflang. Dashboards: `USD`/`usd` display
+fallbacks → `bdt`/`BDT` in admin+vendor cell renderers, table-display-utils, order/customer
+tables, promotion create/edit forms (incl. `getCurrencySymbol` fallback). Not touched: payment
+provider (stays `pp_system_default`, manual — Stripe unavailable in BD), no VAT seeding, no `bn`
+translations. Verified: `bun run build` (12/12), `bun run lint` (no new errors vs baseline),
+fresh-DB migrate+seed on scratch DB (store/region/sellers/offers all bdt, region country bd),
+`test:unit` (only pre-existing codegen-module-service failure), `test:integration:http --
+"currencies|regions|store-info"` (21/21). Full http suite run in progress at session end.
+Uncommitted; parallel sessions had wishlist/branding work in tree — left untouched.
+
 ## Session — Panel auth collision, branch `fix/panel-auth-session-collision`
 
 Admin and vendor panels shared one API session cookie, so logging in to one logged the other out.

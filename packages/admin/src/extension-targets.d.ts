@@ -181,6 +181,7 @@ declare module "@mercurjs/dashboard-sdk" {
     "settings/commissions": true
     "settings/locations": true
     "settings/marketplace": true
+    "settings/marketplace/banners": true
     "settings/offer-conditions": true
     "settings/product-tags": true
     "settings/product-types": true

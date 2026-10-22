@@ -3,6 +3,7 @@ import { validateAndTransformQuery } from "@medusajs/framework"
 
 import { resolvePermissionsMiddleware } from "../utils"
 import { enforceCoreRoutePermissions } from "./core-route-permissions"
+import { adminHeroBannersMiddlewares } from "./hero-banners/middlewares"
 import { adminOrderGroupsMiddlewares } from "./order-groups/middlewares"
 import { adminOrderGroupQueryConfig } from "./order-groups/query-config"
 import { AdminGetOrderGroupParams } from "./order-groups/validators"
@@ -39,6 +40,7 @@ export const adminMiddlewares: MiddlewareRoute[] = [
       enforceCoreRoutePermissions,
     ],
   },
+  ...adminHeroBannersMiddlewares,
   ...adminOrderGroupsMiddlewares,
   {
     method: ["GET"],

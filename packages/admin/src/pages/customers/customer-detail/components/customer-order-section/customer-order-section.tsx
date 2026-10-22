@@ -81,7 +81,7 @@ function transformOrderGroups(
   return orderGroups.map((group) => {
     const orders = group.orders ?? []
     const orderIds = orders.map((o: any) => `#${o.display_id}`).join(", ")
-    const currencyCode = orders[0]?.currency_code ?? "usd"
+    const currencyCode = orders[0]?.currency_code ?? "bdt"
 
     const children: OrderGroupRow[] = orders.map((order: any) => ({
       _type: "order" as const,
@@ -94,7 +94,7 @@ function transformOrderGroups(
       payment_status: order.payment_status ?? null,
       fulfillment_status: order.fulfillment_status ?? null,
       total: order.total ?? null,
-      currency_code: order.currency_code ?? "usd",
+      currency_code: order.currency_code ?? "bdt",
       children: [],
     }))
 

@@ -404,6 +404,11 @@ export const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
 
   return [
     {
+      icon: <ReceiptPercent />,
+      label: t("analytics.title", "Analytics"),
+      to: "/analytics",
+    },
+    {
       icon: <ShoppingCart />,
       label: t("orders.domain"),
       to: "/orders",
@@ -486,6 +491,12 @@ export const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
       icon: <Star />,
       label: t("reviews.domain"),
       to: "/reviews",
+    },
+    {
+      icon: <Users />,
+      label: t("users.domain"),
+      to: "/settings/users",
+      permissions: "members:view",
     },
   ];
 };

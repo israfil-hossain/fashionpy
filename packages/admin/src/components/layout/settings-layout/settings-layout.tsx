@@ -82,6 +82,10 @@ const useSettingRoutes = (): INavItem[] => {
         to: "/settings/marketplace",
       },
       {
+        label: t("marketplace.banners.domain"),
+        to: "/settings/marketplace/banners",
+      },
+      {
         label: t("users.domain"),
         to: "/settings/users",
       },

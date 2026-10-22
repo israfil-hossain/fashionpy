@@ -4,8 +4,8 @@ import Image from "next/image"
 
 export const BannerSection = () => {
   return (
-    <section className="bg-tertiary container text-tertiary">
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center">
+    <section>
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center overflow-hidden rounded-xl border border-gray-100">
         <div className="py-6 px-6 flex flex-col h-full justify-between border border-secondary rounded-sm">
           <div className="mb-8 lg:mb-48">
             <span className="text-sm inline-block px-4 py-1 border border-secondary rounded-sm">

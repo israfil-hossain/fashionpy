@@ -2994,6 +2994,41 @@
     "edit": {
       "header": "Edit Marketplace",
       "namePlaceholder": "ACME"
+    },
+    "announcement": {
+      "header": "Announcement",
+      "enabled": "Enabled",
+      "message": "Message",
+      "messagePlaceholder": "e.g. Free Shipping on orders over {amount}",
+      "amountLabel": "Amount threshold",
+      "linkLabel": "Link label",
+      "linkHrefLabel": "Link URL",
+      "linkHrefPlaceholder": "e.g. /collections/sale",
+      "startsAt": "Starts at",
+      "startsAtPlaceholder": "Select start date",
+      "endsAt": "Ends at",
+      "endsAtPlaceholder": "Select end date",
+      "toast_update": "Announcement updated"
+    },
+    "banners": {
+      "domain": "Banners",
+      "header": "Hero Banners",
+      "empty": "No banners yet",
+      "create": "Create banner",
+      "title": "Title",
+      "subtitle": "Subtitle",
+      "description": "Description",
+      "image": "Image",
+      "ctaText": "CTA text",
+      "ctaLink": "CTA link",
+      "textPosition": "Text position",
+      "isActive": "Active",
+      "rank": "Rank",
+      "startsAt": "Starts at",
+      "endsAt": "Ends at",
+      "toast_create": "Banner created",
+      "toast_update": "Banner updated",
+      "toast_delete": "Banner deleted"
     }
   },
   "store": {

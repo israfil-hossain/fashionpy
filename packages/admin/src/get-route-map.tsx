@@ -91,6 +91,15 @@ export function getRouteMap({
                 lazy: () => import("./pages/home"),
               },
               {
+                path: "/analytics",
+                errorElement: <ErrorBoundary />,
+                handle: {
+                  breadcrumb: () => t("analytics.title", "Analytics"),
+                  permissions: "orders:view",
+                },
+                lazy: () => import("./pages/analytics"),
+              },
+              {
                 path: "/products",
                 errorElement: <ErrorBoundary />,
                 handle: {
@@ -1415,6 +1424,12 @@ export function getRouteMap({
                         handle: { permissions: "store:edit" },
                         lazy: () =>
                           import("./pages/marketplace/marketplace-metadata"),
+                      },
+                      {
+                        path: "banners",
+                        handle: { permissions: "store:view" },
+                        lazy: () =>
+                          import("./pages/marketplace/marketplace-hero-banners"),
                       },
                     ],
                   },

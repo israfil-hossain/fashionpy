@@ -511,6 +511,25 @@ export type Routes = {
                 subscribe: typeof import("@medusajs/medusa/api/admin/workflows-executions/[workflow_id]/subscribe/route");
             };
         };
+        analytics: typeof import("../src/api/admin/analytics/route");
+        fp: {
+            analytics: typeof import("../src/api/admin/fp/analytics/route");
+            bundles: typeof import("../src/api/admin/fp/bundles/route") & {
+                $id: typeof import("../src/api/admin/fp/bundles/[id]/route") & {
+                    approve: typeof import("../src/api/admin/fp/bundles/[id]/approve/route");
+                };
+            };
+            funding: {
+                reports: typeof import("../src/api/admin/fp/funding/reports/route");
+            };
+            loyalty: {
+                adjustments: typeof import("../src/api/admin/fp/loyalty/adjustments/route");
+            };
+            rewardRules: typeof import("../src/api/admin/fp/reward-rules/route");
+        };
+        heroBanners: typeof import("../src/api/admin/hero-banners/route") & {
+            $id: typeof import("../src/api/admin/hero-banners/[id]/route");
+        };
         offerConditions: typeof import("../src/api/admin/offer-conditions/route") & {
             $id: typeof import("../src/api/admin/offer-conditions/[id]/route");
         };
@@ -647,9 +666,32 @@ export type Routes = {
                 calculate: typeof import("@medusajs/medusa/api/store/shipping-options/[id]/calculate/route");
             };
         };
+        fp: {
+            bundles: typeof import("../src/api/store/fp/bundles/route") & {
+                $id: typeof import("../src/api/store/fp/bundles/[id]/route");
+            };
+            products: {
+                $id: {
+                    recommendations: typeof import("../src/api/store/fp/products/[id]/recommendations/route");
+                };
+            };
+            promotions: {
+                validate: typeof import("../src/api/store/fp/promotions/validate/route");
+            };
+            rewards: typeof import("../src/api/store/fp/rewards/route") & {
+                catalog: typeof import("../src/api/store/fp/rewards/catalog/route");
+                estimate: typeof import("../src/api/store/fp/rewards/estimate/route");
+                reservations: typeof import("../src/api/store/fp/rewards/reservations/route") & {
+                    $id: typeof import("../src/api/store/fp/rewards/reservations/[id]/route");
+                };
+                transactions: typeof import("../src/api/store/fp/rewards/transactions/route");
+            };
+        };
+        heroBanners: typeof import("../src/api/store/hero-banners/route");
         reviews: typeof import("../src/api/store/reviews/route") & {
             $id: typeof import("../src/api/store/reviews/[id]/route");
         };
+        storeSettings: typeof import("../src/api/store/store-settings/route");
     };
     vendor: {
         campaigns: typeof import("../src/api/vendor/campaigns/route") & {
@@ -937,6 +979,15 @@ export type Routes = {
         };
         stores: typeof import("../src/api/vendor/stores/route");
         uploads: typeof import("../src/api/vendor/uploads/route");
+        analytics: typeof import("../src/api/vendor/analytics/route");
+        fp: {
+            analytics: typeof import("../src/api/vendor/fp/analytics/route");
+            bundles: typeof import("../src/api/vendor/fp/bundles/route") & {
+                $id: typeof import("../src/api/vendor/fp/bundles/[id]/route");
+            };
+            fundingSummary: typeof import("../src/api/vendor/fp/funding-summary/route");
+            promotions: typeof import("../src/api/vendor/fp/promotions/route");
+        };
         offerConditions: typeof import("../src/api/vendor/offer-conditions/route") & {
             $id: typeof import("../src/api/vendor/offer-conditions/[id]/route");
         };

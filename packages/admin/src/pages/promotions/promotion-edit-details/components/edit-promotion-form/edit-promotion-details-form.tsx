@@ -509,10 +509,10 @@ return (
                   name="value"
                   render={({ field: { onChange, ...field } }) => {
                     const currencyCode =
-                      promotion.application_method?.currency_code ?? "USD"
+                      promotion.application_method?.currency_code ?? "bdt"
 
                     const currencyInfo =
-                      currencies[currencyCode?.toUpperCase() || "USD"]
+                      currencies[currencyCode?.toUpperCase() || "BDT"]
 
                     return (
                       <Form.Item data-testid="promotion-edit-details-form-value-item">

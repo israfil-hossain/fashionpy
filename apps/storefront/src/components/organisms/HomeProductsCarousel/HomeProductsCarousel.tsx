@@ -2,6 +2,7 @@ import { Carousel } from "@/components/cells"
 import { ProductCard } from "../ProductCard/ProductCard"
 import { listProducts } from "@/lib/data/products"
 import { Product } from "@/types/product"
+import { HttpTypes } from "@medusajs/types"
 
 export const HomeProductsCarousel = async ({
   locale,
@@ -9,7 +10,7 @@ export const HomeProductsCarousel = async ({
   home,
 }: {
   locale: string
-  sellerProducts: Product[]
+  sellerProducts: HttpTypes.StoreProduct[] | Product[]
   home: boolean
 }) => {
   const {
@@ -18,7 +19,7 @@ export const HomeProductsCarousel = async ({
     countryCode: locale,
     queryParams: {
       limit: home ? 4 : undefined,
-      order: "created_at",
+      order: home ? "-created_at" : "created_at",
       handle: home
         ? undefined
         : sellerProducts.map((product) => product.handle),
@@ -36,6 +37,7 @@ export const HomeProductsCarousel = async ({
             <ProductCard
               key={product.id}
               product={product}
+              className="min-w-[260px] sm:min-w-[280px]"
             />
           )
         )}

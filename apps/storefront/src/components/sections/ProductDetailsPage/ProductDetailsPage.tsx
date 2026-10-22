@@ -4,6 +4,7 @@ import { listOffers } from "@/lib/data/offers"
 import { StoreOffer } from "@/lib/helpers/buybox"
 import { HomeProductSection } from "../HomeProductSection/HomeProductSection"
 import NotFound from "@/app/not-found"
+import { RecentlyViewedSection } from "@/components/sections/RecentlyViewed/RecentlyViewedSection"
 
 export const ProductDetailsPage = async ({
   handle,
@@ -19,7 +20,7 @@ export const ProductDetailsPage = async ({
 
   if (!prod) return null
 
-  if (prod.seller?.store_status === "SUSPENDED") {
+  if (prod.store_status === "SUSPENDED") {
     return NotFound()
   }
 
@@ -48,6 +49,7 @@ export const ProductDetailsPage = async ({
           products={prod.seller?.products}
           locale={locale}
         />
+        <RecentlyViewedSection recordedIds={[prod.id]} />
       </div>
     </>
   )

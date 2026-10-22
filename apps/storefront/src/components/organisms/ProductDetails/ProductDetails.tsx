@@ -8,6 +8,8 @@ import {
 } from "@/components/cells"
 
 import { retrieveCustomer } from "@/lib/data/customer"
+import { getUserWishlists } from "@/lib/data/wishlist"
+import { Wishlist } from "@/types/wishlist"
 import {
   getBuyboxWinner,
   rankOffers,
@@ -29,6 +31,16 @@ export const ProductDetails = async ({
 }) => {
   const user = await retrieveCustomer()
 
+  let wishlist: Wishlist[] = []
+  if (user) {
+    try {
+      const response = await getUserWishlists()
+      wishlist = response.wishlists
+    } catch {
+      wishlist = []
+    }
+  }
+
   // Master products have no seller; the seller shown comes from the buybox
   // winning offer.
   const seller = getBuyboxWinner(rankOffers(offers))?.seller
@@ -41,6 +53,7 @@ export const ProductDetails = async ({
         user={user}
         offers={offers}
         seller={seller}
+        wishlist={wishlist}
       />
       <ProductPageDetails details={product?.description || ""} />
       <ProductAdditionalAttributes

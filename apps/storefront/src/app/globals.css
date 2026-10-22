@@ -196,3 +196,20 @@ button:disabled svg path {
 .no-arrows-number-input {
   -moz-appearance: textfield;
 }
+
+/* Header nav row on the brand header background */
+.nav-brand nav > a,
+.nav-brand nav > div > a {
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 150ms ease;
+}
+.nav-brand nav > a:hover,
+.nav-brand nav > div > a:hover,
+.nav-brand nav > a.border-b,
+.nav-brand nav > div > a.border-b {
+  color: #ffffff;
+}
+.nav-brand nav > a.border-b,
+.nav-brand nav > div > a.border-b {
+  border-color: #ffffff;
+}

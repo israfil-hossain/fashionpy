@@ -32,6 +32,8 @@ export default defineConfig(({ mode }) => {
       mercurDashboardPlugin({
         medusaConfigPath: '../api/medusa-config.ts',
         ...(backendUrl ? { backendUrl } : {}),
+        name: 'FashionPy',
+        logo: '/f_logo.png',
       }),
     ],
   }

@@ -16,7 +16,7 @@ const getItemCount = (cart: HttpTypes.StoreCart | null) => {
   return cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0
 }
 
-export const CartDropdown = () => {
+export const CartDropdown = ({ iconColor }: { iconColor?: string }) => {
   const { cart } = useCartContext()
   const [open, setOpen] = useState(false)
 
@@ -28,22 +28,22 @@ export const CartDropdown = () => {
 
   const total = convertToLocale({
     amount: cart?.total || 0,
-    currency_code: cart?.currency_code || "eur",
+    currency_code: cart?.currency_code || "bdt",
   })
 
   const delivery = convertToLocale({
     amount: cart?.shipping_subtotal || 0,
-    currency_code: cart?.currency_code || "eur",
+    currency_code: cart?.currency_code || "bdt",
   })
 
   const tax = convertToLocale({
     amount: cart?.tax_total || 0,
-    currency_code: cart?.currency_code || "eur",
+    currency_code: cart?.currency_code || "bdt",
   })
 
   const items = convertToLocale({
     amount: cart?.item_subtotal || 0,
-    currency_code: cart?.currency_code || "eur",
+    currency_code: cart?.currency_code || "bdt",
   })
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export const CartDropdown = () => {
         className="relative"
         aria-label="Go to cart"
       >
-        <CartIcon size={20} />
+        <CartIcon size={20} color={iconColor} />
         {Boolean(cartItemsCount) && (
           <Badge className="absolute -top-2 -right-2 w-4 h-4 p-0">
             {cartItemsCount}
@@ -95,7 +95,7 @@ export const CartDropdown = () => {
                     <CartDropdownItem
                       key={item.id ?? index}
                       item={item}
-                      currency_code={cart?.currency_code || "eur"}
+                      currency_code={cart?.currency_code || "bdt"}
                     />
                   ))}
                 </div>

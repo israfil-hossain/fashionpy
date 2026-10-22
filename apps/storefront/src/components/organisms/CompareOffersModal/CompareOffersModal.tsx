@@ -100,7 +100,7 @@ export const CompareOffersModal = ({
                     ? convertToLocale({
                         amount,
                         currency_code:
-                          offer.calculated_price?.currency_code || "eur",
+                          offer.calculated_price?.currency_code || "bdt",
                       })
                     : "—"}
                 </span>

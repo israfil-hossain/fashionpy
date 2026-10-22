@@ -21,7 +21,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "dev": "tsup --watch",
+    "dev": "NODE_OPTIONS=--max-old-space-size=8192 tsup --watch",
     "build": "tsup"
   },
   "peerDependencies": {

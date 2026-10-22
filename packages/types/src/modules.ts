@@ -12,4 +12,6 @@ export enum MercurModules {
     CODEGEN = "codegen",
     PROMOTION_COST = "promotion_cost",
     REVIEW = "review",
+    HERO_BANNER = "hero_banner",
+    FP = "fp",
 }

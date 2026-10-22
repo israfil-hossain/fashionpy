@@ -2038,3 +2038,54 @@ export function MessageIcon({
     </svg>
   );
 }
+
+export function TikTokIcon({
+  color = '#000000',
+  size = 24,
+  className = '',
+}: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox='0 0 24 24'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+      className={className}
+      aria-hidden='true'
+    >
+      <path
+        d='M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 2C15.1 2 18 4.9 18 9C18 11.0895 15.0895 14 12 14C8.9105 14 6 11.0895 6 9C6 4.9 9.1 2 12 2Z'
+        stroke={color}
+        fill={color}
+        strokeWidth='1.5'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  );
+}
+
+export function WhatsAppIcon({
+  color = '#000000',
+  size = 24,
+  className = '',
+}: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox='0 0 24 24'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+      className={className}
+      aria-hidden='true'
+    >
+      <path
+        d='M22.51 7.5c-.317.007-.634.01-.951.01-1.1.033-1.73.2-2.197.12-.1-.016-.217-.024-.324-.024-.5 0-.65.08-.78.25-.1.11-.2.17-.2.1 0 .2.08.2.1l7.02 7c.11.11.11.26 0 .38l-7.02 7c-.1.11-.2.17-.2.1H5c-.552 0-1.023.448-1.08.983l-.054.548a1.042 1.042 0 00-.03 1.005c0 .632.427 1.163.95 1.305.293.085.526.128.76.1l7.076-7.076c.443-.442.443-1.162 0-1.604Z'
+        fill={color}
+        stroke='none'
+      />
+    </svg>
+  );
+}

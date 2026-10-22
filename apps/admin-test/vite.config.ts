@@ -10,13 +10,15 @@ export default defineConfig(({ mode }) => {
   const vendorUrl =
     env.VITE_MERCUR_VENDOR_URL || env.MERCUR_VENDOR_URL
 
-  return {
+return {
     plugins: [
       react(),
       mercurDashboardPlugin({
         medusaConfigPath: '../api/medusa-config.ts',
         ...(backendUrl ? { backendUrl } : {}),
         ...(vendorUrl ? { vendorUrl } : {}),
+        name: 'FashionPy',
+        logo: '/f_logo.png',
       }),
     ],
   }

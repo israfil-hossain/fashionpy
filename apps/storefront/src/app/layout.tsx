@@ -12,14 +12,25 @@ import { Providers } from './providers';
 
 export const metadata: Metadata = {
   title: {
-    template: `%s | ${
-      process.env.NEXT_PUBLIC_SITE_NAME || 'Mercur B2C Demo - Marketplace Storefront'
-    }`,
-    default: process.env.NEXT_PUBLIC_SITE_NAME || 'Mercur B2C Demo - Marketplace Storefront'
+    template: `%s | ${process.env.NEXT_PUBLIC_SITE_NAME || 'FashionPy'}`,
+    default: process.env.NEXT_PUBLIC_SITE_NAME || 'FashionPy'
   },
   description:
-    process.env.NEXT_PUBLIC_SITE_DESCRIPTION || 'Mercur B2C Demo - Marketplace Storefront',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000')
+    process.env.NEXT_PUBLIC_SITE_DESCRIPTION ||
+    'FashionPy - Your marketplace for fashion, beauty and lifestyle products',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+  alternates: {
+    languages: {
+      'x-default': process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    }
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/f_logo.svg', type: 'image/svg+xml' }
+    ],
+    apple: '/f_logo.svg'
+  }
 };
 
 export default async function RootLayout({

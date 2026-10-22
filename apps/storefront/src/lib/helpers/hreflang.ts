@@ -27,18 +27,19 @@ export const toHreflang = (code: string): string => {
     hk: "zh-HK",
     sg: "en-SG",
     my: "ms-MY",
+    bd: "en-BD",
   }
   return map[code] || code
 }
 
-const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "us"
+const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "bd"
 
 // The storefront serves every page under a locale prefix (/de, /se, ...);
 // requests without one are 307-redirected by the middleware. x-default must
 // therefore resolve to a locale that actually returns 200, never the bare path.
 export const resolveXDefaultLocale = (locales: string[]): string => {
   if (!locales.length) return DEFAULT_REGION
-  for (const preferred of [DEFAULT_REGION, "us", "gb"]) {
+  for (const preferred of [DEFAULT_REGION, "bd", "us"]) {
     if (locales.includes(preferred)) return preferred
   }
   return locales[0]

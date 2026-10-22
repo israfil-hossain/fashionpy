@@ -38,7 +38,13 @@ export const normalizeProductFormValues = (
     collection_id: values.collection_id || undefined,
     categories: values.category_id ? [{ id: values.category_id }] : undefined,
     type_id: values.type_id || undefined,
-    handle: values.handle?.trim(),
+    handle: values.handle?.trim()
+      ? values.handle
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || undefined
+      : undefined,
     origin_country: values.origin_country || undefined,
     material: values.material || undefined,
     mid_code: values.mid_code || undefined,

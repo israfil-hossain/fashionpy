@@ -581,7 +581,7 @@ const Root = ({ currentTemplate }: PromotionDetailsTabProps) => {
                   form.getValues().application_method.currency_code;
 
                 const currencyInfo =
-                  currencies[currencyCode?.toUpperCase() || "USD"];
+                  currencies[currencyCode?.toUpperCase() || "BDT"];
 
                 return (
                   <Form.Item data-testid="promotion-create-form-value-item">
@@ -601,14 +601,14 @@ const Root = ({ currentTemplate }: PromotionDetailsTabProps) => {
                         <CurrencyInput
                           {...field}
                           min={0}
-                          code={currencyCode || "USD"}
+                          code={currencyCode || "BDT"}
                           onValueChange={(_value, _name, values) =>
                             onChange(values?.value)
                           }
                           decimalScale={currencyInfo?.decimal_digits ?? 2}
                           decimalsLimit={currencyInfo?.decimal_digits ?? 2}
                           symbol={
-                            currencyCode ? getCurrencySymbol(currencyCode) : "$"
+                            currencyCode ? getCurrencySymbol(currencyCode) : getCurrencySymbol("bdt")
                           }
                           value={value}
                           disabled={!currencyCode}

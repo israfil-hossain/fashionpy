@@ -1,5 +1,6 @@
 import { HttpTypes } from "@medusajs/types"
-import { CategoryNavbar, NavbarSearch } from "@/components/molecules"
+import { CategoryNavbar } from "@/components/molecules"
+import { ParentCategoryLinks } from "@/components/molecules/ParentCategoryLinks/ParentCategoryLinks"
 
 export const Navbar = ({
   categories,
@@ -9,18 +10,19 @@ export const Navbar = ({
   parentCategories: HttpTypes.StoreProductCategory[]
 }) => {
   return (
-    <div className="flex flex-col lg:flex-row border py-4 justify-between px-4 md:px-5 gap-4 md:gap-0" data-testid="navbar">
-      <div className="hidden lg:flex items-center justify-between w-full">
+    <div
+      className="hidden lg:flex h-10 items-center border-t border-white/15 bg-[rgb(var(--brand-500))] px-4 lg:px-16 nav-brand"
+      data-testid="navbar"
+    >
+      <div className="flex items-center gap-4 mx-auto">
+        <ParentCategoryLinks
+          parentCategories={parentCategories}
+          categories={categories}
+        />
         <CategoryNavbar
           categories={categories}
           parentCategories={parentCategories}
         />
-        <div className="ml-auto max-w-[296px] w-full pl-4" data-testid="navbar-search-desktop">
-          <NavbarSearch />
-        </div>
-      </div>
-      <div className="lg:hidden max-w-[296px] w-full" data-testid="navbar-search-mobile">
-        <NavbarSearch className="max-w-[296px]" />
       </div>
     </div>
   )

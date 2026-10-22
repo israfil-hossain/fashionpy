@@ -76,7 +76,9 @@ export default async function seedDemoData({ container }: ExecArgs) {
   const salesChannelModuleService = container.resolve(Modules.SALES_CHANNEL);
   const storeModuleService = container.resolve(Modules.STORE);
 
-  const countries = ["gb", "de", "dk", "se", "fr", "es", "it"];
+  const countries = ["bd"];
+// Demo prices in seed-catalog are EUR-scale (e.g. 155); 1 EUR ~ 130 BDT.
+// Demo prices in seed-catalog are EUR-scale (e.g. 155); 1 EUR ~ 130 BDT.
 
   logger.info("Seeding store data...");
   const [store] = await storeModuleService.listStores();
@@ -104,8 +106,11 @@ export default async function seedDemoData({ container }: ExecArgs) {
       store_id: store.id,
       supported_currencies: [
         {
-          currency_code: "eur",
+          currency_code: "bdt",
           is_default: true,
+        },
+        {
+          currency_code: "eur",
         },
         {
           currency_code: "usd",
@@ -114,16 +119,27 @@ export default async function seedDemoData({ container }: ExecArgs) {
     },
   });
 
-  await updateStoresWorkflow(container).run({
-    input: {
-      selector: { id: store.id },
-      update: {
-        name: 'Mercur Marketplace',
-        default_sales_channel_id: defaultSalesChannel[0].id,
+await updateStoresWorkflow(container).run({
+      input: {
+        selector: { id: store.id },
+        update: {
+          name: 'Mercur Marketplace',
+          default_sales_channel_id: defaultSalesChannel[0].id,
+          metadata: {
+            announcement: {
+              enabled: true,
+              message: "Free Shipping on orders over {amount}",
+              amount: 6500,
+              link_label: "Shop Now",
+              link_href: null,
+              starts_at: null,
+              ends_at: null,
+            },
+          },
+        },
       },
-    },
-  });
-  logger.info("Seeding region data...");
+    });
+    logger.info("Seeding region data...");
   const regionModuleService = container.resolve(Modules.REGION);
 
   const existingRegions = await regionModuleService.listRegions({}, {

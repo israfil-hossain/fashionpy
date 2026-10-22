@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter='!@mercurjs/core' --filter='!@mercurjs/dashboard-sdk' --filter='!@mercurjs/dashboard-shared'",
     "lint": "oxlint --quiet",
     "test:unit": "cd integration-tests && bun run test:unit",
     "test:integration:http": "cd integration-tests && bun run test:integration:http"
@@ -15,7 +15,7 @@
     "@eslint/js": "^10.0.1",
     "eslint": "^10.6.0",
     "globals": "^17.0.0",
-    "oxlint": "^1.64.0",
+    "oxlint": "1.67.0",
     "pg-god": "^1.0.12",
     "prettier": "^3.7.4",
     "turbo": "^2.7.4",

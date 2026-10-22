@@ -86,7 +86,7 @@ const CreateProductVariant = z
     metadata: z.record(z.string(), z.unknown()).optional(),
     options: z.record(z.string(), z.string()).optional(),
   })
-  .strict()
+  // .strict() removed to tolerate extra client fields
 
 const UpdateProductVariant = z
   .object({
@@ -129,8 +129,8 @@ const UnifiedProductAttributeInput = z.union([
       id: z.string(),
       value_ids: z.array(z.string()).optional(),
       value: AttributeScalar.optional(),
-    })
-    .strict(),
+    }),
+  // .strict() removed
   z
     .object({
       title: z.string().min(1),
@@ -142,8 +142,8 @@ const UnifiedProductAttributeInput = z.union([
       is_required: z.boolean().optional(),
       description: z.string().nullish(),
       metadata: z.record(z.string(), z.unknown()).nullish(),
-    })
-    .strict(),
+    }),
+    // .strict() removed
 ])
 
 export type VendorCreateProductType = z.infer<typeof CreateProduct> &
@@ -179,7 +179,7 @@ const CreateProduct = z
     material: z.string().optional(),
     metadata: z.record(z.string(), z.unknown()).optional(),
   })
-  .strict()
+  // .strict() removed to tolerate extra client fields
 export const VendorCreateProduct = WithAdditionalData(CreateProduct, (schema) =>
   // `WithAdditionalData`'s modifyCallback is typed to return a `ZodObject`
   // (Medusa 2.16 moved its framework zod to v4); `.superRefine` yields a
@@ -361,7 +361,7 @@ const VendorBatchAttributeAdd = z.union([
       description: z.string().nullish(),
       metadata: z.record(z.string(), z.unknown()).nullish(),
     })
-    .strict()
+    // .strict() removed
     .refine(
       (v) => !v.is_variant_axis || (v.type ?? "multi_select") === "multi_select",
       {

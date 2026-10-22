@@ -25,7 +25,7 @@ export const OfferCard = ({
   const productName = String(product?.title || "Product")
 
   const amount = getOfferAmount(offer)
-  const currency = offer.calculated_price?.currency_code || cart?.currency_code || "eur"
+  const currency = offer.calculated_price?.currency_code || cart?.currency_code || "bdt"
   const stock = getOfferStock(offer)
 
   const hasPrice = amount !== null

@@ -417,6 +417,11 @@ const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
 
   return [
     {
+      icon: <ReceiptPercent />,
+      label: t("analytics.title", "Analytics"),
+      to: "/analytics",
+    },
+    {
       icon: <ShoppingCart />,
       label: t("orders.domain"),
       to: "/orders",

@@ -238,7 +238,9 @@ export default async function seedDemoData({ container }: ExecArgs) {
   const salesChannelModuleService = container.resolve(Modules.SALES_CHANNEL);
   const storeModuleService = container.resolve(Modules.STORE);
 
-  const countries = ["gb", "de", "dk", "se", "fr", "es", "it"];
+  const countries = ["bd"];
+  // Demo prices in seed-catalog are EUR-scale (e.g. 155); 1 EUR ~ 130 BDT.
+  const BDT_SCALE = 130;
 
   logger.info("Seeding store data...");
   const [store] = await storeModuleService.listStores();
@@ -266,22 +268,30 @@ export default async function seedDemoData({ container }: ExecArgs) {
       store_id: store.id,
       supported_currencies: [
         {
-          currency_code: "eur",
+          currency_code: "bdt",
           is_default: true,
-        },
-        {
-          currency_code: "usd",
         },
       ],
     },
   });
 
-  await updateStoresWorkflow(container).run({
+await updateStoresWorkflow(container).run({
     input: {
       selector: { id: store.id },
       update: {
         name: 'Mercur Marketplace',
         default_sales_channel_id: defaultSalesChannel[0].id,
+        metadata: {
+          announcement: {
+            enabled: true,
+            message: "Free Shipping on orders over {amount}",
+            amount: 6500,
+            link_label: "Shop Now",
+            link_href: null,
+            starts_at: null,
+            ends_at: null,
+          },
+        },
       },
     },
   });
@@ -313,8 +323,8 @@ export default async function seedDemoData({ container }: ExecArgs) {
       input: {
         regions: [
           {
-            name: "Europe",
-            currency_code: "eur",
+            name: "Bangladesh",
+            currency_code: "bdt",
             countries: unassignedCountries,
             payment_providers: ["pp_system_default"],
           },
@@ -327,8 +337,8 @@ export default async function seedDemoData({ container }: ExecArgs) {
       input: {
         regions: [
           {
-            name: "Europe",
-            currency_code: "eur",
+            name: "Bangladesh",
+            currency_code: "bdt",
             countries,
             payment_providers: ["pp_system_default"],
           },
@@ -596,9 +606,9 @@ export default async function seedDemoData({ container }: ExecArgs) {
 
   const SELLER_PASSWORD = "supersecret";
   const SELLER_CONFIGS = [
-    { name: "Sole Society", email: "seller@mercur.dev", first_name: "Demo", last_name: "Seller", city: "Berlin", country_code: "DE", address_1: "Alexanderplatz 1" },
-    { name: "Kickz Corner", email: "kickz@mercur.dev", first_name: "Kai", last_name: "Corner", city: "Amsterdam", country_code: "NL", address_1: "Damrak 12" },
-    { name: "Trailhead Outfitters", email: "trailhead@mercur.dev", first_name: "Tara", last_name: "Head", city: "Munich", country_code: "DE", address_1: "Marienplatz 3" },
+    { name: "Sole Society", email: "seller@mercur.dev", first_name: "Demo", last_name: "Seller", city: "Dhaka", country_code: "BD", address_1: "Gulshan Avenue 1" },
+    { name: "Kickz Corner", email: "kickz@mercur.dev", first_name: "Kai", last_name: "Corner", city: "Chattogram", country_code: "BD", address_1: "Agrabad Road 12" },
+    { name: "Trailhead Outfitters", email: "trailhead@mercur.dev", first_name: "Tara", last_name: "Head", city: "Sylhet", country_code: "BD", address_1: "Zindabazar 3" },
   ];
   const PRIMARY_SELLER_EMAIL = SELLER_CONFIGS[0].email;
 
@@ -685,7 +695,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
         seller: {
           name: sellerConfig.name,
           email: sellerConfig.email,
-          currency_code: "eur",
+          currency_code: "bdt",
           description: `${sellerConfig.name} — a demo marketplace footwear seller.`,
           logo: sellerLogo(sellerConfig.name),
           banner: sellerBanner(sellerConfig.name),
@@ -776,7 +786,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
         data: [
           {
             fulfillment_set_id: fulfillmentSetId,
-            name: `${sellerConfig.name} Europe`,
+            name: `${sellerConfig.name} Bangladesh`,
             geo_zones: countries.map((country_code) => ({
               country_code,
               type: "country" as const,
@@ -805,9 +815,8 @@ export default async function seedDemoData({ container }: ExecArgs) {
               code: "standard",
             },
             prices: [
-              { currency_code: "usd", amount: 10 },
-              { currency_code: "eur", amount: 10 },
-              { region_id: region.id, amount: 10 },
+              { currency_code: "bdt", amount: 150 },
+              { region_id: region.id, amount: 150 },
             ],
             rules: [
               { attribute: "enabled_in_store", value: "true", operator: "eq" },
@@ -826,9 +835,8 @@ export default async function seedDemoData({ container }: ExecArgs) {
               code: "express",
             },
             prices: [
-              { currency_code: "usd", amount: 10 },
-              { currency_code: "eur", amount: 10 },
-              { region_id: region.id, amount: 10 },
+              { currency_code: "bdt", amount: 150 },
+              { region_id: region.id, amount: 150 },
             ],
             rules: [
               { attribute: "enabled_in_store", value: "true", operator: "eq" },
@@ -997,8 +1005,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
         const offerCount = randInt(1, 2);
         for (let o = 0; o < offerCount; o++) {
           const jitter = 1 + (rand() * 0.3 - 0.15); // ±15%
-          const eur = Math.max(1, Math.round(basePrice * jitter));
-          const usd = Math.round(eur * 1.08);
+          const bdt = Math.max(1, Math.round(basePrice * jitter * BDT_SCALE));
           const sku = `OFFER-${seller.id.slice(-4)}-${variant.sku}-${o + 1}`;
           offers.push({
             seller_id: seller.id,
@@ -1018,8 +1025,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
               },
             ],
             prices: [
-              { amount: eur, currency_code: "eur" },
-              { amount: usd, currency_code: "usd" },
+              { amount: bdt, currency_code: "bdt" },
             ],
           });
         }

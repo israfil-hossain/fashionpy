@@ -1,30 +1,34 @@
-import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import Image from "next/image"
+import { HttpTypes } from "@medusajs/types"
 
-export function CategoryCard({
+import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
+
+export const CategoryCard = ({
   category,
+  imageSrc = "/images/placeholder.svg",
 }: {
-  category: { name: string; handle: string }
-}) {
+  category: HttpTypes.StoreProductCategory
+  imageSrc?: string
+}) => {
   return (
-    <LocalizedClientLink
-      href={`/categories/${category.handle}`}
-      className="relative flex flex-col items-center border rounded-sm bg-component transition-all hover:rounded-full w-[233px] aspect-square"
+    <div
+      className="group hover:rounded-lg transition-colors duration-200 w-full bg-gray-100 p-4"
+      data-testid="category-card"
     >
-      <div className="flex relative aspect-square overflow-hidden w-[200px]">
+      <LocalizedClientLink href={`/categories/${category.handle}`}>
         <Image
-          loading="lazy"
-          src={`/images/categories/${category.handle}.png`}
-          alt={`category - ${category.name}`}
+          src={imageSrc}
+          alt={category.name}
           width={200}
           height={200}
-          sizes="(min-width: 1024px) 200px, 40vw"
-          className="object-contain scale-90 rounded-full"
+          className="object-cover rounded-lg mb-3"
+          priority
         />
-      </div>
-      <h3 className="w-full text-center label-lg text-primary">
-        {category.name}
-      </h3>
-    </LocalizedClientLink>
+        <h3 className="text-sm font-medium text-primary">{category.name}</h3>
+        <span className="mt-2 text-blue-600 hover:text-blue-800 transition-colors text-sm">
+          View All
+        </span>
+      </LocalizedClientLink>
+    </div>
   )
 }
