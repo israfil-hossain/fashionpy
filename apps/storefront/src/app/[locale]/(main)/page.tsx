@@ -7,7 +7,9 @@ import {
   TabbedProductGrid,
   NewArrivalsSection,
   BestDealsSection,
-  ShopByStyleSection,
+  CollectionSliderSection,
+  CompanyBannerSlot,
+  OfferPriceSection,
 } from "@/components/sections"
 
 import type { Metadata } from "next"
@@ -149,19 +151,26 @@ export default async function Home({
       />
 
       <HeroCarousel slides={heroSlides} />
-      <div className="px-4 pt-3 lg:px-16">
-        <TrustBarSection />
-      </div>
       <div className="pt-3">
         <CategoryStrip />
       </div>
-      <div className="w-full px-4 pb-10 pt-4 lg:px-16">
+      <div className="px-4 pt-3 lg:px-16">
+        <TrustBarSection />
+      </div>
+      <div className="px-4 pt-5 lg:px-16">
+        <CollectionSliderSection />
+      </div>
+      <div className="space-y-5 px-4 pt-5 lg:px-16">
+        <CompanyBannerSlot slot="company_1" />
+        <OfferPriceSection />
+        <CompanyBannerSlot slot="company_2" />
+      </div>
+      <div className="w-full px-4 pb-10 pt-5 lg:px-16">
         <div className="space-y-10 rounded-xl bg-white px-4 py-6 shadow-sm sm:px-6 lg:px-8">
+          <NewArrivalsSection locale={locale} />
           <BestDealsSection locale={locale} />
           <TabbedProductGrid locale={locale} />
-          <NewArrivalsSection locale={locale} />
           <BannerSection />
-          <ShopByStyleSection />
           <BlogSection />
         </div>
       </div>

@@ -172,7 +172,7 @@ export default async function probeSharedPriceSet({ container }: ExecArgs) {
 
     console.log("\n=== Phase 5: list raw prices on the PriceSet ===")
     const rawPrices = await pricing.listPrices(
-      { price_set_id: priceSetId },
+      { price_set_id: [priceSetId] },
       { relations: ["price_rules"] }
     )
     console.log(

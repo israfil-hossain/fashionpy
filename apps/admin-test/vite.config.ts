@@ -9,8 +9,13 @@ export default defineConfig(({ mode }) => {
     env.VITE_MERCUR_BACKEND_URL || env.MERCUR_BACKEND_URL
   const vendorUrl =
     env.VITE_MERCUR_VENDOR_URL || env.MERCUR_VENDOR_URL
+  // Production builds served by the backend under a sub-path (e.g. /dashboard)
+  // must emit assets relative to that sub-path or they 404 once the backend
+  // strips the route prefix. Defaults to "/" for local dev.
+  const base = env.VITE_BASE_PATH || '/'
 
 return {
+    base,
     plugins: [
       react(),
       mercurDashboardPlugin({

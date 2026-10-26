@@ -1,0 +1,71 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      args:
+        # Baked into the admin/vendor panels at build time — must be the
+        # publicly reachable backend origin (scheme + host, no path).
+        MERCUR_BACKEND_URL: ${MERCUR_BACKEND_URL:?set the public backend origin}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 9000
+      # Panels are served by the backend at /dashboard and /seller.
+      DASHBOARDS_SERVE: "true"
+      ADMIN_UI_APP_DIR: /app/apps/admin-test
+      VENDOR_UI_APP_DIR: /app/apps/vendor
+    ports:
+      - "${API_PORT:-9000}:9000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://localhost:9000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  storefront:
+    build:
+      context: .
+      dockerfile: apps/storefront/Dockerfile
+      args:
+        # NEXT_PUBLIC_* are inlined into the bundle during the image build.
+        MEDUSA_BACKEND_URL: ${MERCUR_BACKEND_URL:?set the public backend origin}
+        NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:?set the publishable key}
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:?set the public storefront origin}
+        NEXT_PUBLIC_DEFAULT_REGION: ${NEXT_PUBLIC_DEFAULT_REGION:-bd}
+        NEXT_PUBLIC_SITE_NAME: ${NEXT_PUBLIC_SITE_NAME:-FashionPy}
+        NEXT_PUBLIC_SITE_DESCRIPTION: ${NEXT_PUBLIC_SITE_DESCRIPTION:-}
+        NEXT_PUBLIC_VENDOR_URL: ${NEXT_PUBLIC_VENDOR_URL:-}
+        NEXT_PUBLIC_STRIPE_KEY: ${NEXT_PUBLIC_STRIPE_KEY:-}
+        REVALIDATE_SECRET: ${REVALIDATE_SECRET:-}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      # Re-read at runtime by server components / revalidation routes.
+      MEDUSA_BACKEND_URL: ${MERCUR_BACKEND_URL}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:-}
+    ports:
+      - "${STOREFRONT_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s

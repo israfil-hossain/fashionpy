@@ -1,9 +1,17 @@
 import { loadEnv } from '@medusajs/framework/utils'
 import { withMercur } from '@mercurjs/core'
+import path from 'path'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379'
+
+// Dashboard panels are served by these modules in production (static dist under
+// /dashboard and /seller). Locally the panels run as Vite dev servers, so the
+// modules stay disabled unless DASHBOARDS_SERVE=true is set explicitly.
+// appDir must point at a directory whose `dist/` contains the built panel.
+const dashboardAppDir = (envVar: string, fallback: string) =>
+  process.env[envVar] || path.join(__dirname, fallback)
 
 module.exports = withMercur({
   projectConfig: {
@@ -25,17 +33,17 @@ module.exports = withMercur({
     {
       resolve: '@mercurjs/core/modules/admin-ui',
       options: {
-        appDir: '',
+        appDir: dashboardAppDir('ADMIN_UI_APP_DIR', '../admin-test'),
         path: '/dashboard',
-        disable: true
+        disable: process.env.DASHBOARDS_SERVE !== 'true',
       }
     },
     {
       resolve: '@mercurjs/core/modules/vendor-ui',
       options: {
-        appDir: '',
+        appDir: dashboardAppDir('VENDOR_UI_APP_DIR', '../vendor'),
         path: '/seller',
-        disable: true
+        disable: process.env.DASHBOARDS_SERVE !== 'true',
       }
     },
     {

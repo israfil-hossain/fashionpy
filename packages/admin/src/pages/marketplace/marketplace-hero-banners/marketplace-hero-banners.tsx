@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 
-import { Button, Container, Heading, Input, Select, Table, Text, toast } from "@medusajs/ui"
+import { Badge, Button, Container, Heading, Input, Select, Table, Text, toast } from "@medusajs/ui"
 import { Plus, Trash, PencilSquare } from "@medusajs/icons"
 
 import { SingleColumnPage } from "../../../components/layout/pages"
@@ -24,6 +24,7 @@ const Schema = z.object({
   cta_text: z.string().optional().nullable(),
   cta_link: z.string().optional().nullable(),
   text_position: z.enum(["left", "center", "right"]).default("left"),
+  slot: z.enum(["hero", "company_1", "company_2", "offer_price"]).default("hero"),
   is_active: z.boolean().default(true),
   rank: z.coerce.number().int().min(0).default(0),
 })
@@ -38,6 +39,7 @@ const empty: FormValues = {
   cta_text: "",
   cta_link: "",
   text_position: "left",
+  slot: "hero",
   is_active: true,
   rank: 0,
 }
@@ -64,6 +66,7 @@ const BannerForm = ({
           cta_text: initial.cta_text ?? "",
           cta_link: initial.cta_link ?? "",
           text_position: initial.text_position ?? "left",
+          slot: initial.slot ?? "hero",
           is_active: initial.is_active ?? true,
           rank: initial.rank ?? 0,
         }
@@ -96,6 +99,7 @@ const BannerForm = ({
         cta_text: values.cta_text || null,
         cta_link: values.cta_link || null,
         text_position: values.text_position,
+        slot: values.slot,
         is_active: values.is_active,
         rank: values.rank,
       }
@@ -176,6 +180,22 @@ const BannerForm = ({
           </Form.Control>
         </Form.Item>
       )} />
+      <Form.Field control={form.control} name="slot" render={({ field }) => (
+        <Form.Item>
+          <Form.Label>{t("marketplace.banners.slot")}</Form.Label>
+          <Form.Control>
+            <Select value={field.value} onValueChange={field.onChange}>
+              <Select.Trigger><Select.Value /></Select.Trigger>
+              <Select.Content>
+                <Select.Item value="hero">{t("marketplace.banners.slotHero")}</Select.Item>
+                <Select.Item value="company_1">{t("marketplace.banners.slotCompany1")}</Select.Item>
+                <Select.Item value="company_2">{t("marketplace.banners.slotCompany2")}</Select.Item>
+                <Select.Item value="offer_price">{t("marketplace.banners.slotOffer")}</Select.Item>
+              </Select.Content>
+            </Select>
+          </Form.Control>
+        </Form.Item>
+      )} />
       <Form.Field control={form.control} name="rank" render={({ field }) => (
         <Form.Item>
           <Form.Label>{t("marketplace.banners.rank")}</Form.Label>
@@ -210,8 +230,22 @@ const Root = () => {
   const { hero_banners, isLoading, isError, error, refetch } = useHeroBanners({ order: "rank" })
   const [editing, setEditing] = useState<any>(null)
   const [creating, setCreating] = useState(false)
+  const [slotFilter, setSlotFilter] = useState<string>("all")
 
   if (isError) throw error
+
+  const slotLabel = (slot?: string) =>
+    slot === "company_1"
+      ? t("marketplace.banners.slotCompany1")
+      : slot === "company_2"
+        ? t("marketplace.banners.slotCompany2")
+        : slot === "offer_price"
+          ? t("marketplace.banners.slotOffer")
+          : t("marketplace.banners.slotHero")
+
+  const visibleBanners = (hero_banners ?? []).filter(
+    (b: any) => slotFilter === "all" || (b.slot ?? "hero") === slotFilter
+  )
 
   const handleDelete = async (id: string) => {
     try {
@@ -226,11 +260,25 @@ const Root = () => {
   return (
     <SingleColumnPage data-testid="hero-banners-page">
       <Container className="divide-y p-0">
-        <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center justify-between gap-4 px-6 py-4">
           <Heading level="h2">{t("marketplace.banners.header")}</Heading>
-          <Button size="small" onClick={() => { setCreating(true); setEditing(null) }}>
-            <Plus /> {t("marketplace.banners.create")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={slotFilter} onValueChange={setSlotFilter}>
+              <Select.Trigger className="w-[220px]" data-testid="banners-slot-filter">
+                <Select.Value />
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Item value="all">{t("marketplace.banners.slotAll")}</Select.Item>
+                <Select.Item value="hero">{t("marketplace.banners.slotHero")}</Select.Item>
+                <Select.Item value="company_1">{t("marketplace.banners.slotCompany1")}</Select.Item>
+                <Select.Item value="company_2">{t("marketplace.banners.slotCompany2")}</Select.Item>
+                <Select.Item value="offer_price">{t("marketplace.banners.slotOffer")}</Select.Item>
+              </Select.Content>
+            </Select>
+            <Button size="small" onClick={() => { setCreating(true); setEditing(null) }}>
+              <Plus /> {t("marketplace.banners.create")}
+            </Button>
+          </div>
         </div>
         {(creating || editing) && (
           <BannerForm
@@ -248,6 +296,7 @@ const Root = () => {
               <Table.Row>
                 <Table.HeaderCell>{t("marketplace.banners.image")}</Table.HeaderCell>
                 <Table.HeaderCell>{t("marketplace.banners.title")}</Table.HeaderCell>
+                <Table.HeaderCell>{t("marketplace.banners.slot")}</Table.HeaderCell>
                 <Table.HeaderCell>{t("marketplace.banners.ctaLink")}</Table.HeaderCell>
                 <Table.HeaderCell>{t("marketplace.banners.rank")}</Table.HeaderCell>
                 <Table.HeaderCell>{t("marketplace.banners.isActive")}</Table.HeaderCell>
@@ -255,12 +304,17 @@ const Root = () => {
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {(hero_banners ?? []).map((b: any) => (
+              {visibleBanners.map((b: any) => (
                 <Table.Row key={b.id}>
                   <Table.Cell>
                     {b.image_url && <img src={b.image_url} alt={b.title} className="h-10 w-16 object-cover rounded" />}
                   </Table.Cell>
                   <Table.Cell>{b.title}</Table.Cell>
+                  <Table.Cell>
+                    <Badge size="2xsmall" color={b.slot && b.slot !== "hero" ? "blue" : "grey"}>
+                      {slotLabel(b.slot)}
+                    </Badge>
+                  </Table.Cell>
                   <Table.Cell>{b.cta_link ?? "—"}</Table.Cell>
                   <Table.Cell>{b.rank}</Table.Cell>
                   <Table.Cell>{b.is_active ? "Yes" : "No"}</Table.Cell>

@@ -56,8 +56,8 @@ export default async function seedSellerReservations({ container }: ExecArgs) {
 
   // A location this seller already uses (to attach stock levels where missing).
   const fallbackLocationId = mine
-    .flatMap((it) => it.location_levels ?? [])
-    .map((l: { location_id?: string }) => l.location_id)
+    .flatMap((it) => (it.location_levels ?? []) as { location_id?: string }[])
+    .map((l) => l.location_id)
     .find(Boolean)
 
   const reservations: {
@@ -67,10 +67,15 @@ export default async function seedSellerReservations({ container }: ExecArgs) {
     description?: string
   }[] = []
 
+  type LevelLike = {
+    location_id: string
+    stocked_quantity: number
+    reserved_quantity: number
+  }
+
   for (const item of offerItems) {
-    let level = (item.location_levels ?? []).find(
-      (l: { stocked_quantity?: number; reserved_quantity?: number }) =>
-        (l.stocked_quantity ?? 0) - (l.reserved_quantity ?? 0) > 0
+    let level = ((item.location_levels ?? []) as LevelLike[]).find(
+      (l) => (l.stocked_quantity ?? 0) - (l.reserved_quantity ?? 0) > 0
     )
 
     // No stock level with availability — create one so the item is reservable.

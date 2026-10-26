@@ -594,7 +594,7 @@ export type Routes = {
                 taxes: typeof import("@medusajs/medusa/api/store/carts/[id]/taxes/route");
             };
         };
-        collections: typeof import("@medusajs/medusa/api/store/collections/route") & {
+        collections: typeof import("../src/api/store/collections/route") & {
             $id: typeof import("@medusajs/medusa/api/store/collections/[id]/route");
         };
         currencies: typeof import("@medusajs/medusa/api/store/currencies/route") & {

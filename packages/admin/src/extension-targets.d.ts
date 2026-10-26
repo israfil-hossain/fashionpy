@@ -4,6 +4,8 @@ import "@mercurjs/dashboard-sdk"
 
 declare module "@mercurjs/dashboard-sdk" {
   interface WidgetZoneRegistry {
+    "analytics.list.after": true
+    "analytics.list.before": true
     "api-keys.detail.main.after": true
     "api-keys.detail.main.before": true
     "api-keys.list.after": true
@@ -163,6 +165,7 @@ declare module "@mercurjs/dashboard-sdk" {
   }
 
   interface NavItemRegistry {
+    "analytics": true
     "campaigns": true
     "categories": true
     "collections": true
@@ -198,6 +201,7 @@ declare module "@mercurjs/dashboard-sdk" {
   }
 
   interface NavParentRegistry {
+    "analytics": true
     "customers": true
     "inventory": true
     "orders": true

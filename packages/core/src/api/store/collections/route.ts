@@ -1,0 +1,24 @@
+import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { publishedProductsContext } from "@medusajs/medusa/api/store/utils/published-products-context"
+
+export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
+  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+
+  const { data: collections, metadata } = await query.graph({
+    entity: "product_collection",
+    filters: req.filterableFields,
+    pagination: req.queryConfig.pagination,
+    fields: req.queryConfig.fields,
+    context: publishedProductsContext(),
+  }, {
+    locale: req.locale,
+  })
+
+  res.json({
+    collections,
+    count: metadata?.count ?? 0,
+    offset: metadata?.skip ?? 0,
+    limit: metadata?.take ?? 0,
+  })
+}

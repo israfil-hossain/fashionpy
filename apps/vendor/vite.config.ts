@@ -13,6 +13,10 @@ export default defineConfig(({ mode }) => {
     env.VITE_MERCUR_BACKEND_URL || env.MERCUR_BACKEND_URL
 
   return {
+    // Production builds served by the backend under a sub-path (e.g. /seller)
+    // must emit assets relative to that sub-path or they 404 once the backend
+    // strips the route prefix. Defaults to "/" for local dev.
+    base: env.VITE_BASE_PATH || '/',
     resolve: {
       alias: {
         // `@mercurjs/vendor/extension-targets` is a build-time marker module the

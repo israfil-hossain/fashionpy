@@ -311,7 +311,7 @@ export async function seedSellerOrder(
   })
   const orders: SeededOrder[] = (orderGroups[0]?.orders ?? [])
     .filter((o) => Boolean(o?.id))
-    .map((o) => ({ id: o!.id, display_id: o!.display_id }))
+    .map((o) => ({ id: o!.id, display_id: o!.display_id as unknown as number }))
   logger.info(
     `Seeded ${orders.length} order(s) for seller ${sellerId}: ${orders
       .map((o) => `#${o.display_id}`)

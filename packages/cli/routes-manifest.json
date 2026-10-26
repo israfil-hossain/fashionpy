@@ -353,7 +353,7 @@
   "/store/carts/:id/promotions": "typeof import(\"@mercurjs/core/api/store/carts/[id]/promotions/route\")",
   "/store/carts/:id/shipping-methods": "typeof import(\"@mercurjs/core/api/store/carts/[id]/shipping-methods/route\")",
   "/store/carts/:id/taxes": "typeof import(\"@medusajs/medusa/api/store/carts/[id]/taxes/route\")",
-  "/store/collections": "typeof import(\"@medusajs/medusa/api/store/collections/route\")",
+  "/store/collections": "typeof import(\"@mercurjs/core/api/store/collections/route\")",
   "/store/collections/:id": "typeof import(\"@medusajs/medusa/api/store/collections/[id]/route\")",
   "/store/currencies": "typeof import(\"@medusajs/medusa/api/store/currencies/route\")",
   "/store/currencies/:code": "typeof import(\"@medusajs/medusa/api/store/currencies/[code]/route\")",

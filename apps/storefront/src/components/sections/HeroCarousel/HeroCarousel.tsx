@@ -83,7 +83,7 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
                       </p>
                       <Link
                         href={slide.ctaLink ?? "/categories"}
-                        className="inline-flex items-center gap-3 bg-white text-black px-6 py-3 rounded-sm font-bold uppercase text-sm hover:bg-black hover:text-white transition-all duration-300 group"
+                        className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 text-xs rounded-full md:gap-3 md:px-6 md:py-3 md:rounded-sm md:text-sm font-bold uppercase hover:bg-black hover:text-white transition-all duration-300 group"
                       >
                         {slide.ctaText ?? "Shop Now"}
                         <ArrowRightIcon
@@ -104,7 +104,7 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
         className="absolute inset-x-0 bottom-4 z-10 flex justify-center px-4 md:bottom-8"
         data-testid="hero-search"
       >
-        <div className="w-full max-w-[720px]">
+        <div className="w-full max-w-[560px] md:max-w-[720px]">
           <SearchBar size="large" />
         </div>
       </div>
@@ -146,6 +146,11 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
         @media (max-width: 767px) {
           .hero-swiper .swiper-pagination {
             bottom: 64px;
+          }
+
+          .hero-swiper .swiper-button-next,
+          .hero-swiper .swiper-button-prev {
+            display: none;
           }
         }
 

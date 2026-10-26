@@ -5,27 +5,30 @@ import Image from "next/image"
 export const BannerSection = () => {
   return (
     <section>
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center overflow-hidden rounded-xl border border-gray-100">
-        <div className="py-6 px-6 flex flex-col h-full justify-between border border-secondary rounded-sm">
-          <div className="mb-8 lg:mb-48">
-            <span className="text-sm inline-block px-4 py-1 border border-secondary rounded-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-center overflow-hidden rounded-xl border border-gray-100 bg-white">
+        <div className="py-8 px-6 flex flex-col h-full items-center justify-center gap-5 text-center lg:py-16">
+          <div className="flex flex-col items-center gap-4">
+            <span className="text-xs inline-block px-4 py-1 border border-secondary rounded-full">
               #COLLECTION
             </span>
             <h2 className="display-sm">
               BOHO VIBES: WHERE COMFORT MEETS CREATIVITY
             </h2>
-            <p className="text-lg text-tertiary max-w-lg">
+            <p className="text-base text-gray-600 max-w-lg">
               Discover boho styles that inspire adventure and embrace the beauty
               of the unconventional.
             </p>
           </div>
           <LocalizedClientLink href="/collections/boho">
-            <Button size="large" className="w-fit bg-secondary/10">
+            <Button
+              size="large"
+              className="rounded-full px-8 text-white md:rounded-sm md:px-6 bg-[rgb(var(--brand-500))] hover:bg-[rgb(var(--brand-600))]"
+            >
               EXPLORE
             </Button>
           </LocalizedClientLink>
         </div>
-        <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full flex justify-end rounded-sm">
+        <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full flex justify-end">
           <Image
             loading="lazy"
             fetchPriority="high"
@@ -33,7 +36,7 @@ export const BannerSection = () => {
             alt="Boho fashion collection - Model wearing a floral dress with yellow boots"
             width={700}
             height={600}
-            className="object-cover object-top rounded-sm"
+            className="object-cover object-top"
             sizes="(min-width: 1024px) 50vw, 100vw"
           />
         </div>

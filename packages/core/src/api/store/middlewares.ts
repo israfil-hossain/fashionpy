@@ -1,6 +1,7 @@
 import { MiddlewareRoute } from "@medusajs/medusa"
 
 import { storeCartsMiddlewares } from "./carts/middlewares"
+import { storeCollectionsMiddlewares } from "./collections/middlewares"
 import { storeHeroBannersMiddlewares } from "./hero-banners/middlewares"
 import { storeOffersMiddlewares } from "./offers/middlewares"
 import { storeOrderGroupsMiddlewares } from "./order-groups/middlewares"
@@ -13,6 +14,7 @@ import { storeStoreSettingsMiddlewares } from "./store-settings/middlewares"
 
 export const storeMiddlewares: MiddlewareRoute[] = [
   ...storeCartsMiddlewares,
+  ...storeCollectionsMiddlewares,
   ...storeHeroBannersMiddlewares,
   ...storeOffersMiddlewares,
   ...storeOrderGroupsMiddlewares,

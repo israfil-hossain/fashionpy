@@ -1,0 +1,14 @@
+# Build artifacts and VCS only — workspace directories must stay present so the
+# install graph matches bun.lock (excluding a workspace dir makes
+# `bun install --frozen-lockfile` fail with "lockfile had changes").
+.git
+**/node_modules
+**/dist
+**/.medusa
+**/.next
+**/.turbo
+**/.cache
+**/*.log
+.env
+.env.*
+!.env.template
