@@ -30,6 +30,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[]> = {
   "/settings/store": "store:view",
   "/settings/users": "members:view",
   "/settings/locations": "stock_locations:view",
+  "/settings/courier": "courier_accounts:view",
   "/settings/product-tags": "product_tags:view",
   "/settings/product-types": "product_types:view",
   "/settings/return-reasons": "return_reasons:view",

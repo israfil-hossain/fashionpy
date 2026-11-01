@@ -11,11 +11,14 @@ import { storeProductsMiddlewares } from "./products/middlewares"
 import { storeSellersMiddlewares } from "./sellers/middlewares"
 import { storeReviewsMiddlewares } from "./reviews/middlewares"
 import { storeStoreSettingsMiddlewares } from "./store-settings/middlewares"
+import { storeNotificationFeedMiddlewares } from "./notifications/middlewares"
+import { storeMessagingMiddlewares } from "./messages/middlewares"
 
 export const storeMiddlewares: MiddlewareRoute[] = [
   ...storeCartsMiddlewares,
   ...storeCollectionsMiddlewares,
   ...storeHeroBannersMiddlewares,
+  ...storeMessagingMiddlewares,
   ...storeOffersMiddlewares,
   ...storeOrderGroupsMiddlewares,
   ...storeProductAttributesMiddlewares,
@@ -24,4 +27,5 @@ export const storeMiddlewares: MiddlewareRoute[] = [
   ...storeSellersMiddlewares,
   ...storeReviewsMiddlewares,
   ...storeStoreSettingsMiddlewares,
+  ...storeNotificationFeedMiddlewares,
 ]

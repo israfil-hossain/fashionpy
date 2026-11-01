@@ -154,6 +154,19 @@ export const useCreateProduct = (
   });
 };
 
+export const useScrapeProduct = (
+  options?: UseMutationOptions<
+    InferClientOutput<typeof sdk.vendor.products.scrape.mutate>,
+    ClientError,
+    InferClientInput<typeof sdk.vendor.products.scrape.mutate>
+  >
+) => {
+  return useMutation({
+    mutationFn: (payload) => sdk.vendor.products.scrape.mutate(payload),
+    ...options,
+  });
+};
+
 export const useUpdateProduct = (
   id: string,
   options?: UseMutationOptions<
@@ -478,6 +491,41 @@ export const useRemoveAttributeFromProduct = (
       queryClient.invalidateQueries({
         queryKey: productChangeQueryKeys.detail(productId),
       });
+      options?.onSuccess?.(data, variables, context);
+    },
+    ...options,
+  });
+};
+
+// --- Import/Export hooks ---
+
+type ImportProductsResponse = { summary: { created: number } };
+type ExportProductsResponse = { url: string };
+
+export const useImportProducts = (
+  options?: UseMutationOptions<ImportProductsResponse, ClientError, File>
+) => {
+  return useMutation({
+    mutationFn: (file: File) =>
+      sdk.vendor.products.import.mutate({
+        file,
+        fetchOptions: { headers: { "Content-Type": "multipart/form-data" } },
+      }) as Promise<ImportProductsResponse>,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: productsQueryKeys.lists() });
+      options?.onSuccess?.(data, variables, context);
+    },
+    ...options,
+  });
+};
+
+export const useExportProducts = (
+  options?: UseMutationOptions<ExportProductsResponse, ClientError, void>
+) => {
+  return useMutation({
+    mutationFn: () =>
+      sdk.vendor.products.export.mutate() as Promise<ExportProductsResponse>,
+    onSuccess: (data, variables, context) => {
       options?.onSuccess?.(data, variables, context);
     },
     ...options,

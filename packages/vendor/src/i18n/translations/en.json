@@ -582,6 +582,18 @@
           "titleRequired": "Please enter a title",
           "valuesRequired": "Please enter at least one value"
         }
+      },
+      "scrape": {
+        "label": "Import from URL",
+        "hint": "Paste a product page link — title, images, description and size options are fetched automatically.",
+        "placeholder": "https://example.com/product/...",
+        "fetch": "Fetch",
+        "success": "Imported \"{{title}}\"",
+        "priceInfo": "Source price {{price}}",
+        "imagesInfo": "{{count}} image(s)",
+        "sizesInfo": "Sizes: {{sizes}}",
+        "priceNote": "The source price is shown for reference only — set your selling price via offers after saving.",
+        "failed": "Could not fetch product information from this URL"
       }
     },
     "export": {
@@ -3071,6 +3083,14 @@
       "canceled": "Canceled"
     }
   },
+  "messages": {
+    "title": "Messages",
+    "conversation": "Conversation",
+    "support": "Marketplace Support",
+    "noConversations": "No conversations yet",
+    "loading": "Loading conversations...",
+    "contactAdmin": "Contact admin"
+  },
   "reviews": {
     "domain": "Reviews",
     "status": {
@@ -4451,5 +4471,41 @@
     "imageUploadFailed": "Failed to upload image",
     "undo": "Undo",
     "redo": "Redo"
+  },
+  "courier": {
+    "domain": "Courier",
+    "hint": "Prepaid orders ship with your own courier account. COD orders are always booked on the platform account so cash collection and commission run automatically.",
+    "accountsHeader": "Connected accounts",
+    "connectHeader": "Connect a courier account",
+    "provider": "Provider",
+    "pathao": "Pathao",
+    "steadfast": "Steadfast",
+    "codEnabled": "Accept COD",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "disconnectConfirm": "Disconnect this courier account? Shipments will stop being bookable on it.",
+    "clientId": "Client ID",
+    "clientSecret": "Client secret",
+    "username": "Account email",
+    "password": "Password",
+    "storeId": "Pathao store ID",
+    "apiKey": "API key",
+    "secretKey": "Secret key",
+    "empty": "No courier accounts yet — connect Pathao or Steadfast to book consignments.",
+    "bookWith": "Book with {{provider}}",
+    "bookConfirm": "Book a {{provider}} consignment for this fulfillment?",
+    "toastConnected": "{{provider}} connected",
+    "toastConnectFailed": "Could not connect the courier account",
+    "toastDisconnected": "Courier account disconnected",
+    "toastCodUpdated": "COD setting updated",
+    "toastBooked": "Consignment booked — {{consignment}}",
+    "statusLabel": "Courier"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Notifications about your marketplace activity will be listed here.",
+    "markAllRead": "Mark all as read",
+    "emptyTitle": "No notifications",
+    "emptyDescription": "You don't have any notifications at the moment, but once you do they will live here."
   }
 }

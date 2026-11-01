@@ -144,6 +144,7 @@ declare module "@mercurjs/dashboard-sdk" {
     "customer-groups": true
     "customers": true
     "inventory": true
+    "messages": true
     "offers": true
     "orders": true
     "payouts": true
@@ -152,6 +153,7 @@ declare module "@mercurjs/dashboard-sdk" {
     "promotions": true
     "reservations": true
     "reviews": true
+    "settings/courier": true
     "settings/locations": true
     "settings/product-tags": true
     "settings/product-types": true
@@ -164,6 +166,7 @@ declare module "@mercurjs/dashboard-sdk" {
     "analytics": true
     "customers": true
     "inventory": true
+    "messages": true
     "orders": true
     "payouts": true
     "price-lists": true

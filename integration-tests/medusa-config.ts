@@ -13,12 +13,37 @@ module.exports = withMercur({
       authCors: process.env.AUTH_CORS!,
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
+      authMethodsPerActor: {
+        customer: ['emailpass', 'google'],
+        user: ['emailpass'],
+        member: ['emailpass'],
+      },
     }
   },
   featureFlags: {
     seller_registration: true,
   },
   modules: [
+    {
+      resolve: '@medusajs/medusa/auth',
+      options: {
+        providers: [
+          {
+            resolve: '@medusajs/medusa/auth-emailpass',
+            id: 'emailpass',
+          },
+          {
+            resolve: '@medusajs/medusa/auth-google',
+            id: 'google',
+            options: {
+              clientId: 'test-google-client-id',
+              clientSecret: 'test-google-client-secret',
+              callbackUrl: 'http://localhost:3000/api/auth/google/callback',
+            },
+          },
+        ],
+      },
+    },
     {
       resolve: '@mercurjs/core/modules/admin-ui',
       options: {
@@ -34,6 +59,23 @@ module.exports = withMercur({
         path: '/seller',
         disable: true
       }
+    },
+    {
+      resolve: '@mercurjs/core/modules/courier',
+      options: {
+        providers: [
+          {
+            resolve: '@mercurjs/courier-pathao',
+            id: 'pathao',
+            options: { sandbox: true },
+          },
+          {
+            resolve: '@mercurjs/courier-steadfast',
+            id: 'steadfast',
+            options: {},
+          },
+        ],
+      },
     },
   ],
 })

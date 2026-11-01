@@ -166,12 +166,14 @@ declare module "@mercurjs/dashboard-sdk" {
 
   interface NavItemRegistry {
     "analytics": true
+    "banners": true
     "campaigns": true
     "categories": true
     "collections": true
     "customer-groups": true
     "customers": true
     "inventory": true
+    "messages": true
     "offers": true
     "orders": true
     "payouts": true
@@ -182,9 +184,9 @@ declare module "@mercurjs/dashboard-sdk" {
     "reviews": true
     "settings/attributes": true
     "settings/commissions": true
+    "settings/courier": true
     "settings/locations": true
     "settings/marketplace": true
-    "settings/marketplace/banners": true
     "settings/offer-conditions": true
     "settings/product-tags": true
     "settings/product-types": true
@@ -202,8 +204,10 @@ declare module "@mercurjs/dashboard-sdk" {
 
   interface NavParentRegistry {
     "analytics": true
+    "banners": true
     "customers": true
     "inventory": true
+    "messages": true
     "orders": true
     "payouts": true
     "price-lists": true

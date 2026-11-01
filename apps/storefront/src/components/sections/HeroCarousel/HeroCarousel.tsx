@@ -17,7 +17,8 @@ import type { HeroBannerSlide } from "@/lib/data/hero-banners"
 type Slide = HeroBannerSlide
 
 export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
-  if (!slides || slides.length === 0) return null
+  const visibleSlides = slides.slice(0, 5)
+  if (!visibleSlides.length) return null
   return (
     <section className="w-full relative" data-testid="hero-carousel">
       <Swiper
@@ -35,10 +36,10 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
           disableOnInteraction: false,
           pauseOnMouseEnter: true,
         }}
-        loop={true}
+        loop={visibleSlides.length > 1}
         className="hero-swiper"
       >
-        {slides.map((slide, i) => (
+        {visibleSlides.map((slide, i) => (
           <SwiperSlide key={slide.id}>
             <div className="relative w-full h-[240px] md:h-[360px] lg:h-[420px]">
               <Image

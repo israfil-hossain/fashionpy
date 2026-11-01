@@ -10,6 +10,7 @@ import {
   CollectionSliderSection,
   CompanyBannerSlot,
   OfferPriceSection,
+  ShopCollectionBanners,
 } from "@/components/sections"
 
 import type { Metadata } from "next"
@@ -159,6 +160,9 @@ export default async function Home({
       </div>
       <div className="px-4 pt-5 lg:px-16">
         <CollectionSliderSection />
+      </div>
+      <div className="px-4 pt-5 lg:px-16">
+        <ShopCollectionBanners />
       </div>
       <div className="space-y-5 px-4 pt-5 lg:px-16">
         <CompanyBannerSlot slot="company_1" />

@@ -16,6 +16,7 @@ import { WidgetZone } from "@mercurjs/dashboard-shared"
 import { KeybindProvider } from "../../../providers/keybind-provider"
 import { useGlobalShortcuts } from "../../../providers/keybind-provider/hooks"
 import { useSidebar } from "../../../providers/sidebar-provider"
+import { AdminNotificationsBell } from "../../common/notifications-bell"
 import { ProgressBar } from "../../common/progress-bar"
 
 type ShellProps = PropsWithChildren<{
@@ -208,6 +209,7 @@ const Topbar = () => {
         <Breadcrumbs />
       </div>
       <div className="flex items-center justify-end gap-x-3">
+        <AdminNotificationsBell />
         <WidgetZone id="topbar" />
       </div>
     </div>

@@ -78,3 +78,23 @@ export const VendorCreateShipment = z.object({
     )
     .optional(),
 })
+
+export type VendorBookCourierShipmentType = z.infer<
+  typeof VendorBookCourierShipment
+>
+export const VendorBookCourierShipment = z
+  .object({
+    provider: z.enum(["pathao", "steadfast", "system"]),
+    /**
+     * Explicit cash amount to collect. Ignored when `use_cod` is true —
+     * then the full order total is collected (booked on the platform account).
+     */
+    cod_amount: z.number().min(0).optional(),
+    use_cod: z.boolean().optional(),
+    delivery_type: z.enum(["normal", "on_demand", "point"]).optional(),
+    special_instruction: z.string().max(480).optional(),
+    item_description: z.string().max(255).optional(),
+    /** Override the auto-computed weight (kg) */
+    weight: z.number().min(0).max(50).optional(),
+  })
+  .strict()

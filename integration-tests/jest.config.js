@@ -3,6 +3,11 @@ const path = require("path")
 const { loadEnv } = require("@medusajs/framework/utils")
 loadEnv("test", process.cwd())
 
+// Under bun, deps are not hoisted to the repo root. Unit runs set rootDir to
+// the repo root, so bare module specifiers like "@swc/jest" fail to resolve.
+// Resolve them from this package's own node_modules instead.
+const fromHere = (id) => require.resolve(id, { paths: [__dirname] })
+
 module.exports = {
   transform: {
     // Mercur patches shipped core-flows cart, order and payment files. Jest never
@@ -11,7 +16,7 @@ module.exports = {
     "node_modules[\\\\/].*core-flows[\\\\/]dist[\\\\/](cart|order|payment)[\\\\/].*\\.js$":
       "@mercurjs/core/patches/jest-transformer",
     "^.+\\.[jt]s$": [
-      "@swc/jest",
+      fromHere("@swc/jest"),
       {
         jsc: {
           parser: { syntax: "typescript", decorators: true },
@@ -52,5 +57,6 @@ if (process.env.TEST_TYPE === "integration:http") {
   module.exports.rootDir = path.join(__dirname, "..")
   module.exports.testMatch = [
     "**/packages/core/src/**/__tests__/**/*.unit.spec.[jt]s",
+    "**/packages/providers/**/src/**/__tests__/**/*.unit.spec.[jt]s",
   ]
 }

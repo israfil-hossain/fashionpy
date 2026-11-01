@@ -2,7 +2,12 @@
 import { CACHE_TAGS, getGlobalCacheOptions } from "./cache-tags"
 import { sdk } from "../client"
 
-export type HeroBannerSlot = "hero" | "company_1" | "company_2" | "offer_price"
+export type HeroBannerSlot =
+  | "hero"
+  | "shop_collection"
+  | "company_1"
+  | "company_2"
+  | "offer_price"
 
 export type HeroBannerSlide = {
   id: string
@@ -54,8 +59,14 @@ const listBannersForSlot = async (slot: HeroBannerSlot): Promise<HeroBannerSlide
   }
 }
 
-export const listHeroBanners = async (): Promise<HeroBannerSlide[]> =>
-  listBannersForSlot("hero")
+export const listHeroBanners = async (): Promise<HeroBannerSlide[]> => {
+  const banners = await listBannersForSlot("hero")
+  return banners.slice(0, 5)
+}
+
+export const listShopCollectionBanners = async (): Promise<
+  HeroBannerSlide[]
+> => listBannersForSlot("shop_collection")
 
 export const listCompanyBanner = async (
   slot: "company_1" | "company_2"

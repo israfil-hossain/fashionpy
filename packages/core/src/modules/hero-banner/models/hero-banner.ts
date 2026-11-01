@@ -19,7 +19,9 @@ const HeroBanner = model.define(
     cta_text: model.text().nullable(),
     cta_link: model.text().nullable(),
     text_position: model.enum(["left", "center", "right"]).default("left"),
-    slot: model.enum(["hero", "company_1", "company_2", "offer_price"]).default("hero"),
+    slot: model
+      .enum(["hero", "shop_collection", "company_1", "company_2", "offer_price"])
+      .default("hero"),
     is_active: model.boolean().default(true),
     rank: model.number().default(0),
     starts_at: model.dateTime().nullable(),

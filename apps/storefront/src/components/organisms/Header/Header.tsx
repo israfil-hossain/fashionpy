@@ -6,6 +6,7 @@ import { UserDropdown } from "@/components/cells/UserDropdown/UserDropdown"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import { HeaderSearch } from "@/components/molecules/HeaderSearch/HeaderSearch"
 import { MessageButton } from "@/components/molecules/MessageButton/MessageButton"
+import { NotificationsButton } from "@/components/molecules/NotificationsButton/NotificationsButton"
 import { HeartIcon, SearchIcon } from "@/icons"
 import { listCategories } from "@/lib/data/categories"
 import { retrieveCustomer } from "@/lib/data/customer"
@@ -52,15 +53,19 @@ export const Header = async ({ locale }: { locale: string }) => {
                 href="/"
                 data-testid="header-logo-link"
                 aria-label="FashionPy home"
+                className="flex items-center gap-2"
               >
                 <Image
-                  src="/fashionpy.svg"
-                  width={160}
+                  src="/f_logo.svg"
+                  width={40}
                   height={40}
                   alt="FashionPy"
-                  className="h-9 w-auto lg:h-12"
+                  className="h-7 w-auto lg:h-9"
                   priority
                 />
+                <span className="text-base font-bold text-white lg:text-2xl">
+                  FashionPy
+                </span>
               </LocalizedClientLink>
             </div>
 
@@ -85,6 +90,7 @@ export const Header = async ({ locale }: { locale: string }) => {
               </LocalizedClientLink>
 
               {isLoggedIn && <MessageButton iconColor="#ffffff" />}
+              {isLoggedIn && <NotificationsButton iconColor="#ffffff" />}
 
               <div
                 className="hidden items-center gap-1.5 md:flex"

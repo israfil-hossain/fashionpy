@@ -513,7 +513,19 @@
           "hint": "Define the options for the product, e.g. color, size, etc."
         }
       },
-      "successToast": "Product {{title}} was successfully created."
+      "successToast": "Product {{title}} was successfully created.",
+      "scrape": {
+        "label": "Import from URL",
+        "hint": "Paste a product page link — title, images, description and size options are fetched automatically.",
+        "placeholder": "https://example.com/product/...",
+        "fetch": "Fetch",
+        "success": "Imported \"{{title}}\"",
+        "priceInfo": "Source price {{price}}",
+        "imagesInfo": "{{count}} image(s)",
+        "sizesInfo": "Sizes: {{sizes}}",
+        "priceNote": "The source price is shown for reference only — set your selling price via offers after saving.",
+        "failed": "Could not fetch product information from this URL"
+      }
     },
     "export": {
       "header": "Export Product List",
@@ -3034,7 +3046,10 @@
       "endsAt": "Ends at",
       "toast_create": "Banner created",
       "toast_update": "Banner updated",
-      "toast_delete": "Banner deleted"
+      "toast_delete": "Banner deleted",
+      "slotShopCollection": "Shop collection slider",
+      "heroHint": "Recommended: 3–5 active hero banners for the storefront carousel.",
+      "edit": "Edit banner"
     }
   },
   "store": {
@@ -4287,7 +4302,9 @@
     }
   },
   "messages": {
-    "domain": "Messages"
+    "domain": "Messages",
+    "title": "Messages",
+    "support": "Marketplace Support"
   },
   "configuration": {
     "domain": "Product Catalog Settings"
@@ -4591,5 +4608,39 @@
     "imageUploadFailed": "Failed to upload image",
     "undo": "Undo",
     "redo": "Redo"
+  },
+  "courier": {
+    "domain": "Courier",
+    "adminHint": "Platform courier accounts collect COD cash so commission runs through FashionPy. Sellers connect their own accounts in the vendor panel for prepaid shipments.",
+    "platformHeader": "Platform account (COD)",
+    "platformHint": "These credentials book cash-on-delivery consignments on FashionPy's account. Saved here or supplied via PATHAO_* / STEADFAST_* env vars.",
+    "connectedHeader": "Connected accounts",
+    "platformBadge": "Platform",
+    "envConfigured": "configured (env)",
+    "envMissing": "not set",
+    "codOn": "COD enabled",
+    "codOff": "COD disabled",
+    "provider": "Provider",
+    "pathao": "Pathao",
+    "steadfast": "Steadfast",
+    "connectHeader": "Save platform credentials",
+    "savePlatform": "Validate & save",
+    "clientId": "Client ID",
+    "clientSecret": "Client secret",
+    "username": "Account email",
+    "password": "Password",
+    "storeId": "Pathao store ID",
+    "apiKey": "API key",
+    "secretKey": "Secret key",
+    "empty": "No courier accounts connected yet.",
+    "toastPlatformConnected": "Platform {{provider}} account saved",
+    "toastConnectFailed": "Could not save the courier credentials"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Notifications about your marketplace activity will be listed here.",
+    "markAllRead": "Mark all as read",
+    "emptyTitle": "No notifications",
+    "emptyDescription": "You don't have any notifications at the moment, but once you do they will live here."
   }
 }

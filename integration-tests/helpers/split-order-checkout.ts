@@ -200,6 +200,9 @@ export const completeSplitOrderGroupCheckout = async (
         city: "New York",
         country_code: "us",
         postal_code: "10001",
+        // Courier booking requires a recipient phone (Pathao/Steadfast both
+        // mandate an 11-digit BD mobile), so the fixture mirrors real orders.
+        phone: "01712345678",
     }
 
     await api.post(

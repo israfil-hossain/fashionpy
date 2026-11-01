@@ -28,6 +28,7 @@
   "dependencies": {
     "@medusajs/admin-sdk": "2.21.2",
     "@medusajs/admin-shared": "2.21.2",
+    "@medusajs/auth-google": "2.21.2",
     "@medusajs/cli": "2.21.2",
     "@medusajs/dashboard": "2.21.2",
     "@medusajs/draft-order": "2.21.2",
@@ -35,9 +36,12 @@
     "@medusajs/medusa": "2.21.2",
     "@mercurjs/cli": "*",
     "@mercurjs/core": "*",
+    "@mercurjs/courier-pathao": "*",
+    "@mercurjs/courier-steadfast": "*",
     "@mercurjs/types": "*",
     "http-proxy-middleware": "^3.0.3",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "@mercurjs/payment-cod": "*"
   },
   "devDependencies": {
     "@medusajs/test-utils": "2.21.2",

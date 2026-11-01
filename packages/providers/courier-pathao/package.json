@@ -1,0 +1,42 @@
+{
+  "name": "@mercurjs/courier-pathao",
+  "version": "2.3.8-canary.1",
+  "description": "Pathao courier provider for Mercur",
+  "private": false,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mercurjs/mercur",
+    "directory": "packages/providers/courier-pathao"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "author": "Medusa",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "NODE_OPTIONS=--max-old-space-size=8192 tsup --watch",
+    "build": "tsup"
+  },
+  "peerDependencies": {
+    "@medusajs/framework": ">=2.21.0"
+  },
+  "devDependencies": {
+    "@medusajs/framework": "2.21.2",
+    "@mercurjs/types": "2.3.8-canary.1",
+    "tsup": "^8.5.0"
+  },
+  "dependencies": {},
+  "keywords": [
+    "medusa-plugin",
+    "courier",
+    "pathao",
+    "medusa-plugin-courier"
+  ]
+}

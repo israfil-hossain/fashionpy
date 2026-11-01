@@ -14,4 +14,6 @@ export enum MercurModules {
     REVIEW = "review",
     HERO_BANNER = "hero_banner",
     FP = "fp",
+    COURIER = "courier",
+    NOTIFICATION_FEED = "notification_feed",
 }

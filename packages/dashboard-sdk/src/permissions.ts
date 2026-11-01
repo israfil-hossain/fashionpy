@@ -54,6 +54,7 @@ export interface PermissionKeys {
     "commission_lines": true
     "payouts": true
     "payout_accounts": true
+    "courier_accounts": true
     "shipping_profiles": true
     "shipping_options": true
     "fulfillment_sets": true

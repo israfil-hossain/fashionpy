@@ -1,0 +1,172 @@
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Badge, Container, Heading, Text, clx } from "@medusajs/ui";
+
+import {
+  useVendorConversations,
+  useCreateVendorSupport,
+  ConversationDTO,
+} from "../../hooks/api/messaging";
+import { useMessagingSSE } from "../../hooks/api/use-messaging-sse";
+import { useMessagingLayout } from "../../hooks/use-messaging-layout";
+
+const formatRelativeTime = (dateStr: string | null): string => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "Just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+};
+
+const ConversationRow = ({
+  conversation,
+  onClick,
+}: {
+  conversation: ConversationDTO;
+  onClick: () => void;
+}) => {
+  const isUnread = conversation.unread_count_seller > 0;
+  const isSupport = (conversation.type ?? "marketplace") !== "marketplace";
+  const senderPrefix =
+    conversation.last_message_sender_type === "seller" ? "You: " : "";
+
+  return (
+    <button
+      type="button"
+      aria-label="Open conversation"
+      onClick={onClick}
+      className={clx(
+        "flex w-full items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-ui-bg-base-hover",
+        isUnread && "bg-ui-bg-highlight"
+      )}
+    >
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-x-2">
+            <Text
+              size="small"
+              leading="compact"
+              weight={isUnread ? "plus" : "regular"}
+            >
+              {isSupport ? "Marketplace Support" : conversation.buyer_first_name || "Customer"}
+            </Text>
+            {isSupport && (
+              <Badge color="blue" size="2xsmall">
+                Support
+              </Badge>
+            )}
+            {conversation.is_buyer_blocked && (
+              <Badge color="red" size="2xsmall">
+                Blocked
+              </Badge>
+            )}
+          </div>
+          <Text size="xsmall" className="text-ui-fg-muted shrink-0">
+            {formatRelativeTime(conversation.last_message_at)}
+          </Text>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <Text
+            size="small"
+            leading="compact"
+            className={clx(
+              "truncate",
+              isUnread ? "text-ui-fg-base" : "text-ui-fg-subtle"
+            )}
+          >
+            {conversation.last_message_preview
+              ? `${senderPrefix}${conversation.last_message_preview}`
+              : "No messages yet"}
+          </Text>
+          {isUnread && (
+            <Badge color="blue" size="2xsmall">
+              {conversation.unread_count_seller}
+            </Badge>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+};
+
+export const VendorMessagesPage = () => {
+  useMessagingSSE();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { conversations, isLoading, isError, error } = useVendorConversations({
+    limit: 50,
+  });
+
+  const createSupport = useCreateVendorSupport();
+
+  useMessagingLayout();
+
+  // "Contact admin" entry point: open (or create) the seller's shared support
+  // thread, carrying the order context along so the next messages badge it.
+  const wantsSupport = searchParams.get("support") === "1";
+  const supportOrderId = searchParams.get("order");
+
+  useEffect(() => {
+    if (!wantsSupport || createSupport.isPending) return;
+
+    createSupport.mutate(
+      {
+        ...(supportOrderId
+          ? { context_type: "order" as const, context_id: supportOrderId }
+          : {}),
+      },
+      {
+        onSuccess: (data) => {
+          const suffix = supportOrderId ? `?order=${supportOrderId}` : "";
+          navigate(`/messages/${data.conversation.id}${suffix}`, {
+            replace: true,
+          });
+        },
+      }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantsSupport, supportOrderId]);
+
+  if (isError) throw error;
+
+  return (
+    <div className="flex h-full flex-col">
+      <Container className="flex h-full flex-col divide-y p-0">
+        <div className="flex shrink-0 items-center justify-between px-6 py-4">
+          <Heading>Messages</Heading>
+        </div>
+        {isLoading || (wantsSupport && createSupport.isPending) ? (
+          <div className="flex flex-1 items-center justify-center px-6 py-12">
+            <Text className="text-ui-fg-muted">
+              {wantsSupport && createSupport.isPending
+                ? "Starting support conversation..."
+                : "Loading conversations..."}
+            </Text>
+          </div>
+        ) : !conversations?.length ? (
+          <div className="flex flex-1 items-center justify-center px-6 py-12">
+            <Text className="text-ui-fg-muted">No conversations yet</Text>
+          </div>
+        ) : (
+          <div className="flex-1 divide-y overflow-y-auto">
+            {conversations.map((conv) => (
+              <ConversationRow
+                key={conv.id}
+                conversation={conv}
+                onClick={() => navigate(`/messages/${conv.id}`)}
+              />
+            ))}
+          </div>
+        )}
+      </Container>
+    </div>
+  );
+};
+

@@ -183,6 +183,19 @@ export const useBatchProducts = (
   });
 };
 
+export const useScrapeProduct = (
+  options?: UseMutationOptions<
+    InferClientOutput<typeof sdk.admin.products.scrape.mutate>,
+    ClientError,
+    InferClientInput<typeof sdk.admin.products.scrape.mutate>
+  >,
+) => {
+  return useMutation({
+    mutationFn: (payload) => sdk.admin.products.scrape.mutate(payload),
+    ...options,
+  });
+};
+
 // --- Product action mutations ---
 
 export const useConfirmProduct = (

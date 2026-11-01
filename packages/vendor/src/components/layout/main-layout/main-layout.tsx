@@ -1,5 +1,6 @@
 import {
   Buildings,
+  ChatBubbleLeftRight,
   CogSixTooth,
   CurrencyDollar,
   CreditCardRefresh,
@@ -491,6 +492,11 @@ export const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
       icon: <Star />,
       label: t("reviews.domain"),
       to: "/reviews",
+    },
+    {
+      icon: <ChatBubbleLeftRight />,
+      label: t("messages.title"),
+      to: "/messages",
     },
     {
       icon: <Users />,

@@ -1,4 +1,4 @@
-import { Buildings, XCircle } from "@medusajs/icons"
+import { Buildings, TruckFast, XCircle } from "@medusajs/icons"
 import { AdminOrderLineItem } from "@medusajs/types"
 import {
   Button,
@@ -27,7 +27,9 @@ import {
   useCancelOrderFulfillment,
   useMarkOrderFulfillmentAsDelivered,
 } from "@hooks/api/orders"
+import { useBookCourierShipment, useCourierShipment } from "@hooks/api/courier"
 import { useStockLocation } from "@hooks/api/stock-locations"
+import { queryClient } from "@lib/query-client"
 import { formatProvider } from "@lib/format-provider"
 import { getLocaleAmount } from "@lib/money-amount-helpers"
 import { FulfillmentSetType } from "@pages/settings/locations/_common/constants"
@@ -273,6 +275,12 @@ const Fulfillment = ({
     fulfillment.id
   )
 
+  const { shipment: courierShipment } = useCourierShipment(
+    order.id,
+    fulfillment.id
+  )
+  const bookShipment = useBookCourierShipment(order.id, fulfillment.id)
+
   const showShippingButton =
     !fulfillment.canceled_at &&
     !fulfillment.shipped_at &&
@@ -317,6 +325,36 @@ const Fulfillment = ({
     }
   }
 
+  const handleBookCourier = async (provider: "pathao" | "steadfast") => {
+    const providerLabel =
+      provider === "pathao" ? t("courier.pathao") : t("courier.steadfast")
+
+    const confirmed = await prompt({
+      title: t("general.areYouSure"),
+      description: t("courier.bookConfirm", { provider: providerLabel }),
+      confirmText: t("actions.continue"),
+      cancelText: t("actions.cancel"),
+      variant: "confirmation",
+    })
+    if (!confirmed) return
+
+    await bookShipment.mutateAsync(
+      { provider },
+      {
+        onSuccess: (res: any) => {
+          toast.success(
+            t("courier.toastBooked", {
+              consignment: res?.shipment?.consignment_id ?? "",
+            })
+          )
+        },
+        onError: (e) => {
+          toast.error(e.message)
+        },
+      }
+    )
+  }
+
   const handleCancel = async () => {
     if (fulfillment.shipped_at) {
       toast.warning(t("orders.fulfillment.toast.fulfillmentShipped"))
@@ -334,6 +372,8 @@ const Fulfillment = ({
       await mutateAsync(undefined, {
         onSuccess: () => {
           toast.success(t("orders.fulfillment.toast.canceled"))
+          // Courier row on this fulfillment should reflect the cancel
+          queryClient.invalidateQueries({ queryKey: ["courier"] })
         },
         onError: (e) => {
           toast.error(e.message)
@@ -469,6 +509,18 @@ const Fulfillment = ({
         </div>
       </div>
 
+      {courierShipment && (
+        <div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
+          <Text size="small" leading="compact" weight="plus">
+            {t("courier.statusLabel")}
+          </Text>
+          <Text size="small" leading="compact" data-testid="courier-shipment-status">
+            {courierShipment.provider} · {courierShipment.status} ·{" "}
+            {courierShipment.consignment_id}
+          </Text>
+        </div>
+      )}
+
       {(showShippingButton || showDeliveryButton) && (
         <div className="bg-ui-bg-subtle flex items-center justify-end gap-x-2 rounded-b-xl px-4 py-4">
           {showDeliveryButton && (
@@ -489,13 +541,43 @@ const Fulfillment = ({
 
           {showShippingButton && (
             <PermissionAction permission="orders:edit">
-              <Button
-                size="small"
-                onClick={() => navigate(`./${fulfillment.id}/create-shipment`)}
-                variant="secondary"
-              >
-                {t("orders.fulfillment.markAsShipped")}
-              </Button>
+              <div className="flex items-center gap-x-2">
+                {!courierShipment && (
+                  <>
+                    <Button
+                      size="small"
+                      onClick={() => handleBookCourier("pathao")}
+                      isLoading={
+                        bookShipment.isPending &&
+                        bookShipment.variables?.provider === "pathao"
+                      }
+                      data-testid="book-pathao-button"
+                    >
+                      <TruckFast />
+                      {t("courier.pathao")}
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => handleBookCourier("steadfast")}
+                      isLoading={
+                        bookShipment.isPending &&
+                        bookShipment.variables?.provider === "steadfast"
+                      }
+                      data-testid="book-steadfast-button"
+                    >
+                      <TruckFast />
+                      {t("courier.steadfast")}
+                    </Button>
+                  </>
+                )}
+                <Button
+                  size="small"
+                  onClick={() => navigate(`./${fulfillment.id}/create-shipment`)}
+                  variant="secondary"
+                >
+                  {t("orders.fulfillment.markAsShipped")}
+                </Button>
+              </div>
             </PermissionAction>
           )}
         </div>

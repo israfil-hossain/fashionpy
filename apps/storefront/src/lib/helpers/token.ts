@@ -1,4 +1,4 @@
-const decodeJwt = (token: string) => {
+export const decodeJwt = (token: string) => {
   try {
     const payload = token.split('.')[1];
     const decoded = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));

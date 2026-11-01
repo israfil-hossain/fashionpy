@@ -10,7 +10,7 @@ import { Dropdown } from "@/components/molecules"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import { ProfileIcon } from "@/icons"
 import { HttpTypes } from "@medusajs/types"
-import { useUnreads } from "@talkjs/react"
+import { useMessagesUnread } from "@/lib/hooks/useMessagesUnread"
 import { useState } from "react"
 
 export const UserDropdown = ({
@@ -22,7 +22,7 @@ export const UserDropdown = ({
 }) => {
   const [open, setOpen] = useState(false)
 
-  const unreads = useUnreads()
+  const unreadCount = useMessagesUnread()
 
   return (
     <div
@@ -47,15 +47,15 @@ export const UserDropdown = ({
               </h3>
             </div>
             <NavigationItem href="/user/orders">Orders</NavigationItem>
-            {/* <NavigationItem href="/user/messages" className="relative">
+            <NavigationItem href="/user/messages" className="relative">
               Messages
-              {Boolean(unreads?.length) && (
+              {unreadCount > 0 && (
                 <Badge className="absolute top-3 left-24 w-4 h-4 p-0">
-                  {unreads?.length}
+                  {unreadCount}
                 </Badge>
               )}
             </NavigationItem>
-            <NavigationItem href="/user/returns">Returns</NavigationItem> */}
+            {/* <NavigationItem href="/user/returns">Returns</NavigationItem> */}
             <NavigationItem href="/user/addresses">Addresses</NavigationItem>
             <NavigationItem href="/user/reviews">Reviews</NavigationItem>
             <NavigationItem href="/user/wishlist">Wishlist</NavigationItem>

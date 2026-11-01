@@ -159,8 +159,11 @@ export type Routes = {
             $code: typeof import("@medusajs/medusa/api/admin/locales/[code]/route");
         };
         members: typeof import("../src/api/admin/members/route");
-        notifications: typeof import("@medusajs/medusa/api/admin/notifications/route") & {
-            $id: typeof import("@medusajs/medusa/api/admin/notifications/[id]/route");
+        notifications: typeof import("../src/api/admin/notifications/route") & {
+            $id: typeof import("@medusajs/medusa/api/admin/notifications/[id]/route") & {
+                read: typeof import("../src/api/admin/notifications/[id]/read/route");
+            };
+            readAll: typeof import("../src/api/admin/notifications/read-all/route");
         };
         offers: typeof import("../src/api/admin/offers/route") & {
             $id: typeof import("../src/api/admin/offers/[id]/route");
@@ -324,6 +327,7 @@ export type Routes = {
                     confirm: typeof import("@medusajs/medusa/api/admin/products/imports/[transaction_id]/confirm/route");
                 };
             };
+            scrape: typeof import("../src/api/admin/products/scrape/route");
         };
         promotions: typeof import("@medusajs/medusa/api/admin/promotions/route") & {
             $id: typeof import("@medusajs/medusa/api/admin/promotions/[id]/route") & {
@@ -512,6 +516,7 @@ export type Routes = {
             };
         };
         analytics: typeof import("../src/api/admin/analytics/route");
+        courierAccounts: typeof import("../src/api/admin/courier-accounts/route");
         fp: {
             analytics: typeof import("../src/api/admin/fp/analytics/route");
             bundles: typeof import("../src/api/admin/fp/bundles/route") & {
@@ -529,6 +534,21 @@ export type Routes = {
         };
         heroBanners: typeof import("../src/api/admin/hero-banners/route") & {
             $id: typeof import("../src/api/admin/hero-banners/[id]/route");
+        };
+        messages: typeof import("../src/api/admin/messages/route") & {
+            $id: typeof import("../src/api/admin/messages/[id]/route") & {
+                read: typeof import("../src/api/admin/messages/[id]/read/route");
+            };
+            blocked: typeof import("../src/api/admin/messages/blocked/route");
+            chatBlocks: typeof import("../src/api/admin/messages/chat-blocks/route") & {
+                $customerId: typeof import("../src/api/admin/messages/chat-blocks/[customer_id]/route");
+            };
+            events: typeof import("../src/api/admin/messages/events/route");
+            filters: typeof import("../src/api/admin/messages/filters/route") & {
+                $id: typeof import("../src/api/admin/messages/filters/[id]/route");
+            };
+            sseToken: typeof import("../src/api/admin/messages/sse-token/route");
+            unread: typeof import("../src/api/admin/messages/unread/route");
         };
         offerConditions: typeof import("../src/api/admin/offer-conditions/route") & {
             $id: typeof import("../src/api/admin/offer-conditions/[id]/route");
@@ -580,6 +600,9 @@ export type Routes = {
             $provider: typeof import("../src/api/hooks/payment/[provider]/route");
         };
         payout: typeof import("../src/api/hooks/payout/route");
+        courier: {
+            $provider: typeof import("../src/api/hooks/courier/[provider]/route");
+        };
     };
     store: {
         carts: typeof import("@medusajs/medusa/api/store/carts/route") & {
@@ -688,6 +711,20 @@ export type Routes = {
             };
         };
         heroBanners: typeof import("../src/api/store/hero-banners/route");
+        messages: typeof import("../src/api/store/messages/route") & {
+            $id: typeof import("../src/api/store/messages/[id]/route") & {
+                read: typeof import("../src/api/store/messages/[id]/read/route");
+            };
+            events: typeof import("../src/api/store/messages/events/route");
+            sseToken: typeof import("../src/api/store/messages/sse-token/route");
+            unread: typeof import("../src/api/store/messages/unread/route");
+        };
+        notifications: typeof import("../src/api/store/notifications/route") & {
+            $id: {
+                read: typeof import("../src/api/store/notifications/[id]/read/route");
+            };
+            readAll: typeof import("../src/api/store/notifications/read-all/route");
+        };
         reviews: typeof import("../src/api/store/reviews/route") & {
             $id: typeof import("../src/api/store/reviews/[id]/route");
         };
@@ -824,6 +861,7 @@ export type Routes = {
                         cancel: typeof import("../src/api/vendor/orders/[id]/fulfillments/[fulfillment_id]/cancel/route");
                         markAsDelivered: typeof import("../src/api/vendor/orders/[id]/fulfillments/[fulfillment_id]/mark-as-delivered/route");
                         shipments: typeof import("../src/api/vendor/orders/[id]/fulfillments/[fulfillment_id]/shipments/route");
+                        courier: typeof import("../src/api/vendor/orders/[id]/fulfillments/[fulfillment_id]/courier/route");
                     };
                 };
                 preview: typeof import("../src/api/vendor/orders/[id]/preview/route");
@@ -881,6 +919,9 @@ export type Routes = {
                     $variantId: typeof import("../src/api/vendor/products/[id]/variants/[variant_id]/route");
                 };
             };
+            export: typeof import("../src/api/vendor/products/export/route");
+            import: typeof import("../src/api/vendor/products/import/route");
+            scrape: typeof import("../src/api/vendor/products/scrape/route");
         };
         promotions: typeof import("../src/api/vendor/promotions/route") & {
             $id: typeof import("../src/api/vendor/promotions/[id]/route") & {
@@ -980,6 +1021,9 @@ export type Routes = {
         stores: typeof import("../src/api/vendor/stores/route");
         uploads: typeof import("../src/api/vendor/uploads/route");
         analytics: typeof import("../src/api/vendor/analytics/route");
+        courierAccounts: typeof import("../src/api/vendor/courier-accounts/route") & {
+            $id: typeof import("../src/api/vendor/courier-accounts/[id]/route");
+        };
         fp: {
             analytics: typeof import("../src/api/vendor/fp/analytics/route");
             bundles: typeof import("../src/api/vendor/fp/bundles/route") & {
@@ -987,6 +1031,20 @@ export type Routes = {
             };
             fundingSummary: typeof import("../src/api/vendor/fp/funding-summary/route");
             promotions: typeof import("../src/api/vendor/fp/promotions/route");
+        };
+        messages: typeof import("../src/api/vendor/messages/route") & {
+            $id: typeof import("../src/api/vendor/messages/[id]/route") & {
+                read: typeof import("../src/api/vendor/messages/[id]/read/route");
+            };
+            events: typeof import("../src/api/vendor/messages/events/route");
+            sseToken: typeof import("../src/api/vendor/messages/sse-token/route");
+            unread: typeof import("../src/api/vendor/messages/unread/route");
+        };
+        notifications: typeof import("../src/api/vendor/notifications/route") & {
+            $id: {
+                read: typeof import("../src/api/vendor/notifications/[id]/read/route");
+            };
+            readAll: typeof import("../src/api/vendor/notifications/read-all/route");
         };
         offerConditions: typeof import("../src/api/vendor/offer-conditions/route") & {
             $id: typeof import("../src/api/vendor/offer-conditions/[id]/route");

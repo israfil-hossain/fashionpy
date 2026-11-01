@@ -10,8 +10,9 @@ import { FieldError, FieldValues, FormProvider, useForm, useFormContext } from '
 import { Button } from '@/components/atoms';
 import { Alert } from '@/components/atoms/Alert/Alert';
 import { LabeledInput } from '@/components/cells';
-import { login, transferCart } from '@/lib/data/customer';
+import { login, loginWithGoogle, transferCart } from '@/lib/data/customer';
 import { toast } from '@/lib/helpers/toast';
+import { GoogleIcon } from '@/icons';
 
 import { LoginFormData, loginFormSchema } from './schema';
 
@@ -33,6 +34,7 @@ export const LoginForm = () => {
 
 const Form = () => {
   const [isAuthError, setIsAuthError] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const {
     handleSubmit,
     register,
@@ -59,6 +61,22 @@ const Form = () => {
 
     setIsAuthError(false);
     router.push('/user');
+  };
+
+  const submitGoogle = async () => {
+    setIsGoogleSubmitting(true);
+    try {
+      const res = await loginWithGoogle();
+
+      if (res.success && 'location' in res && res.location) {
+        window.location.href = res.location;
+        return;
+      }
+
+      toast.error({ title: !res.success ? res.message : 'An error occurred. Please try again.' });
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
   };
 
   const clearApiError = () => {
@@ -144,6 +162,25 @@ const Form = () => {
               Log in
             </Button>
           </form>
+
+          <div className="mt-6 flex items-center gap-4">
+            <div className="h-px flex-1 bg-secondary" />
+            <span className="label-md uppercase text-secondary">or</span>
+            <div className="h-px flex-1 bg-secondary" />
+          </div>
+
+          <Button
+            variant="tonal"
+            className="mt-4 w-full uppercase"
+            disabled={isGoogleSubmitting}
+            onClick={submitGoogle}
+            data-testid="login-google-button"
+          >
+            <span className="flex items-center justify-center gap-2">
+              <GoogleIcon size={18} />
+              Continue with Google
+            </span>
+          </Button>
         </div>
 
         <div className="rounded-sm border p-4">

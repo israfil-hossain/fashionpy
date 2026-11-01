@@ -1,5 +1,9 @@
 import { HttpTypes } from "@medusajs/types"
-import { AttributeType, ProductAttributeBatchAdd } from "@mercurjs/types"
+import {
+  AttributeType,
+  ProductAttributeBatchAdd,
+  ScrapedProductDraft,
+} from "@mercurjs/types"
 import { UseFormReturn } from "react-hook-form"
 import { ProductCreateSchemaType } from "./types"
 
@@ -288,4 +292,60 @@ export const subscribeVariantsToAttributes = (form: VariantSyncForm) => {
     formState: { values: true },
     callback: () => syncVariantsWithAttributes(form),
   })
+}
+
+// --- Scrape-from-URL seeding ---
+
+/**
+ * Seed the create form from a scraped product draft. Image URLs are stored as
+ * url-only media entries (file: null) — the media list renders them and the
+ * submit path passes them through without an upload round-trip. Option axes
+ * become variant-axis attributes; the attribute subscription regenerates the
+ * variant rows.
+ */
+export const applyScrapedDraft = (
+  form: Pick<UseFormReturn<ProductCreateSchemaType>, "getValues" | "setValue">,
+  draft: ScrapedProductDraft
+) => {
+  if (draft.title) {
+    form.setValue("title", draft.title, { shouldDirty: true })
+  }
+  if (draft.subtitle) {
+    form.setValue("subtitle", draft.subtitle, { shouldDirty: true })
+  }
+  if (draft.description) {
+    form.setValue("description", draft.description, { shouldDirty: true })
+  }
+
+  if (draft.images.length) {
+    form.setValue(
+      "media",
+      draft.images.map((url, index) => ({
+        url,
+        isThumbnail: index === 0,
+        file: null,
+      })),
+      { shouldDirty: true }
+    )
+  }
+
+  if (draft.option_axes.length) {
+    form.setValue(
+      "attributes",
+      draft.option_axes.map((axis) => ({
+        title: axis.title,
+        values: axis.values,
+        is_custom: true,
+        use_for_variants: true,
+        type: "multi_select",
+      })),
+      { shouldDirty: true }
+    )
+    syncVariantsWithAttributes(form as VariantSyncForm)
+  } else if (draft.sku) {
+    const variants = form.getValues("variants") ?? []
+    if (variants.length === 1) {
+      form.setValue("variants.0.sku", draft.sku, { shouldDirty: true })
+    }
+  }
 }

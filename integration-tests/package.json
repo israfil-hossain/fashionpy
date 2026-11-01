@@ -10,11 +10,14 @@
   "dependencies": {
     "@medusajs/framework": "2.21.2",
     "@medusajs/medusa": "2.21.2",
+    "@medusajs/auth-google": "2.21.2",
     "@mercurjs/core": "*",
     "jsonwebtoken": "^9.0.3",
     "scrypt-kdf": "^2.0.1",
     "@medusajs/draft-order": "2.21.2",
-    "meilisearch": "^0.59.0"
+    "meilisearch": "^0.59.0",
+    "@mercurjs/courier-pathao": "*",
+    "@mercurjs/courier-steadfast": "*"
   },
   "devDependencies": {
     "@mercurjs/types": "*",

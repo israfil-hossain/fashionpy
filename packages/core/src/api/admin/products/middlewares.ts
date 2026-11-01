@@ -28,6 +28,7 @@ import {
   AdminUpdateProductVariant,
 } from "./validators"
 import { withOriginalMiddlewares } from "../../../utils/disable-medusa-middlewares"
+import { AdminScrapeProductBody } from "./scrape/validators"
 
 const overrides: MiddlewareRoute[] = [
   {
@@ -52,6 +53,14 @@ const overrides: MiddlewareRoute[] = [
         AdminGetProductParams,
         adminProductQueryConfig.retrieve
       ),
+    ],
+  },
+  {
+    method: ["POST"],
+    matcher: "/admin/products/scrape",
+    middlewares: [
+      requirePermission("products", "edit"),
+      validateAndTransformBody(AdminScrapeProductBody),
     ],
   },
   {

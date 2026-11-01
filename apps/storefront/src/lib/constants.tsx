@@ -25,6 +25,10 @@ export const paymentInfoMap: Record<
     title: "Manual Payment",
     icon: <Cash />,
   },
+  pp_cod: {
+    title: "Cash on Delivery",
+    icon: <Cash />,
+  },
 }
 
 // This only checks if it is native stripe for card payments, it ignores the other stripe-based providers
@@ -36,6 +40,12 @@ export const isPaypal = (providerId?: string) => {
 }
 export const isManual = (providerId?: string) => {
   return providerId?.startsWith("pp_system_default")
+}
+
+// Cash on Delivery — same no-online-charge flow as manual, distinct id so
+// courier booking can collect cash on the platform account.
+export const isCod = (providerId?: string) => {
+  return providerId === "pp_cod"
 }
 
 // Add currencies that don't need to be divided by 100

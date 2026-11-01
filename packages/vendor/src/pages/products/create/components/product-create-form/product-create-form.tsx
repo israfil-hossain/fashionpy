@@ -61,20 +61,31 @@ export const ProductCreateForm = ({
 
     let uploadedMedia: (UploadedFile & { isThumbnail: boolean })[] = []
     try {
-      const filesToUpload = media
-        .map((m, i) => ({ file: m.file, isThumbnail: m.isThumbnail, index: i }))
-        .filter((m) => !!m.file)
+      // Scrape-seeded entries carry a remote URL and no File — pass them
+      // through as-is; only File-backed entries need an upload round-trip.
+      const urlOnlyMedia = media
+        .filter((m) => !m.file && m.url)
+        .map((m) => ({ url: m.url, isThumbnail: m.isThumbnail }))
+      const fileBackedMedia = media.filter((m) => !!m.file)
 
+      const filesToUpload = fileBackedMedia.map((m) => ({
+        file: m.file,
+        isThumbnail: m.isThumbnail,
+      }))
+
+      let uploaded: (UploadedFile & { isThumbnail: boolean })[] = []
       if (filesToUpload.length) {
         const result = await sdk.vendor.uploads.mutate({
           files: filesToUpload.map(({ file }) => file),
         })
         const uploadedFiles: UploadedFile[] = result?.files ?? []
-        uploadedMedia = uploadedFiles.map((file, i) => ({
+        uploaded = uploadedFiles.map((file, i) => ({
           ...file,
           isThumbnail: filesToUpload[i].isThumbnail,
         }))
       }
+
+      uploadedMedia = [...uploaded, ...urlOnlyMedia]
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message)

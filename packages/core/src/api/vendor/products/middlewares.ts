@@ -10,6 +10,7 @@ import {
   validateAndTransformQuery,
 } from "@medusajs/framework"
 import { ProductStatus } from "@mercurjs/types"
+import multer from "multer"
 
 import { applyOfferedProductsFilter } from "../../utils"
 import {
@@ -33,11 +34,14 @@ import {
   VendorUpdateProduct,
   VendorUpdateProductVariant,
 } from "./validators"
+import { VendorScrapeProductBody } from "./scrape/validators"
 import {
   ContainerRegistrationKeys,
   MedusaError,
   promiseAll,
 } from "@medusajs/framework/utils"
+
+const upload = multer({ storage: multer.memoryStorage() })
 
 const applySellerProductLinkFilter = async (
   req: AuthenticatedMedusaRequest,
@@ -149,6 +153,14 @@ export const vendorProductsMiddlewares: MiddlewareRoute[] = [
       ),
       applySellerProductLinkFilter,
       applyOfferedProductsFilter,
+    ],
+  },
+  {
+    method: ["POST"],
+    matcher: "/vendor/products/scrape",
+    middlewares: [
+      requirePermission("products", "edit"),
+      validateAndTransformBody(VendorScrapeProductBody),
     ],
   },
   {
@@ -279,6 +291,23 @@ export const vendorProductsMiddlewares: MiddlewareRoute[] = [
         VendorGetProductParams,
         vendorProductQueryConfig.retrieve
       ),
+    ],
+  },
+
+  {
+    method: ["POST"],
+    matcher: "/vendor/products/import",
+    middlewares: [
+      requirePermission("products", "edit"),
+      upload.single("file"),
+    ],
+  },
+
+  {
+    method: ["POST"],
+    matcher: "/vendor/products/export",
+    middlewares: [
+      requirePermission("products", "view"),
     ],
   },
 ]

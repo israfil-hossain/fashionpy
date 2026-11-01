@@ -112,6 +112,17 @@ export function getRouteMap({
                           };
                         },
                       },
+                      {
+                        path: "import",
+                        handle: { permissions: "products:edit" },
+                        lazy: async () => {
+                          const { default: ProductImportPage } =
+                            await import("./pages/products/import");
+                          return {
+                            Component: ProductImportPage,
+                          };
+                        },
+                      },
                     ],
                   },
                   {
@@ -347,6 +358,34 @@ export function getRouteMap({
                         ],
                       },
                     ],
+                  },
+                ],
+              },
+
+              // MESSAGES (customer chat + marketplace support threads)
+              {
+                path: "/messages",
+                errorElement: <ErrorBoundary />,
+                handle: {
+                  breadcrumb: () => t("messages.title"),
+                  permissions: "messages:view",
+                },
+                children: [
+                  {
+                    path: "",
+                    lazy: async () => {
+                      const { VendorMessagesPage } =
+                        await import("./pages/messages");
+                      return { Component: VendorMessagesPage };
+                    },
+                  },
+                  {
+                    path: ":id",
+                    lazy: async () => {
+                      const { VendorConversationDetailPage } =
+                        await import("./pages/messages/[id]");
+                      return { Component: VendorConversationDetailPage };
+                    },
                   },
                 ],
               },
@@ -1593,6 +1632,21 @@ export function getRouteMap({
               },
 
               // PRODUCT TYPES
+              {
+                path: "courier",
+                errorElement: <ErrorBoundary />,
+                element: <Outlet />,
+                handle: {
+                  breadcrumb: () => t("courier.domain"),
+                  permissions: "courier_accounts:view",
+                },
+                children: [
+                  {
+                    path: "",
+                    lazy: () => import("./pages/settings/courier"),
+                  },
+                ],
+              },
               {
                 path: "product-types",
                 errorElement: <ErrorBoundary />,

@@ -11,7 +11,7 @@
         "@types/multer"
       ],
       "registryDependencies": [],
-      "docs": "## Product Import/Export Block\n\n### Dependencies\n\nInstall dependencies in the **API workspace** (not the project root):\n\n```bash\ncd packages/api\nbun add multer @types/multer\n```\n\n### Configuration\n\nNo additional modules needed \u2014 uses built-in Medusa product CSV steps.\n\n### Middleware Setup\n\nAdd the import middleware to your `api/middlewares.ts`:\n\n```ts\nimport { defineMiddlewares } from '@medusajs/medusa'\nimport { productImportExportMiddlewares } from './vendor/products/middlewares'\n\nexport default defineMiddlewares({\n  routes: [...productImportExportMiddlewares],\n})\n```\n\n### Run codegen\n\nAfter installing the block, regenerate SDK types:\n\n```bash\nnpx @mercurjs/cli@latest codegen\n```\n\n### Vendor Navigation\n\nThe block includes a `products/page.tsx` that overrides the default product list page, adding Import and Export buttons in the header. The buttons open drawer routes at `/products/import` and `/products/export`.",
+      "docs": "## Product Import/Export Block\n\n### Dependencies\n\nInstall dependencies in the **API workspace** (not the project root):\n\n```bash\ncd packages/api\nbun add multer @types/multer\n```\n\n### Configuration\n\nNo additional modules needed — uses built-in Medusa product CSV steps.\n\n### Middleware Setup\n\nAdd the import middleware to your `api/middlewares.ts`:\n\n```ts\nimport { defineMiddlewares } from '@medusajs/medusa'\nimport { productImportExportMiddlewares } from './vendor/products/middlewares'\n\nexport default defineMiddlewares({\n  routes: [...productImportExportMiddlewares],\n})\n```\n\n### Run codegen\n\nAfter installing the block, regenerate SDK types:\n\n```bash\nnpx @mercurjs/cli@latest codegen\n```\n\n### Vendor Navigation\n\nThe block includes a `products/page.tsx` that overrides the default product list page, adding Import and Export buttons in the header. The buttons open drawer routes at `/products/import` and `/products/export`.",
       "files": [
         {
           "path": "product-import-export/workflows/steps/get-seller-products.ts",
@@ -163,43 +163,6 @@
       ]
     },
     {
-      "name": "vendor-notifications",
-      "description": "Vendor notification feed with a topbar bell widget and vendor API endpoint.",
-      "dependencies": [],
-      "registryDependencies": [],
-      "docs": "## Vendor Notifications\n\nThis block adds vendor notifications: a bell widget in the topbar and a `GET /vendor/notifications` API endpoint.\n\n### 1. Notification Provider\n\nAdd the `seller_feed` channel to the local notification provider in `medusa-config.ts`:\n\n```ts\n{\n  resolve: '@medusajs/medusa/notification',\n  options: {\n    providers: [\n      {\n        resolve: '@medusajs/medusa/notification-local',\n        id: 'local',\n        options: {\n          channels: ['feed', 'seller_feed']\n        }\n      }\n    ]\n  }\n}\n```\n\n### 2. Middleware Setup\n\nImport `vendorNotificationMiddlewares` and add it to your `src/api/middlewares.ts`:\n\n```ts\nimport { defineMiddlewares } from \"@medusajs/medusa\";\nimport { vendorNotificationMiddlewares } from \"./vendor/notifications/middlewares\";\n\nexport default defineMiddlewares({\n  routes: [\n    // ...your existing middlewares,\n    ...vendorNotificationMiddlewares,\n  ],\n});\n```\n\n### 3. Topbar bell\n\nThe bell ships as a vendor widget at `widgets/notifications.tsx` targeting the `topbar.after` zone. It registers itself, so there is nothing to wire up.\n\n### 4. Sending Notifications\n\nCreate a subscriber to send notifications to sellers. Example (`src/subscribers/seller-product-notification.ts`):\n\n```ts\nimport type { SubscriberArgs, SubscriberConfig } from \"@medusajs/framework\"\nimport { ContainerRegistrationKeys, Modules } from \"@medusajs/framework/utils\"\n\nexport default async function handler({\n  event: { data },\n  container,\n}: SubscriberArgs<{ id: string }>) {\n  const query = container.resolve(ContainerRegistrationKeys.QUERY)\n  const notificationService = container.resolve(Modules.NOTIFICATION)\n\n  // Example: look up the seller linked to a product\n  const { data: [product] } = await query.graph({\n    entity: \"product\",\n    fields: [\"id\", \"title\", \"seller.*\"],\n    filters: { id: data.id },\n  })\n\n  if (!product?.seller?.id) return\n\n  await notificationService.createNotifications({\n    to: product.seller.id,\n    channel: \"seller_feed\",\n    template: \"product-created\",\n    data: {\n      title: \"Product created\",\n      description: `Your product \\\"${product.title}\\\" has been created.`,\n    },\n  })\n}\n\nexport const config: SubscriberConfig = {\n  event: \"product.created\",\n}\n```\n\n### 5. Run codegen\n\n```bash\nnpx @mercurjs/cli@latest codegen\n```",
-      "files": [
-        {
-          "path": "vendor-notifications/api/middlewares.ts",
-          "type": "registry:api"
-        },
-        {
-          "path": "vendor-notifications/api/vendor/notifications/route.ts",
-          "type": "registry:api"
-        },
-        {
-          "path": "vendor-notifications/api/vendor/notifications/middlewares.ts",
-          "type": "registry:api"
-        },
-        {
-          "path": "vendor-notifications/api/vendor/notifications/validators.ts",
-          "type": "registry:api"
-        },
-        {
-          "path": "vendor-notifications/api/vendor/notifications/query-config.ts",
-          "type": "registry:api"
-        },
-        {
-          "path": "vendor-notifications/vendor/widgets/notifications.tsx",
-          "type": "registry:vendor"
-        }
-      ],
-      "categories": [
-        "api",
-        "vendor"
-      ]
-    },
-    {
       "name": "algolia",
       "description": "Algolia search integration with product indexing, event-driven sync, and store search API.",
       "dependencies": [
@@ -301,7 +264,7 @@
       "description": "Admin approval system powered by the Custom Fields module. Admins can list, review, accept or reject entity requests.",
       "dependencies": [],
       "registryDependencies": [],
-      "docs": "## Prerequisites\n\nThis block requires the **Custom Fields module** (`@mercurjs/core/modules/custom-fields`). Make sure it is registered in your `medusa-config.ts`.\n\n## Configuration\n\nAdd request-related custom fields to the entities you want to support approval workflows for. Product already has a built-in `status` field, so you only need to configure custom fields for other entities.\n\nAdd these fields to your Custom Fields module options in `medusa-config.ts`:\n\n```ts\n{\n  resolve: \"@mercurjs/core/modules/custom-fields\",\n  options: {\n    customFields: {\n      ProductCollection: {\n        request_status: {\n          type: \"enum\",\n          enum: [\"draft\", \"pending\", \"accepted\", \"rejected\"],\n          defaultValue: \"draft\",\n        },\n        submitter_id: { type: \"string\", nullable: true },\n        reviewer_id: { type: \"string\", nullable: true },\n        reviewer_note: { type: \"text\", nullable: true },\n      },\n      // Add the same fields to other entities as needed:\n      // ProductCategory, ProductType, ProductTag\n    },\n  },\n}\n```\n\n## Middlewares\n\nAdd the request middlewares to your `api/middlewares.ts`:\n\n```ts\nimport { defineMiddlewares } from \"@medusajs/medusa\";\nimport { adminRequestsMiddlewares } from \"./admin/requests/middlewares\";\nimport { vendorProductCollectionRequestsMiddlewares } from \"./vendor/requests/product-collections/middlewares\";\nimport { vendorProductCategoryRequestsMiddlewares } from \"./vendor/requests/product-categories/middlewares\";\nimport { vendorProductTypeRequestsMiddlewares } from \"./vendor/requests/product-types/middlewares\";\nimport { vendorProductTagRequestsMiddlewares } from \"./vendor/requests/product-tags/middlewares\";\n\nexport default defineMiddlewares({\n  routes: [\n    ...adminRequestsMiddlewares,\n    ...vendorProductCollectionRequestsMiddlewares,\n    ...vendorProductCategoryRequestsMiddlewares,\n    ...vendorProductTypeRequestsMiddlewares,\n    ...vendorProductTagRequestsMiddlewares,\n  ],\n});\n```\n\nIf you already have a `middlewares.ts` file, merge the middleware imports and spread them into your existing `routes` array.\n\n## Database Migrations\n\nAfter updating the custom fields configuration, run migrations:\n\n```bash\nnpx medusa db:migrate\n```\n\n## Run codegen\n\nAfter installing the block, regenerate SDK types:\n\n```bash\nnpx @mercurjs/cli@latest codegen\n```\n\n## API Endpoints\n\n### Admin\n\n- `GET /admin/requests/:type` \u2014 List entities with request custom fields (filterable by `request_status`, `submitter_id`)\n- `GET /admin/requests/:type/:id` \u2014 Retrieve entity with request custom fields\n- `POST /admin/requests/:type/:id/accept` \u2014 Accept a request\n- `POST /admin/requests/:type/:id/reject` \u2014 Reject a request\n\nSupported `:type` values: `product_collection`, `product_category`, `product_type`, `product_tag`\n\n### Vendor\n\n- `GET /vendor/requests/product-collections` \u2014 List vendor's collection requests\n- `POST /vendor/requests/product-collections` \u2014 Create a collection request\n- `GET /vendor/requests/product-categories` \u2014 List vendor's category requests\n- `POST /vendor/requests/product-categories` \u2014 Create a category request\n- `GET /vendor/requests/product-types` \u2014 List vendor's type requests\n- `POST /vendor/requests/product-types` \u2014 Create a type request\n- `GET /vendor/requests/product-tags` \u2014 List vendor's tag requests\n- `POST /vendor/requests/product-tags` \u2014 Create a tag request",
+      "docs": "## Prerequisites\n\nThis block requires the **Custom Fields module** (`@mercurjs/core/modules/custom-fields`). Make sure it is registered in your `medusa-config.ts`.\n\n## Configuration\n\nAdd request-related custom fields to the entities you want to support approval workflows for. Product already has a built-in `status` field, so you only need to configure custom fields for other entities.\n\nAdd these fields to your Custom Fields module options in `medusa-config.ts`:\n\n```ts\n{\n  resolve: \"@mercurjs/core/modules/custom-fields\",\n  options: {\n    customFields: {\n      ProductCollection: {\n        request_status: {\n          type: \"enum\",\n          enum: [\"draft\", \"pending\", \"accepted\", \"rejected\"],\n          defaultValue: \"draft\",\n        },\n        submitter_id: { type: \"string\", nullable: true },\n        reviewer_id: { type: \"string\", nullable: true },\n        reviewer_note: { type: \"text\", nullable: true },\n      },\n      // Add the same fields to other entities as needed:\n      // ProductCategory, ProductType, ProductTag\n    },\n  },\n}\n```\n\n## Middlewares\n\nAdd the request middlewares to your `api/middlewares.ts`:\n\n```ts\nimport { defineMiddlewares } from \"@medusajs/medusa\";\nimport { adminRequestsMiddlewares } from \"./admin/requests/middlewares\";\nimport { vendorProductCollectionRequestsMiddlewares } from \"./vendor/requests/product-collections/middlewares\";\nimport { vendorProductCategoryRequestsMiddlewares } from \"./vendor/requests/product-categories/middlewares\";\nimport { vendorProductTypeRequestsMiddlewares } from \"./vendor/requests/product-types/middlewares\";\nimport { vendorProductTagRequestsMiddlewares } from \"./vendor/requests/product-tags/middlewares\";\n\nexport default defineMiddlewares({\n  routes: [\n    ...adminRequestsMiddlewares,\n    ...vendorProductCollectionRequestsMiddlewares,\n    ...vendorProductCategoryRequestsMiddlewares,\n    ...vendorProductTypeRequestsMiddlewares,\n    ...vendorProductTagRequestsMiddlewares,\n  ],\n});\n```\n\nIf you already have a `middlewares.ts` file, merge the middleware imports and spread them into your existing `routes` array.\n\n## Database Migrations\n\nAfter updating the custom fields configuration, run migrations:\n\n```bash\nnpx medusa db:migrate\n```\n\n## Run codegen\n\nAfter installing the block, regenerate SDK types:\n\n```bash\nnpx @mercurjs/cli@latest codegen\n```\n\n## API Endpoints\n\n### Admin\n\n- `GET /admin/requests/:type` — List entities with request custom fields (filterable by `request_status`, `submitter_id`)\n- `GET /admin/requests/:type/:id` — Retrieve entity with request custom fields\n- `POST /admin/requests/:type/:id/accept` — Accept a request\n- `POST /admin/requests/:type/:id/reject` — Reject a request\n\nSupported `:type` values: `product_collection`, `product_category`, `product_type`, `product_tag`\n\n### Vendor\n\n- `GET /vendor/requests/product-collections` — List vendor's collection requests\n- `POST /vendor/requests/product-collections` — Create a collection request\n- `GET /vendor/requests/product-categories` — List vendor's category requests\n- `POST /vendor/requests/product-categories` — Create a category request\n- `GET /vendor/requests/product-types` — List vendor's type requests\n- `POST /vendor/requests/product-types` — Create a type request\n- `GET /vendor/requests/product-tags` — List vendor's tag requests\n- `POST /vendor/requests/product-tags` — Create a tag request",
       "files": [
         {
           "path": "requests/types/index.ts",
@@ -583,105 +546,392 @@
     {
       "name": "messaging",
       "description": "Buyer-vendor messaging with real-time SSE delivery, content filtering, admin oversight, GDPR erasure, and vendor portal UI.",
-      "dependencies": ["ioredis"],
+      "dependencies": [
+        "ioredis"
+      ],
       "registryDependencies": [],
       "docs": "## Configuration\n\nAdd the messaging modules to your `medusa-config.ts`:\n\n```ts\nmodules: [\n  {\n    resolve: './modules/messaging',\n    options: {\n      // Optional. Defaults shown below.\n      rateLimits: {\n        messagesPerMinute: 20,\n        conversationsPerHour: 5,\n      },\n    },\n  },\n  {\n    resolve: './modules/messaging-filters',\n  },\n  {\n    resolve: './modules/messaging-redis',\n    options: {\n      redisUrl: process.env.REDIS_URL,\n    },\n  },\n]\n```\n\n### Rate Limits\n\nThe `messaging` module accepts an optional `rateLimits` object that controls per-sender abuse protection:\n\n- `messagesPerMinute` — maximum messages any single sender (customer or vendor) can send across all conversations in a 60s window. Defaults to `20`.\n- `conversationsPerHour` — maximum new conversations a single sender can open in a 3600s window. Defaults to `5`.\n\nRate limiting is enforced via Redis. When the `messaging-redis` module is not configured (no `redisUrl`), rate limiting is skipped gracefully.\n\n## Middlewares\n\nAdd the messaging middlewares to your `api/middlewares.ts`:\n\n```ts\nimport { defineMiddlewares } from \"@medusajs/medusa\";\nimport { storeMessagingMiddlewares } from \"./store/messages/middlewares\";\nimport { vendorMessagingMiddlewares } from \"./vendor/messages/middlewares\";\nimport { adminMessagingMiddlewares } from \"./admin/messages/middlewares\";\n\nexport default defineMiddlewares({\n  routes: [\n    ...storeMessagingMiddlewares,\n    ...vendorMessagingMiddlewares,\n    ...adminMessagingMiddlewares,\n  ],\n});\n```\n\nIf you already have a `middlewares.ts` file, merge the messaging middleware imports and spread them into your existing `routes` array.\n\n## Environment Variables\n\nThe messaging block requires Redis for real-time delivery, rate limiting, and content filter cache invalidation:\n\n```env\nREDIS_URL=redis://localhost:6379\n```\n\n## Database Migrations\n\nAfter installing the block and adding the module configuration, generate and run the migrations:\n\n```bash\nnpx medusa db:generate messaging\nnpx medusa db:generate messagingFilters\nnpx medusa db:migrate\n```",
       "files": [
-        { "path": "messaging/modules/messaging/index.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging/service.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging/models/conversation.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging/models/message.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging/models/chat-block.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging/types/common.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging/types/mutations.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging-filters/index.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging-filters/service.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging-filters/models/filter-rule.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging-filters/models/blocked-message-log.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging-filters/types/common.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging-filters/loaders/compile-filters.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging-filters/loaders/seed-builtin-rules.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging-redis/index.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging-redis/service.ts", "type": "registry:api" },
-        { "path": "messaging/modules/messaging-redis/loaders/connection.ts", "type": "registry:api" },
-        { "path": "messaging/links/conversation-seller.ts", "type": "registry:api" },
-        { "path": "messaging/links/conversation-customer.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/steps/validate-rate-limit.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/steps/validate-content-filter.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/steps/create-message.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/steps/publish-message-event.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/steps/create-conversation.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/steps/mark-messages-read.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/steps/anonymize-messages-batch.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/steps/validate-chat-block.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/steps/block-customer.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/steps/unblock-customer.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/workflows/send-message.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/workflows/create-conversation.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/workflows/mark-messages-read.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/workflows/anonymize-buyer-messages.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/workflows/anonymize-vendor-messages.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/workflows/block-customer.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging/workflows/unblock-customer.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging-filters/steps/create-filter-rule.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging-filters/steps/update-filter-rule.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging-filters/steps/delete-filter-rule.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging-filters/steps/invalidate-filter-cache.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging-filters/workflows/create-filter-rule.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging-filters/workflows/update-filter-rule.ts", "type": "registry:api" },
-        { "path": "messaging/workflows/messaging-filters/workflows/delete-filter-rule.ts", "type": "registry:api" },
-        { "path": "messaging/api/store/messages/validators.ts", "type": "registry:api" },
-        { "path": "messaging/api/store/messages/query-config.ts", "type": "registry:api" },
-        { "path": "messaging/api/store/messages/helpers.ts", "type": "registry:api" },
-        { "path": "messaging/api/store/messages/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/store/messages/middlewares.ts", "type": "registry:api" },
-        { "path": "messaging/api/store/messages/[id]/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/store/messages/[id]/read/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/store/messages/unread/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/store/messages/sse-token/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/store/messages/events/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/vendor/messages/validators.ts", "type": "registry:api" },
-        { "path": "messaging/api/vendor/messages/query-config.ts", "type": "registry:api" },
-        { "path": "messaging/api/vendor/messages/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/vendor/messages/middlewares.ts", "type": "registry:api" },
-        { "path": "messaging/api/vendor/messages/[id]/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/vendor/messages/[id]/read/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/vendor/messages/unread/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/vendor/messages/events/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/validators.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/query-config.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/middlewares.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/[id]/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/events/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/filters/validators.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/filters/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/filters/[id]/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/blocked/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/chat-blocks/route.ts", "type": "registry:api" },
-        { "path": "messaging/api/admin/messages/chat-blocks/[customer_id]/route.ts", "type": "registry:api" },
-        { "path": "messaging/subscribers/message-notification.ts", "type": "registry:api" },
-        { "path": "messaging/subscribers/buyer-deletion.ts", "type": "registry:api" },
-        { "path": "messaging/subscribers/vendor-removal.ts", "type": "registry:api" },
-        { "path": "messaging/jobs/reconcile-unread-counts.ts", "type": "registry:api" },
-        { "path": "messaging/jobs/cleanup-blocked-messages.ts", "type": "registry:api" },
-        { "path": "messaging/vendor/lib/client.ts", "type": "registry:vendor" },
-        { "path": "messaging/vendor/hooks/use-messaging-layout.ts", "type": "registry:vendor" },
-        { "path": "messaging/vendor/hooks/api/messaging.tsx", "type": "registry:vendor" },
-        { "path": "messaging/vendor/hooks/api/use-messaging-sse.tsx", "type": "registry:vendor" },
-        { "path": "messaging/vendor/hooks/table/columns/use-conversation-table-columns.tsx", "type": "registry:vendor" },
-        { "path": "messaging/vendor/hooks/table/query/use-conversation-table-query.tsx", "type": "registry:vendor" },
-        { "path": "messaging/vendor/routes/messages/page.tsx", "type": "registry:vendor" },
-        { "path": "messaging/vendor/routes/messages/[id]/page.tsx", "type": "registry:vendor" },
-        { "path": "messaging/admin/lib/client.ts", "type": "registry:admin" },
-        { "path": "messaging/admin/hooks/use-messaging-layout.ts", "type": "registry:admin" },
-        { "path": "messaging/admin/hooks/api/messaging.tsx", "type": "registry:admin" },
-        { "path": "messaging/admin/hooks/api/filters.tsx", "type": "registry:admin" },
-        { "path": "messaging/admin/hooks/api/use-admin-messaging-sse.tsx", "type": "registry:admin" },
-        { "path": "messaging/admin/routes/messages/page.tsx", "type": "registry:admin" },
-        { "path": "messaging/admin/routes/messages/[id]/page.tsx", "type": "registry:admin" },
-        { "path": "messaging/admin/routes/messages/filters/page.tsx", "type": "registry:admin" },
-        { "path": "messaging/admin/routes/messages/blocked/page.tsx", "type": "registry:admin" }
+        {
+          "path": "messaging/modules/messaging/index.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging/service.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging/models/conversation.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging/models/message.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging/models/chat-block.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging/types/common.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging/types/mutations.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging-filters/index.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging-filters/service.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging-filters/models/filter-rule.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging-filters/models/blocked-message-log.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging-filters/types/common.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging-filters/loaders/compile-filters.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging-filters/loaders/seed-builtin-rules.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging-redis/index.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging-redis/service.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/modules/messaging-redis/loaders/connection.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/links/conversation-seller.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/links/conversation-customer.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/steps/validate-rate-limit.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/steps/validate-content-filter.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/steps/create-message.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/steps/publish-message-event.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/steps/create-conversation.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/steps/mark-messages-read.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/steps/anonymize-messages-batch.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/steps/validate-chat-block.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/steps/block-customer.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/steps/unblock-customer.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/workflows/send-message.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/workflows/create-conversation.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/workflows/mark-messages-read.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/workflows/anonymize-buyer-messages.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/workflows/anonymize-vendor-messages.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/workflows/block-customer.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging/workflows/unblock-customer.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging-filters/steps/create-filter-rule.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging-filters/steps/update-filter-rule.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging-filters/steps/delete-filter-rule.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging-filters/steps/invalidate-filter-cache.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging-filters/workflows/create-filter-rule.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging-filters/workflows/update-filter-rule.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/workflows/messaging-filters/workflows/delete-filter-rule.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/store/messages/validators.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/store/messages/query-config.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/store/messages/helpers.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/store/messages/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/store/messages/middlewares.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/store/messages/[id]/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/store/messages/[id]/read/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/store/messages/unread/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/store/messages/sse-token/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/store/messages/events/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/vendor/messages/validators.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/vendor/messages/query-config.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/vendor/messages/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/vendor/messages/middlewares.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/vendor/messages/[id]/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/vendor/messages/[id]/read/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/vendor/messages/unread/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/vendor/messages/events/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/validators.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/query-config.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/middlewares.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/[id]/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/events/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/filters/validators.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/filters/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/filters/[id]/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/blocked/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/chat-blocks/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/api/admin/messages/chat-blocks/[customer_id]/route.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/subscribers/message-notification.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/subscribers/buyer-deletion.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/subscribers/vendor-removal.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/jobs/reconcile-unread-counts.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/jobs/cleanup-blocked-messages.ts",
+          "type": "registry:api"
+        },
+        {
+          "path": "messaging/vendor/lib/client.ts",
+          "type": "registry:vendor"
+        },
+        {
+          "path": "messaging/vendor/hooks/use-messaging-layout.ts",
+          "type": "registry:vendor"
+        },
+        {
+          "path": "messaging/vendor/hooks/api/messaging.tsx",
+          "type": "registry:vendor"
+        },
+        {
+          "path": "messaging/vendor/hooks/api/use-messaging-sse.tsx",
+          "type": "registry:vendor"
+        },
+        {
+          "path": "messaging/vendor/hooks/table/columns/use-conversation-table-columns.tsx",
+          "type": "registry:vendor"
+        },
+        {
+          "path": "messaging/vendor/hooks/table/query/use-conversation-table-query.tsx",
+          "type": "registry:vendor"
+        },
+        {
+          "path": "messaging/vendor/routes/messages/page.tsx",
+          "type": "registry:vendor"
+        },
+        {
+          "path": "messaging/vendor/routes/messages/[id]/page.tsx",
+          "type": "registry:vendor"
+        },
+        {
+          "path": "messaging/admin/lib/client.ts",
+          "type": "registry:admin"
+        },
+        {
+          "path": "messaging/admin/hooks/use-messaging-layout.ts",
+          "type": "registry:admin"
+        },
+        {
+          "path": "messaging/admin/hooks/api/messaging.tsx",
+          "type": "registry:admin"
+        },
+        {
+          "path": "messaging/admin/hooks/api/filters.tsx",
+          "type": "registry:admin"
+        },
+        {
+          "path": "messaging/admin/hooks/api/use-admin-messaging-sse.tsx",
+          "type": "registry:admin"
+        },
+        {
+          "path": "messaging/admin/routes/messages/page.tsx",
+          "type": "registry:admin"
+        },
+        {
+          "path": "messaging/admin/routes/messages/[id]/page.tsx",
+          "type": "registry:admin"
+        },
+        {
+          "path": "messaging/admin/routes/messages/filters/page.tsx",
+          "type": "registry:admin"
+        },
+        {
+          "path": "messaging/admin/routes/messages/blocked/page.tsx",
+          "type": "registry:admin"
+        }
       ],
       "categories": [
         "messaging",

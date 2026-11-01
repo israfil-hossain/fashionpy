@@ -39,7 +39,9 @@ export const AdminCreateHeroBanner = z
     cta_text: z.string().nullable().optional(),
     cta_link: z.string().nullable().optional(),
     text_position: z.enum(["left", "center", "right"]).optional(),
-    slot: z.enum(["hero", "company_1", "company_2", "offer_price"]).optional(),
+    slot: z
+      .enum(["hero", "shop_collection", "company_1", "company_2", "offer_price"])
+      .optional(),
     is_active: z.boolean().optional(),
     rank: z.number().int().min(0).optional(),
     starts_at: z.coerce.date().nullable().optional(),
@@ -58,7 +60,9 @@ export const AdminUpdateHeroBanner = z
     cta_text: z.string().nullable().optional(),
     cta_link: z.string().nullable().optional(),
     text_position: z.enum(["left", "center", "right"]).optional(),
-    slot: z.enum(["hero", "company_1", "company_2", "offer_price"]).optional(),
+    slot: z
+      .enum(["hero", "shop_collection", "company_1", "company_2", "offer_price"])
+      .optional(),
     is_active: z.boolean().optional(),
     rank: z.number().int().min(0).optional(),
     starts_at: z.coerce.date().nullable().optional(),

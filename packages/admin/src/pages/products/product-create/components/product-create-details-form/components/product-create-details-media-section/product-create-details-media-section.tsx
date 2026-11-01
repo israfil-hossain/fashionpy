@@ -184,9 +184,11 @@ const MediaItem = ({ field, onDelete, onMakeThumbnail }: MediaItemProps) => {
     transition,
   }
 
-  if (!field.file) {
+  if (!field.file && !field.url) {
     return null
   }
+
+  const fileName = field.file?.name ?? field.url.split("/").pop() ?? field.url
 
   return (
     <li
@@ -213,17 +215,27 @@ const MediaItem = ({ field, onDelete, onMakeThumbnail }: MediaItemProps) => {
           </div>
           <div className="flex flex-col">
             <Text size="small" leading="compact">
-              {field.file.name}
+              {fileName}
             </Text>
             <div className="flex items-center gap-x-1">
               {field.isThumbnail && <ThumbnailBadge />}
-              <Text
-                size="xsmall"
-                leading="compact"
-                className="text-ui-fg-subtle"
-              >
-                {formatFileSize(field.file.size)}
-              </Text>
+              {field.file ? (
+                <Text
+                  size="xsmall"
+                  leading="compact"
+                  className="text-ui-fg-subtle"
+                >
+                  {formatFileSize(field.file.size)}
+                </Text>
+              ) : (
+                <Text
+                  size="xsmall"
+                  leading="compact"
+                  className="text-ui-fg-subtle"
+                >
+                  URL
+                </Text>
+              )}
             </div>
           </div>
         </div>

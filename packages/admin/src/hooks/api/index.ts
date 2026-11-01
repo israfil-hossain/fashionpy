@@ -20,6 +20,7 @@ export * from "./payouts";
 export * from "./payments";
 export * from "./price-lists";
 export * from "./product-types";
+export * from "./courier";
 export * from "./products";
 export * from "./promotions";
 export * from "./offer-conditions";
@@ -38,3 +39,6 @@ export * from "./tags";
 export * from "./tax-rates";
 export * from "./tax-regions";
 export * from "./users";
+export * from "./notifications";
+export * from "./messaging"
+export * from "./messaging-filters"

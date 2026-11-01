@@ -88,6 +88,10 @@ const useSettingRoutes = (): INavItem[] => {
         to: "/settings/users",
       },
       {
+        label: t("courier.domain"),
+        to: "/settings/courier",
+      },
+      {
         label: t("productTypes.domain"),
         to: "/settings/product-types",
       },

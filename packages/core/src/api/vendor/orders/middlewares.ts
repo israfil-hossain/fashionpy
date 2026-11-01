@@ -18,6 +18,7 @@ import {
 import {
   VendorCancelFulfillment,
   VendorCreateFulfillment,
+  VendorBookCourierShipment,
   VendorCreateShipment,
   VendorGetOrderChangesParams,
   VendorGetOrderParams,
@@ -150,4 +151,29 @@ export const vendorOrdersMiddlewares: MiddlewareRoute[] = [
       ),
     ],
   },
+
+  {
+    method: ["POST"],
+    matcher: "/vendor/orders/:id/fulfillments/:fulfillment_id/courier",
+    middlewares: [
+      requirePermission("orders", "edit"),
+      validateAndTransformBody(VendorBookCourierShipment),
+      validateAndTransformQuery(
+        VendorGetOrderParams,
+        vendorOrderQueryConfig.retrieve
+      ),
+    ],
+  },
+  {
+    method: ["GET"],
+    matcher: "/vendor/orders/:id/fulfillments/:fulfillment_id/courier",
+    middlewares: [
+      requirePermission("orders", "view"),
+      validateAndTransformQuery(
+        VendorGetOrderParams,
+        vendorOrderQueryConfig.retrieve
+      ),
+    ],
+  },
+
 ]

@@ -1,7 +1,7 @@
 "use client"
 
 import ErrorMessage from "@/components/molecules/ErrorMessage/ErrorMessage"
-import { isManual, isStripe } from "../../../lib/constants"
+import { isCod, isManual, isStripe } from "../../../lib/constants"
 import { placeOrder } from "@/lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
 import { useElements, useStripe } from "@stripe/react-stripe-js"
@@ -38,6 +38,7 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
         />
       )
     case isManual(paymentSession?.provider_id):
+    case isCod(paymentSession?.provider_id):
       return (
         <ManualTestPaymentButton notReady={notReady} data-testid={dataTestId} />
       )

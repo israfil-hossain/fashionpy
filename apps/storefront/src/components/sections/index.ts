@@ -13,6 +13,7 @@ import { TabbedProductGrid } from "./TabbedProductGrid/TabbedProductGrid"
 import { CollectionSliderSection } from "./CollectionSlider/CollectionSliderSection"
 import { CompanyBannerSlot } from "./CompanyBanner/CompanyBannerSlot"
 import { OfferPriceSection } from "./OfferPrice/OfferPriceSection"
+import { ShopCollectionBanners } from "./ShopCollectionBanners/ShopCollectionBanners"
 import { ProductListing } from "./ProductListing/ProductListing"
 import { SellerPageHeader } from "./SellerPageHeader/SellerPageHeader"
 import { Cart } from "./Cart/Cart"
@@ -37,6 +38,7 @@ export {
   CollectionSliderSection,
   CompanyBannerSlot,
   OfferPriceSection,
+  ShopCollectionBanners,
   ProductListing,
   SellerPageHeader,
   Cart,

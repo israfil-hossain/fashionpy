@@ -1027,6 +1027,73 @@ export function getRouteMap({
                 ],
               },
               {
+                path: "/banners",
+                errorElement: <ErrorBoundary />,
+                handle: {
+                  breadcrumb: () => t("marketplace.banners.domain"),
+                  permissions: "store:view",
+                },
+                children: [
+                  {
+                    path: "",
+                    lazy: () => import("./pages/banners/banner-list"),
+                  },
+                  {
+                    path: "create",
+                    handle: { permissions: "store:edit" },
+                    lazy: () => import("./pages/banners/banner-create"),
+                  },
+                  {
+                    path: ":id/edit",
+                    handle: { permissions: "store:edit" },
+                    lazy: () => import("./pages/banners/banner-edit"),
+                  },
+                ],
+              },
+              {
+                path: "/messages",
+                errorElement: <ErrorBoundary />,
+                handle: {
+                  breadcrumb: () => t("messages.title"),
+                  permissions: "messages:view",
+                },
+                children: [
+                  {
+                    path: "",
+                    lazy: async () => {
+                      const { AdminMessagesPage } =
+                        await import("./pages/messages");
+                      return { Component: AdminMessagesPage };
+                    },
+                  },
+                  {
+                    path: "filters",
+                    handle: { permissions: "messages:edit" },
+                    lazy: async () => {
+                      const { AdminFiltersPage } =
+                        await import("./pages/messages/filters");
+                      return { Component: AdminFiltersPage };
+                    },
+                  },
+                  {
+                    path: "blocked",
+                    lazy: async () => {
+                      const { AdminBlockedMessagesPage } =
+                        await import("./pages/messages/blocked");
+                      return { Component: AdminBlockedMessagesPage };
+                    },
+                  },
+                  {
+                    path: ":id",
+                    lazy: async () => {
+                      const { AdminConversationDetailPage } =
+                        await import("./pages/messages/[id]");
+                      return { Component: AdminConversationDetailPage };
+                    },
+                  },
+                ],
+              },
+              {
                 path: "/payouts",
                 errorElement: <ErrorBoundary />,
                 handle: {
@@ -1424,12 +1491,6 @@ export function getRouteMap({
                         handle: { permissions: "store:edit" },
                         lazy: () =>
                           import("./pages/marketplace/marketplace-metadata"),
-                      },
-                      {
-                        path: "banners",
-                        handle: { permissions: "store:view" },
-                        lazy: () =>
-                          import("./pages/marketplace/marketplace-hero-banners"),
                       },
                     ],
                   },
@@ -2322,6 +2383,21 @@ export function getRouteMap({
                         ],
                       },
                     ],
+                  },
+                ],
+              },
+              {
+                path: "courier",
+                errorElement: <ErrorBoundary />,
+                element: <Outlet />,
+                handle: {
+                  breadcrumb: () => t("courier.domain"),
+                  permissions: "courier_accounts:view",
+                },
+                children: [
+                  {
+                    path: "",
+                    lazy: () => import("./pages/courier"),
                   },
                 ],
               },

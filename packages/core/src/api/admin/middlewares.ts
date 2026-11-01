@@ -15,6 +15,7 @@ import { adminPayoutsMiddlewares } from "./payouts/middlewares"
 import { adminSellersMiddlewares } from "./sellers/middlewares"
 import { adminMembersMiddlewares } from "./members/middlewares"
 import { adminCommissionRatesMiddlewares } from "./commission-rates/middlewares"
+import { adminCourierAccountsMiddlewares } from "./courier-accounts/middlewares"
 
 import { adminProductsMiddlewares } from "./products/middlewares"
 import { adminPromotionsMiddlewares } from "./promotions/middlewares"
@@ -31,6 +32,8 @@ import { adminShippingOptionsMiddlewares } from "./shipping-options/middlewares"
 import { adminShippingProfilesMiddlewares } from "./shipping-profiles/middlewares"
 import { adminReviewsMiddlewares } from "./reviews/middlewares"
 import { adminUsersMiddlewares } from "./users/middlewares"
+import { adminNotificationFeedMiddlewares } from "./notifications/middlewares"
+import { adminMessagingMiddlewares } from "./messages/middlewares"
 
 export const adminMiddlewares: MiddlewareRoute[] = [
   {
@@ -60,6 +63,7 @@ export const adminMiddlewares: MiddlewareRoute[] = [
   ...adminSellersMiddlewares,
   ...adminMembersMiddlewares,
   ...adminCommissionRatesMiddlewares,
+  ...adminCourierAccountsMiddlewares,
   ...adminProductsMiddlewares,
   ...adminPromotionsMiddlewares,
   ...adminCampaignsMiddlewares,
@@ -75,4 +79,6 @@ export const adminMiddlewares: MiddlewareRoute[] = [
   ...adminShippingProfilesMiddlewares,
   ...adminReviewsMiddlewares,
   ...adminUsersMiddlewares,
+  ...adminNotificationFeedMiddlewares,
+  ...adminMessagingMiddlewares,
 ]

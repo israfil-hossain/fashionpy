@@ -8,6 +8,9 @@ import { vendorCampaignsMiddlewares } from "./campaigns/middlewares"
 import { vendorClaimsMiddlewares } from "./claims/middlewares"
 import { vendorCollectionsMiddlewares } from "./collections/middlewares"
 import { vendorMembersMiddlewares } from "./members/middlewares"
+import { vendorMessagingMiddlewares } from "./messages/middlewares"
+import { vendorAnalyticsMiddlewares } from "./analytics/middlewares"
+import { vendorFpMiddlewares } from "./fp/middlewares"
 import { vendorCurrenciesMiddlewares } from "./currencies/middlewares"
 import { vendorCustomersMiddlewares } from "./customers/middlewares"
 import { vendorCustomerGroupsMiddlewares } from "./customer-groups/middlewares"
@@ -21,6 +24,7 @@ import { vendorOrderEditsMiddlewares } from "./order-edits/middlewares"
 import { vendorOrdersMiddlewares } from "./orders/middlewares"
 import { vendorPaymentsMiddlewares } from "./payments/middlewares"
 import { vendorPayoutsMiddlewares } from "./payouts/middlewares"
+import { vendorCourierAccountsMiddlewares } from "./courier-accounts/middlewares"
 import { vendorPayoutAccountsMiddlewares } from "./payout-accounts/middlewares"
 import { vendorPriceListsMiddlewares } from "./price-lists/middlewares"
 import { vendorPricePreferencesMiddlewares } from "./price-preferences/middlewares"
@@ -55,6 +59,7 @@ import {
 } from "../utils"
 import { vendorProductAttributesMiddlewares } from "./product-attributes/middlewares"
 import { vendorProductTagsMiddlewares } from "./product-tags/middlewares"
+import { vendorNotificationFeedMiddlewares } from "./notifications/middlewares"
 
 const unauthenticatedRoutes = [
   /^\/vendor\/sellers$/,
@@ -154,6 +159,7 @@ export const vendorMiddlewares: MiddlewareRoute[] = [
   ...vendorPaymentsMiddlewares,
   ...vendorPayoutsMiddlewares,
   ...vendorPayoutAccountsMiddlewares,
+  ...vendorCourierAccountsMiddlewares,
   ...vendorPriceListsMiddlewares,
   ...vendorPricePreferencesMiddlewares,
   ...vendorProductCategoriesMiddlewares,
@@ -177,4 +183,8 @@ export const vendorMiddlewares: MiddlewareRoute[] = [
   ...vendorStoresMiddlewares,
   ...vendorUploadsMiddlewares,
   ...vendorProductTagsMiddlewares,
+  ...vendorNotificationFeedMiddlewares,
+  ...vendorAnalyticsMiddlewares,
+  ...vendorFpMiddlewares,
+  ...vendorMessagingMiddlewares,
 ]

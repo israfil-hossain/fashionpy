@@ -5,6 +5,7 @@ import './globals.css';
 import { Toaster } from '@medusajs/ui';
 import Head from 'next/head';
 
+import { GoogleAnalytics } from '@/components/atoms/GoogleAnalytics/GoogleAnalytics';
 import { HtmlLangSetter } from '@/components/atoms/HtmlLangSetter/HtmlLangSetter';
 import { retrieveCart } from '@/lib/data/cart';
 
@@ -97,6 +98,7 @@ export default async function RootLayout({
         />
       </Head>
       <body className="relative bg-primary text-secondary antialiased">
+        <GoogleAnalytics />
         <HtmlLangSetter />
         <Providers cart={cart}>{children}</Providers>
         <Toaster position="top-right" />

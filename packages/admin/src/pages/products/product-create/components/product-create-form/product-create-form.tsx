@@ -1,4 +1,3 @@
-import { HttpTypes } from "@medusajs/types";
 import { Button, toast } from "@medusajs/ui";
 import { ReactNode, useEffect, useMemo, Children } from "react";
 import { useForm } from "react-hook-form";
@@ -96,11 +95,22 @@ export const ProductCreateForm = ({
     const media = values.media || [];
     const payload = { ...values, media: undefined };
 
-    let uploadedMedia: (HttpTypes.AdminFile & { isThumbnail: boolean })[] = [];
+    let uploadedMedia: {
+      id?: string;
+      url: string;
+      isThumbnail: boolean;
+    }[] = [];
     try {
-      if (media.length) {
-        const thumbnailReq = media.find((m) => m.isThumbnail);
-        const otherMediaReq = media.filter((m) => !m.isThumbnail);
+      // Scrape-seeded entries carry a remote URL and no File — pass them
+      // through as-is; only File-backed entries need an upload round-trip.
+      const urlOnlyMedia = media
+        .filter((m) => !m.file && m.url)
+        .map((m) => ({ url: m.url, isThumbnail: m.isThumbnail }));
+      const fileBackedMedia = media.filter((m) => !!m.file);
+
+      if (fileBackedMedia.length) {
+        const thumbnailReq = fileBackedMedia.find((m) => m.isThumbnail);
+        const otherMediaReq = fileBackedMedia.filter((m) => !m.isThumbnail);
 
         const fileReqs = [];
         if (thumbnailReq) {
@@ -122,6 +132,8 @@ export const ProductCreateForm = ({
 
         uploadedMedia = (await Promise.all(fileReqs)).flat();
       }
+
+      uploadedMedia = [...uploadedMedia, ...urlOnlyMedia];
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);

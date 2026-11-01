@@ -10,6 +10,7 @@ import {
 import { acquireLockStep, addShippingMethodToCartStep, AddShippingMethodToCartWorkflowInput, emitEventStep, listShippingOptionsForCartWithPricingWorkflow, refreshCartItemsWorkflow, releaseLockStep, removeShippingMethodFromCartStep, useQueryGraphStep, useRemoteQueryStep, validateAndReturnShippingMethodsDataStep, validateCartShippingOptionsPriceStep, validateCartShippingOptionsStep, validateCartStep } from "@medusajs/medusa/core-flows"
 import { AdditionalData } from "@medusajs/types"
 import { cartFieldsForRefreshSteps } from "../utils"
+import { quoteCourierRatesStep } from "../steps/quote-courier-rates"
 
 export const addSellerShippingMethodToCartWorkflow = createWorkflow(
     {
@@ -45,6 +46,12 @@ export const addSellerShippingMethodToCartWorkflow = createWorkflow(
 
         const optionIds = transform({ input }, (data) => {
             return (data.input.options ?? []).map((i) => i.id)
+        })
+
+        // Live courier quotes (Pathao) for the chosen options — [] keeps flat prices
+        const courierRates = quoteCourierRatesStep({
+            cart_id: input.cart_id,
+            option_ids: optionIds,
         })
 
         const [allShippingOptions, shippingOptions] = parallelize(
@@ -103,6 +110,7 @@ export const addSellerShippingMethodToCartWorkflow = createWorkflow(
                 input,
                 shippingOptions,
                 validatedMethodData,
+                courierRates,
             },
             (data) => {
                 const options = (data.input.options ?? []).map((option) => {
@@ -121,9 +129,13 @@ export const addSellerShippingMethodToCartWorkflow = createWorkflow(
                         return methodData?.[option.id]
                     })
 
+                    const liveRate = (data.courierRates ?? []).find(
+                        (r: { option_id: string }) => r.option_id === shippingOption.id
+                    )
+
                     return {
                         shipping_option_id: shippingOption.id,
-                        amount: shippingOption.calculated_price.calculated_amount,
+                        amount: liveRate?.amount ?? shippingOption.calculated_price.calculated_amount,
                         is_tax_inclusive:
                             !!shippingOption.calculated_price
                                 .is_calculated_price_tax_inclusive,

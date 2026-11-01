@@ -14,6 +14,34 @@ session detail aggressively. The per-spec source of truth lives in
   `bun run test:integration:http -- <pattern>`
 - **Current blocker**: none
 
+## Session — Vendor bulk product upload (CSV), uncommitted
+
+Added core-level CSV import/export for vendors (promoted from the
+`packages/registry/src/product-import-export` block, whose workflow wrongly used
+stock `createProductsWorkflow` and skipped seller linking). `packages/core`:
+`mercur-import-products` workflow (`parseProductCsvStep` → zod row validation →
+**Mercur's** `createProductsWorkflow` with `seller_ids: [seller_id]`,
+`created_by: seller_id`, status `draft`), `mercur-export-products`, routes
+`POST /vendor/products/import` (multer `.csv`, `products:edit`) and
+`POST /vendor/products/export` (`products:view`), middleware entries, SDK
+codegen picks both up. `packages/vendor`: `/products/import` RouteDrawer
+(template download → FileUpload → summary), `useImportProducts`/`useExportProducts`
+hooks in `hooks/api/products.tsx`, Import button on the product list header
+(`actions.import` / `products.import.*` i18n keys reused), route in
+`get-route-map.tsx`. Spec: `docs/specs/SPEC-002-bulk-product-import.md`.
+Verified: `bun run lint` (no new errors), root `bun run build` **17/17**,
+`test:integration:http -- product-import`
+(5/5: seller-linked draft import, list visibility, bad-handle 400, missing-file
+400, export url). Root build needed three narrow fixes to the parallel
+messaging session's in-flight admin files (added `pages/messages/[id]/index.ts`
+re-export; `use-messaging-layout.ts` `../../providers` → `../providers`;
+removed a stray literal-backslash `messages/\[id\]` dir that made fast-glob
+emit a phantom `messages//[id/]/index.ts` → tailwind postcss ENOENT — artifact
+parked in the opencode temp dir). **Open risk**: the registry block still ships
+its broken (non-seller-linking) workflow and can be retired separately;
+imported CSVs carry no Mercur custom attributes (Medusa format has none);
+sync-only (large files may need chunked async later). Uncommitted.
+
 ## Session — Bangladesh / BDT default (branch work in progress, uncommitted)
 
 Platform now defaults to Bangladesh + BDT end to end. Seeds (`apps/api/src/scripts/seed.ts` +
@@ -149,6 +177,34 @@ checkout / CI (fresh worktree has no install).
 
 ## Session Log
 
+### Session: 2026-10-30 -- Google OAuth login (storefront customers)
+
+- **Goal.** Activate Google login for storefront customers + document the Google
+  Cloud Console origins for local/production.
+- **Landed.** `apps/api`: `@medusajs/auth-google` dep; `medusa-config.ts` registers
+  the auth module (emailpass + google, google only when `GOOGLE_CLIENT_ID/_SECRET/
+  _CALLBACK_URL` are set) and `authMethodsPerActor` pins google to `customer`
+  (admin `user` / vendor `member` stay emailpass). `GOOGLE_*` env added to
+  `apps/api/.env` (local), `.env.prod` (via `${DOMAIN}`), root `.env` (production:
+  `https://fashionpy.com/api/auth/google/callback`). `apps/storefront`:
+  `loginWithGoogle()` server action, `/api/auth/google/callback` route handler
+  (validates code+state → creates customer on first login from Google profile →
+  refreshes token → transfers guest cart → sets `_medusa_jwt` → redirects `/user`),
+  "Continue with Google" button in `LoginForm`; `decodeJwt` exported.
+- **Verified.** New `integration-tests/http/auth/customer/google-auth.spec.ts` 3/3
+  pass (`bun run test:integration:http -- http/auth/customer/google-auth`): customer
+  initiate returns accounts.google.com redirect w/ client_id+callback, user/member
+  actor types rejected 400. `oxlint` clean; `medusa-config.ts` tsc clean; storefront
+  tsc shows no NEW errors (all deltas are the pre-existing `InferClient<Routes>`
+  `{}`-typed sdk pattern).
+- **Owed / next.** Fill real `GOOGLE_CLIENT_ID/SECRET` in `apps/api/.env` (local)
+  and the Dokploy env (production); add the two console values (below) in Google
+  Cloud → Credentials → OAuth client (Web application): **Authorized JS origins**
+  `http://localhost:3000` + `https://fashionpy.com`; **Authorized redirect URIs**
+  `http://localhost:3000/api/auth/google/callback` +
+  `https://fashionpy.com/api/auth/google/callback`. Manual E2E through real Google
+  consent not yet run. Full `bun run build` still owed at session end.
+
 ### Session: 2026-07-29 -- Admin Reviews (MER-152, SPEC-2)
 
 - **Goal.** Promote reviews from the registry block into `@mercurjs/core` and build the
@@ -243,6 +299,21 @@ how it was verified, what's owed/next. Move durable facts into
 - **Landed.** Key files/behavior (terse).
 - **Verified.** build / lint / test result.
 - **Owed / next.** What the next session should pick up.
+
+### Session: 2026-11-01 -- Storefront Google Analytics
+
+- **Goal.** Add Google Analytics 4 to the storefront with measurement ID G-XT4RJ6N1DW.
+- **Landed.** New `apps/storefront/src/components/atoms/GoogleAnalytics/GoogleAnalytics.tsx`
+  loads `gtag.js` with `strategy="afterInteractive"` and configures
+  `gtag('config', GA_MEASUREMENT_ID)`; measurement ID comes from
+  `NEXT_PUBLIC_GA_MEASUREMENT_ID` env var defaulting to `G-XT4RJ6N1DW`.
+  Wired into `apps/storefront/src/app/layout.tsx` so every storefront page (including
+  locale variants) loads GA4. Added `NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XT4RJ6N1DW`
+  to `.env` and `.env.template`.
+- **Verified.** `tsc --noEmit` shows no errors in new/changed files (pre-existing
+  errors elsewhere only). `bun run build` passes all packages (14/14). `bun run lint`
+  has a pre-existing `jiti` version failure unrelated to these changes.
+- **Owed / next.** None — GA loads by default even without env var configured.
 
 ## Definition Of Done
 

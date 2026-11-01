@@ -68,7 +68,7 @@ export async function getOrSetCart(countryCode: string) {
     await setCartId(cart.id);
 
     const cartCacheTag = await getCacheTag('carts');
-    revalidateTag(cartCacheTag);
+    revalidateTag(cartCacheTag, "max");
   }
 
   if (cart && cart?.region_id !== region.id) {
@@ -78,7 +78,7 @@ export async function getOrSetCart(countryCode: string) {
       fetchOptions: { headers }
     });
     const cartCacheTag = await getCacheTag('carts');
-    revalidateTag(cartCacheTag);
+    revalidateTag(cartCacheTag, "max");
   }
 
   return cart;
@@ -99,7 +99,7 @@ export async function updateCart(data: HttpTypes.StoreUpdateCart) {
     .mutate({ $id: cartId, ...data, fetchOptions: { headers } })
     .then(async ({ cart }) => {
       const cartCacheTag = await getCacheTag('carts');
-      await revalidateTag(cartCacheTag);
+      await revalidateTag(cartCacheTag, "max");
       return cart;
     })
     .catch(medusaError);
@@ -146,7 +146,7 @@ export async function addToCart({
       .catch(medusaError)
       .finally(async () => {
         const cartCacheTag = await getCacheTag('carts');
-        revalidateTag(cartCacheTag);
+        revalidateTag(cartCacheTag, "max");
       });
   } else {
     await (sdk.store.carts.$id.lineItems
@@ -158,12 +158,12 @@ export async function addToCart({
       } as never) as unknown as Promise<{ cart: HttpTypes.StoreCart }>)
       .then(async () => {
         const cartCacheTag = await getCacheTag('carts');
-        revalidateTag(cartCacheTag);
+        revalidateTag(cartCacheTag, "max");
       })
       .catch(medusaError)
       .finally(async () => {
         const cartCacheTag = await getCacheTag('carts');
-        revalidateTag(cartCacheTag);
+        revalidateTag(cartCacheTag, "max");
       });
   }
 }
@@ -191,7 +191,7 @@ export async function updateLineItem({ lineId, quantity }: { lineId: string; qua
   });
 
   const cartCacheTag = await getCacheTag('carts');
-  await revalidateTag(cartCacheTag);
+  await revalidateTag(cartCacheTag, "max");
 
   return res;
 }
@@ -215,7 +215,7 @@ export async function deleteLineItem(lineId: string) {
     .delete({ $id: cartId, $lineId: lineId, fetchOptions: { headers } })
     .then(async () => {
       const cartCacheTag = await getCacheTag('carts');
-      await revalidateTag(cartCacheTag);
+      await revalidateTag(cartCacheTag, "max");
     })
     .catch(medusaError);
 }
@@ -237,7 +237,7 @@ export async function setShippingMethod({
     .catch(error => ({ ok: false, error, data: null }));
 
   const cartCacheTag = await getCacheTag('carts');
-  revalidateTag(cartCacheTag);
+  revalidateTag(cartCacheTag, "max");
 
   return res;
 }
@@ -272,7 +272,7 @@ export async function initiatePaymentSession(
     });
 
     const cartCacheTag = await getCacheTag('carts');
-    revalidateTag(cartCacheTag);
+    revalidateTag(cartCacheTag, "max");
 
     return resp;
   } catch (error) {
@@ -298,7 +298,7 @@ export async function applyPromotions(codes: string[]) {
       fetchOptions: { headers }
     })
     const cartCacheTag = await getCacheTag("carts")
-    revalidateTag(cartCacheTag)
+    revalidateTag(cartCacheTag, "max")
     // @ts-ignore
     const applied = cart.promotions?.some((promotion: any) =>
       codes.includes(promotion.code)
@@ -332,7 +332,7 @@ export async function removeShippingMethod(shippingMethodId: string) {
     } as never) as unknown as Promise<{ cart: HttpTypes.StoreCart }>)
     .then(async () => {
       const cartCacheTag = await getCacheTag('carts');
-      revalidateTag(cartCacheTag);
+      revalidateTag(cartCacheTag, "max");
     })
     .catch(medusaError);
 }
@@ -356,7 +356,7 @@ export async function deletePromotionCode(promoId: string) {
     } as never) as unknown as Promise<{ cart: HttpTypes.StoreCart }>)
     .then(async () => {
       const cartCacheTag = await getCacheTag('carts');
-      revalidateTag(cartCacheTag);
+      revalidateTag(cartCacheTag, "max");
     })
     .catch(medusaError);
 }
@@ -413,7 +413,7 @@ export async function placeOrder(cartId?: string) {
     .catch(error => ({ ok: false, error, data: null as any }));
 
   const cartCacheTag = await getCacheTag('carts');
-  revalidateTag(cartCacheTag);
+  revalidateTag(cartCacheTag, "max");
 
   if (res.data?.order_group) {
     revalidatePath('/user/reviews');
@@ -440,14 +440,14 @@ export async function updateRegion(countryCode: string, currentPath: string) {
   if (cartId) {
     await updateCart({ region_id: region.id });
     const cartCacheTag = await getCacheTag('carts');
-    revalidateTag(cartCacheTag);
+    revalidateTag(cartCacheTag, "max");
   }
 
   const regionCacheTag = await getCacheTag('regions');
-  revalidateTag(regionCacheTag);
+  revalidateTag(regionCacheTag, "max");
 
   const productsCacheTag = await getCacheTag('products');
-  revalidateTag(productsCacheTag);
+  revalidateTag(productsCacheTag, "max");
 
   redirect(`/${countryCode}${currentPath}`);
 }
@@ -515,14 +515,14 @@ export async function updateRegionWithValidation(
     }
 
     const cartCacheTag = await getCacheTag('carts');
-    revalidateTag(cartCacheTag);
+    revalidateTag(cartCacheTag, "max");
   }
 
   const regionCacheTag = await getCacheTag('regions');
-  revalidateTag(regionCacheTag);
+  revalidateTag(regionCacheTag, "max");
 
   const productsCacheTag = await getCacheTag('products');
-  revalidateTag(productsCacheTag);
+  revalidateTag(productsCacheTag, "max");
 
   return {
     removedItems,

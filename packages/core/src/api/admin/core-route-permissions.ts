@@ -31,6 +31,8 @@ export const CORE_ROUTE_PERMISSIONS: CoreRoutePermission[] = [
   { pattern: /^\/admin\/(returns|claims|exchanges)(\/|$)/, key: "orders.returns" },
   { pattern: /^\/admin\/(order-edits|order-changes)(\/|$)/, key: "orders.edits" },
   { pattern: /^\/admin\/(orders|draft-orders)(\/|$)/, key: "orders" },
+  { pattern: /^\/admin\/analytics(\/|$)/, key: "orders" },
+  { pattern: /^\/admin\/fp(\/|$)/, key: "promotions" },
   { pattern: /^\/admin\/(payments|payment-collections)(\/|$)/, key: "payments" },
 
   { pattern: /^\/admin\/customer-groups(\/|$)/, key: "customer_groups" },
@@ -66,7 +68,8 @@ export const CORE_ROUTE_PERMISSIONS: CoreRoutePermission[] = [
   { pattern: /^\/admin\/users(\/|$)/, key: "users" },
   { pattern: /^\/admin\/api-keys(\/|$)/, key: "api_keys" },
   { pattern: /^\/admin\/(translations|locales)(\/|$)/, key: "translations" },
-  { pattern: /^\/admin\/notifications(\/|$)/, key: "notifications" },
+  // Marking a notification read is personal read state, not a config edit.
+  { pattern: /^\/admin\/notifications(\/|$)/, key: "notifications", methods: { POST: "view" } },
   { pattern: /^\/admin\/workflows-executions(\/|$)/, key: "workflow_executions" },
   { pattern: /^\/admin\/(search|search-indexes|index|views|property-labels|plugins|layouts)(\/|$)/, key: "store" },
   { pattern: /^\/admin\/hero-banners(\/|$)/, key: "store" },

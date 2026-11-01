@@ -1,6 +1,7 @@
-import { XCircle } from "@medusajs/icons"
+import { ChatBubbleLeftRight, XCircle } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
 import {
+  Button,
   Container,
   Copy,
   Heading,
@@ -9,6 +10,7 @@ import {
   toast,
   usePrompt,
 } from "@medusajs/ui"
+import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { DisplayExtensionZone, DisplayField } from "@mercurjs/dashboard-shared"
 import { ActionMenu } from "@components/common/action-menu"
@@ -34,6 +36,7 @@ type OrderGeneralSectionProps = {
 export const OrderGeneralSection = ({ order }: OrderGeneralSectionProps) => {
   const { t } = useTranslation()
   const prompt = usePrompt()
+  const navigate = useNavigate()
   const { getFullDate } = useDate()
 
   const { mutateAsync: cancelOrder } = useCancelOrder(order.id)
@@ -94,6 +97,18 @@ export const OrderGeneralSection = ({ order }: OrderGeneralSectionProps) => {
         </Text>
       </div>
       <div className="flex items-center gap-x-4">
+        <Button
+          variant="secondary"
+          size="small"
+          onClick={() =>
+            navigate(`/messages?support=1&order=${order.id}`)
+          }
+        >
+          <span className="flex items-center gap-x-1.5">
+            <ChatBubbleLeftRight />
+            {t("messages.contactAdmin")}
+          </span>
+        </Button>
         <div className="flex items-center gap-x-1.5">
           <DisplayField model="order" zone="general" id="status" data={order}>
             <OrderBadge order={order} />

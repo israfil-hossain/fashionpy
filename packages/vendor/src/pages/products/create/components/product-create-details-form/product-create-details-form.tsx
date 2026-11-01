@@ -5,6 +5,7 @@ import { defineTabMeta } from "@components/tabbed-form/types"
 import { ProductCreateSchemaType } from "../../types"
 import { ProductCreateGeneralSection } from "./components/product-create-details-general-section"
 import { ProductCreateMediaSection } from "./components/product-create-details-media-section"
+import { ProductCreateScrapeSection } from "./components/product-create-scrape-section"
 
 const Root = () => {
   return (
@@ -21,6 +22,7 @@ const Root = () => {
           className="flex flex-col gap-y-6"
           data-testid="product-create-details-form-sections"
         >
+          <ProductCreateScrapeSection />
           <ProductCreateGeneralSection />
           <ProductCreateMediaSection />
         </div>

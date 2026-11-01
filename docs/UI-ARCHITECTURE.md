@@ -139,7 +139,7 @@ Operator-specific characteristics:
 packages/vendor/src/
   app.tsx                         Same App shape as admin
   get-route-map.tsx               Vendor route map merged with virtual:mercur/routes
-  index.ts                        Re-exports (TabbedForm, Notifications)
+  index.ts                        Re-exports (TabbedForm, getAuthHeaders)
   assets/, i18n/, providers/      Same shape as admin
   lib/                            client/ (sdk.vendor.*), query-client, query-key-factory
   hooks/                          api/<domain>.tsx — uses sdk.vendor.* + TanStack Query
@@ -569,9 +569,9 @@ Consumers extend the dashboards without forking by:
    ```
 3. **Blocks** — installable feature packages via `mercurjs add`; declare `admin_ui` / `vendor_ui` entry points in `blocks.json`.
 4. **Public exports** — the canonical primitives consumers should import:
-   - From `@mercurjs/dashboard-shared`: `TabbedForm`, `useTabbedForm`, `defineTabMeta`, `TabDefinition`, `Form`, `SwitchBox`, `FileUpload`, `ChipInput`, `DataTable`, `useDataTable`, `Filter`, `SingleColumnPage`, `TwoColumnPage`, `RouteFocusModal`, `RouteDrawer`, `ActionMenu`, `NoResults`, `NoRecords`, `SectionRow`, `Skeleton`, `queryKeysFactory`, `TQueryKey`, `UseQueryOptionsWrapper`.
-   - From `@mercurjs/admin`: same primitives are re-exported plus `Notifications` and `PRODUCT_DETAIL_FIELDS` / `PRODUCT_DETAIL_QUERY`.
-   - From `@mercurjs/vendor`: `TabbedForm`, `useTabbedForm`, `TabDefinition`, `Notifications`.
+   - From `@mercurjs/dashboard-shared`: `TabbedForm`, `useTabbedForm`, `defineTabMeta`, `TabDefinition`, `Form`, `SwitchBox`, `FileUpload`, `ChipInput`, `DataTable`, `useDataTable`, `Filter`, `SingleColumnPage`, `TwoColumnPage`, `RouteFocusModal`, `RouteDrawer`, `ActionMenu`, `NoResults`, `NoRecords`, `SectionRow`, `Skeleton`, `NotificationsBell`, `queryKeysFactory`, `TQueryKey`, `UseQueryOptionsWrapper`.
+   - From `@mercurjs/admin`: same primitives are re-exported plus `PRODUCT_DETAIL_FIELDS` / `PRODUCT_DETAIL_QUERY`.
+   - From `@mercurjs/vendor`: `TabbedForm`, `useTabbedForm`, `TabDefinition`.
 
 When adding shared primitives, place them in `@mercurjs/dashboard-shared` and re-export from the dashboard packages only when there is a useful default to bake in.
 

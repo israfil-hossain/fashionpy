@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { PermissionGuard } from "@mercurjs/dashboard-shared"
 import { Button, Heading } from "@medusajs/ui";
+import { ArrowDownTray } from "@medusajs/icons";
 
 export const ProductListTitle = () => {
   const { t } = useTranslation();
@@ -20,6 +21,20 @@ export const ProductListCreateButton = () => {
   );
 };
 
+export const ProductListImportButton = () => {
+  const { t } = useTranslation();
+  return (
+    <PermissionGuard permission="products:edit">
+      <Button size="small" variant="secondary" asChild>
+        <Link to="import">
+          <ArrowDownTray className="mr-1" />
+          {t("actions.import")}
+        </Link>
+      </Button>
+    </PermissionGuard>
+  );
+};
+
 export const ProductListActions = ({ children }: { children?: ReactNode }) => {
   return (
     <div className="flex items-center justify-center gap-x-2">
@@ -27,6 +42,7 @@ export const ProductListActions = ({ children }: { children?: ReactNode }) => {
         children
       ) : (
         <>
+          <ProductListImportButton />
           <ProductListCreateButton />
         </>
       )}

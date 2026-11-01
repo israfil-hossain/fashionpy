@@ -1,10 +1,12 @@
 import {
   BuildingStorefront,
   Buildings,
+  ChatBubbleLeftRight,
   CogSixTooth,
   CreditCardRefresh,
   CurrencyDollar,
   EllipsisHorizontal,
+  Images,
   MagnifyingGlass,
   MinusMini,
   OpenRectArrowOut,
@@ -510,6 +512,16 @@ const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
       icon: <CreditCardRefresh />,
       label: t("payouts.domain"),
       to: "/payouts",
+    },
+    {
+      icon: <Images />,
+      label: t("marketplace.banners.domain"),
+      to: "/banners",
+    },
+    {
+      icon: <ChatBubbleLeftRight />,
+      label: t("messages.title"),
+      to: "/messages",
     },
   ];
 };
