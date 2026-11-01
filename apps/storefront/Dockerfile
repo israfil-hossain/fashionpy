@@ -30,6 +30,12 @@ ENV MEDUSA_BACKEND_URL=$MEDUSA_BACKEND_URL \
     NEXT_PUBLIC_STRIPE_KEY=$NEXT_PUBLIC_STRIPE_KEY \
     REVALIDATE_SECRET=$REVALIDATE_SECRET
 
+# Build workspace packages the storefront depends on (client SDK, shared types)
+# before the app itself, mirroring the API image's turbo step.
+RUN bunx turbo run build --concurrency=2 \
+  --filter=@mercurjs/client \
+  --filter=@mercurjs/types
+
 RUN cd apps/storefront && bun run build
 
 FROM node:24-alpine AS runner
