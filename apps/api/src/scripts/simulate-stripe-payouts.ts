@@ -85,10 +85,18 @@ export default async function simulateStripePayouts({ container }: ExecArgs) {
   const shippingOption = shippingOptions.find((so) => so.seller?.id === seller.id)
   if (!shippingOption?.service_zone?.id) throw new Error(`${SELLER_NAME} has no "${SHIPPING_OPTION_NAME}" option`)
 
-  const geoZones = await fulfillmentModule.listGeoZones(
-    { type: "country", service_zone_id: shippingOption.service_zone.id },
-    { take: null }
+  // FilterableGeoZoneProps has no service_zone_id — load with relations and
+  // match in JS (same pattern as seed-order.ts).
+  const allGeoZones = await fulfillmentModule.listGeoZones(
+    { type: "country" },
+    { take: null, relations: ["service_zone"] }
   )
+  const geoZones = allGeoZones.filter((g) => {
+    const zoneId =
+      (g as { service_zone_id?: string }).service_zone_id ??
+      (g as { service_zone?: { id?: string } }).service_zone?.id
+    return zoneId === shippingOption.service_zone.id
+  })
   const optionCountries = new Set(geoZones.map((g) => g.country_code?.toLowerCase()).filter(Boolean) as string[])
 
   // 2. region covering one of those countries, with the Stripe provider enabled
