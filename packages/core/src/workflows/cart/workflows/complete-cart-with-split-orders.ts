@@ -1,4 +1,5 @@
 import {
+    BigNumberInput,
     CartWorkflowDTO,
     CreateOrderDTO,
     LinkDefinition,
@@ -8,6 +9,7 @@ import {
 } from "@medusajs/framework/types"
 import {
     generateEntityId,
+    MathBN,
     Modules,
     OrderStatus,
     OrderWorkflowEvents,
@@ -24,7 +26,6 @@ import {
     acquireLockStep,
     authorizePaymentSessionStep,
     createOrdersStep,
-    createRemoteLinkStep,
     emitEventStep,
     releaseLockStep,
     reserveInventoryStep,
@@ -42,6 +43,7 @@ import {
     validateSellerCartShippingStep,
 } from "../steps"
 import {
+    allocateCreditLines,
     completeCartFields,
     isAdjustmentInSellerScope,
     prepareAdjustmentsData,
@@ -51,6 +53,7 @@ import {
     PromotionSellerIds,
 } from "../utils"
 import { registerUsageStep } from "../../promotion"
+import { createLinksStep } from "../../common/steps"
 import { splitCapturedCartPaymentWorkflow } from "../../payment/workflows/split-order-payments"
 import { refreshOrderCommissionLinesWorkflow } from "../../commission/workflows/refresh-order-commission-lines"
 import {
@@ -261,12 +264,30 @@ export const completeCartWithSplitOrdersWorkflow = createWorkflow(
                 const ordersToCreate: (CreateOrderDTO & { id: string })[] = []
                 const offerIdsByOrderId: Record<string, (string | null)[]> = {}
 
-                Array.from(cartSellerIds).map((sellerId) => {
-                    const sellerCartItems = (cart.items ?? []).filter(
+                const sellerIds = Array.from(cartSellerIds)
+                const itemsOfSeller = (sellerId: string) =>
+                    (cart.items ?? []).filter(
                         (item: any) => item.offer?.seller_id === sellerId
                     )
+                const shippingMethodsOfSeller = (sellerId: string) => {
                     const sellerShippingOptions = sellerShippingOptionsMap.get(sellerId) ?? []
-                    const sellerCartShippingMethods = (cart.shipping_methods ?? []).filter((sm) => sellerShippingOptions.some((so) => so.id === sm.shipping_option_id))
+                    return (cart.shipping_methods ?? []).filter((sm) => sellerShippingOptions.some((so) => so.id === sm.shipping_option_id))
+                }
+
+                const sellerCreditLines = allocateCreditLines({
+                    credit_lines: cart.credit_lines ?? [],
+                    order_totals: sellerIds.map((sellerId) =>
+                        [...itemsOfSeller(sellerId), ...shippingMethodsOfSeller(sellerId)].reduce<BigNumberInput>(
+                            (acc, line) => MathBN.add(acc, line.raw_total ?? line.total),
+                            0
+                        )
+                    ),
+                    currency_code: cart.currency_code,
+                })
+
+                sellerIds.forEach((sellerId, sellerIndex) => {
+                    const sellerCartItems = itemsOfSeller(sellerId)
+                    const sellerCartShippingMethods = shippingMethodsOfSeller(sellerId)
 
                     const allItems = sellerCartItems.map((item) => {
                         const offerShippingProfileId = (
@@ -317,19 +338,6 @@ export const completeCartWithSplitOrdersWorkflow = createWorkflow(
                         }
                     })
 
-                    // todo: add credit lines support for child orders
-                    // const creditLines = (cart.credit_lines ?? []).map(
-                    //     (creditLine: CartCreditLineDTO) => {
-                    //         return {
-                    //             amount: creditLine.amount,
-                    //             raw_amount: creditLine.raw_amount,
-                    //             reference: creditLine.reference,
-                    //             reference_id: creditLine.reference_id,
-                    //             metadata: creditLine.metadata,
-                    //         }
-                    //     }
-                    // )
-
                     const itemAdjustments = allItems
                         .map((item) => item.adjustments ?? [])
                         .flat(1)
@@ -378,8 +386,10 @@ export const completeCartWithSplitOrdersWorkflow = createWorkflow(
                         shipping_methods: shippingMethods,
                         metadata: cart.metadata,
                         promo_codes: promoCodes,
-                        // todo: add credit lines support for child orders
-                        credit_lines: [],
+                        credit_lines: sellerCreditLines[sellerIndex].map((creditLine) => ({
+                            ...creditLine,
+                            order_id: orderId,
+                        })),
                     })
 
                     sellerOrdersMap[sellerId] = orderId
@@ -599,7 +609,7 @@ export const completeCartWithSplitOrdersWorkflow = createWorkflow(
             })
 
             parallelize(
-                createRemoteLinkStep(linksToCreate),
+                createLinksStep(linksToCreate),
                 mirrorLineItemOfferLinksToOrderStep({
                     pairs: orderLineOfferPairs,
                 }),
