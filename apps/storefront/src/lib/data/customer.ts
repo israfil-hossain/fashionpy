@@ -17,7 +17,7 @@ import {
 
 export const retrieveCustomer = async (): Promise<HttpTypes.StoreCustomer | null> => {
   const authHeaders = await getAuthHeaders();
-  if (!('authorization' in authHeaders)) return null;
+  if (!authHeaders) return null;
 
   const headers = {
     ...authHeaders
@@ -49,7 +49,7 @@ export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {
     });
 
   const cacheTag = await getCacheTag('customers');
-  revalidateTag(cacheTag, { expire: 0 });
+  revalidateTag(cacheTag, "max");
 
   return updateRes;
 };
@@ -96,7 +96,7 @@ export async function signup(formData: FormData) {
     await setAuthToken(loginToken as string);
 
     const customerCacheTag = await getCacheTag('customers');
-    revalidateTag(customerCacheTag, { expire: 0 });
+    revalidateTag(customerCacheTag, "max");
 
     await transferCart();
 
@@ -116,7 +116,7 @@ export async function login(formData: FormData) {
       .then(({ token }) => token);
     await setAuthToken(token as string);
     const customerCacheTag = await getCacheTag('customers');
-    revalidateTag(customerCacheTag, { expire: 0 });
+    revalidateTag(customerCacheTag, "max");
 
     return { success: true };
   } catch (error: unknown) {
@@ -149,12 +149,12 @@ export async function signout() {
   await removeAuthToken();
 
   const customerCacheTag = await getCacheTag('customers');
-  revalidateTag(customerCacheTag, { expire: 0 });
+  revalidateTag(customerCacheTag, "max");
 
   await removeCartId();
 
   const cartCacheTag = await getCacheTag('carts');
-  revalidateTag(cartCacheTag, { expire: 0 });
+  revalidateTag(cartCacheTag, "max");
   redirect(`/`);
 }
 
@@ -170,7 +170,7 @@ export async function transferCart() {
   await sdk.store.carts.$id.customer.mutate({ $id: cartId, fetchOptions: { headers } });
 
   const cartCacheTag = await getCacheTag('carts');
-  revalidateTag(cartCacheTag, { expire: 0 });
+  revalidateTag(cartCacheTag, "max");
 }
 
 export const addCustomerAddress = async (formData: FormData): Promise<any> => {
@@ -197,7 +197,7 @@ export const addCustomerAddress = async (formData: FormData): Promise<any> => {
     .mutate({ ...address, fetchOptions: { headers } } as never) as unknown as Promise<unknown>)
     .then(async () => {
       const customerCacheTag = await getCacheTag('customers');
-      revalidateTag(customerCacheTag, { expire: 0 });
+      revalidateTag(customerCacheTag, "max");
       return { success: true, error: null };
     })
     .catch(err => {
@@ -214,7 +214,7 @@ export const deleteCustomerAddress = async (addressId: string): Promise<void> =>
     .delete({ $addressId: addressId, fetchOptions: { headers } } as never) as unknown as Promise<unknown>)
     .then(async () => {
       const customerCacheTag = await getCacheTag('customers');
-      revalidateTag(customerCacheTag, { expire: 0 });
+      revalidateTag(customerCacheTag, "max");
       return { success: true, error: null };
     })
     .catch(err => {
@@ -256,7 +256,7 @@ export const updateCustomerAddress = async (formData: FormData): Promise<any> =>
     .mutate({ $addressId: addressId, ...address, fetchOptions: { headers } } as never) as unknown as Promise<unknown>)
     .then(async () => {
       const customerCacheTag = await getCacheTag('customers');
-      revalidateTag(customerCacheTag, { expire: 0 });
+      revalidateTag(customerCacheTag, "max");
       return { success: true, error: null };
     })
     .catch(err => {
@@ -275,7 +275,7 @@ export const updateCustomerPassword = async (password: string, token: string): P
     .then(async () => {
       await removeAuthToken();
       const customerCacheTag = await getCacheTag('customers');
-      revalidateTag(customerCacheTag, { expire: 0 });
+      revalidateTag(customerCacheTag, "max");
       return { success: true, error: null };
     })
     .catch((err: any) => {

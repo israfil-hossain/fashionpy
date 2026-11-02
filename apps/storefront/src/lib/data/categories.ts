@@ -1,19 +1,13 @@
 import { HttpTypes } from '@medusajs/types';
 
-import { cacheLife, cacheTag } from 'next/cache';
-
 import { sdk } from '@/lib/client';
-import { CACHE_TAGS, cacheFailedRead } from './cache-tags';
+import { CACHE_TAGS, getGlobalCacheOptions } from './cache-tags';
 
 interface CategoriesProps {
   query?: Record<string, unknown>;
 }
 
 export const listCategories = async ({ query }: Partial<CategoriesProps> = {}) => {
-  'use cache';
-  cacheLife('hours');
-  cacheTag(CACHE_TAGS.categories);
-
   const limit = query?.limit || 100;
 
   const allCategories = await (sdk.store.productCategories
@@ -23,13 +17,12 @@ export const listCategories = async ({ query }: Partial<CategoriesProps> = {}) =
       include_ancestors_tree: true,
       limit,
       ...query,
-      fetchOptions: { cache: 'no-store' }
+      fetchOptions: {
+        cache: 'force-cache',
+        next: getGlobalCacheOptions(CACHE_TAGS.categories)
+      }
     } as never) as unknown as Promise<{ product_categories: HttpTypes.StoreProductCategory[] }>)
-    .then(({ product_categories }) => product_categories)
-    .catch(() => {
-      cacheFailedRead();
-      return [] as HttpTypes.StoreProductCategory[];
-    });
+    .then(({ product_categories }) => product_categories);
 
   const parentCategories = allCategories.filter(cat => !cat.parent_category_id);
 
@@ -55,22 +48,20 @@ export const listCategories = async ({ query }: Partial<CategoriesProps> = {}) =
 };
 
 export const getCategoryByHandle = async (categoryHandle: string) => {
-  'use cache';
-  cacheLife('hours');
-  cacheTag(CACHE_TAGS.categories, CACHE_TAGS.category(categoryHandle));
-
   return (sdk.store.productCategories
     .query({
       fields: 'id,name,handle,parent_category_id,*category_children',
       handle: categoryHandle,
       include_descendants_tree: true,
-      fetchOptions: { cache: 'no-store' }
+      fetchOptions: {
+        cache: 'force-cache',
+        next: getGlobalCacheOptions(
+          CACHE_TAGS.categories,
+          CACHE_TAGS.category(categoryHandle)
+        )
+      }
     } as never) as unknown as Promise<HttpTypes.StoreProductCategoryListResponse>)
-    .then(({ product_categories }) => product_categories[0] ?? null)
-    .catch(() => {
-      cacheFailedRead();
-      return null;
-    });
+    .then(({ product_categories }) => product_categories[0]);
 };
 
 // Medusa's `/store/products?category_id=` filters by the exact category only —

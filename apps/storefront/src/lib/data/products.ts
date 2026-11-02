@@ -1,11 +1,13 @@
+'use server';
+
 import { HttpTypes } from '@medusajs/types';
-import { cacheLife, cacheTag } from 'next/cache';
 
 import { sortProducts } from '@/lib/helpers/sort-products';
 import { SortOptions } from '@/types/product';
 
 import { sdk } from '../client';
-import { CACHE_TAGS, cacheFailedRead } from './cache-tags';
+import { getAuthHeaders } from './cookies';
+import { CACHE_TAGS, getGlobalCacheOptions } from './cache-tags';
 import { getRegion, retrieveRegion } from './regions';
 
 const PRODUCT_LIST_FIELDS =
@@ -29,40 +31,17 @@ type StoreProductAttribute = {
   values?: { name: string; rank?: number }[];
 };
 
-type ProductQueryParams = HttpTypes.FindParams &
-  HttpTypes.StoreProductParams & { handle?: string[] };
-
-type ProductListResult = {
-  response: { products: HttpTypes.StoreProduct[]; count: number };
-  nextPage: number | null;
-  queryParams?: ProductQueryParams;
-};
-
-const queryProducts = (query: Record<string, unknown>) =>
-  sdk.store.products.query({
-    fields: PRODUCT_LIST_FIELDS,
-    ...query,
-    fetchOptions: { cache: 'no-store' },
-  } as never) as unknown as Promise<{ products: HttpTypes.StoreProduct[]; count: number }>;
-
 export const getSearchFacets = async (): Promise<SearchFacets> => {
-  'use cache';
-  cacheLife('hours');
-  cacheTag(CACHE_TAGS.products);
-
   const { product_attributes } = await (
     sdk.store.productAttributes.query({
       is_filterable: true,
       limit: 100,
       fields: 'handle,name,is_variant_axis,values.name,values.rank',
-      fetchOptions: { cache: 'no-store' },
+      fetchOptions: { next: { revalidate: 300 } },
     } as never) as unknown as Promise<{
       product_attributes: StoreProductAttribute[];
     }>
-  ).catch(() => {
-    cacheFailedRead();
-    return { product_attributes: [] as StoreProductAttribute[] };
-  });
+  ).catch(() => ({ product_attributes: [] as StoreProductAttribute[] }));
 
   const attributes: Record<string, SearchFacetBucket[]> = {};
   for (const attribute of product_attributes) {
@@ -82,9 +61,6 @@ export const getSearchFacets = async (): Promise<SearchFacets> => {
  * Products in Mercur are master products from a single shared catalog — they are
  * not owned by a seller. Seller-scoped listings and per-seller price/inventory
  * come from offers, not from a product→seller relation; use `lib/data/offers.ts`.
- *
- * Catalog reads are anonymous so every shopper shares one cache entry; prices
- * that depend on the customer's groups are applied by the cart, not the catalog.
  */
 export const listProducts = async ({
   pageParam = 1,
@@ -95,16 +71,17 @@ export const listProducts = async ({
   collection_id,
 }: {
   pageParam?: number;
-  queryParams?: ProductQueryParams;
+  queryParams?: HttpTypes.FindParams &
+    HttpTypes.StoreProductParams & { handle?: string[] };
   category_id?: string | string[];
   collection_id?: string;
   countryCode?: string;
   regionId?: string;
-}): Promise<ProductListResult> => {
-  'use cache';
-  cacheLife('max');
-  cacheTag(CACHE_TAGS.products);
-
+}): Promise<{
+  response: { products: HttpTypes.StoreProduct[]; count: number };
+  nextPage: number | null;
+  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams;
+}> => {
   if (!countryCode && !regionId) {
     throw new Error('Country code or region ID is required');
   }
@@ -118,22 +95,25 @@ export const listProducts = async ({
     : await retrieveRegion(regionId!);
 
   if (!region) {
-    cacheFailedRead();
     return { response: { products: [], count: 0 }, nextPage: null };
   }
 
-  for (const handle of queryParams?.handle ?? []) {
-    cacheTag(CACHE_TAGS.product(handle));
-  }
-
-  return queryProducts({
-    category_id,
-    collection_id,
-    limit,
-    offset,
-    region_id: region.id,
-    ...queryParams,
-  })
+  return (
+    sdk.store.products.query({
+      category_id,
+      collection_id,
+      limit,
+      offset,
+      region_id: region.id,
+      fields: PRODUCT_LIST_FIELDS,
+      ...queryParams,
+      fetchOptions: {
+        headers: { ...(await getAuthHeaders()) },
+        cache: 'force-cache',
+        next: getGlobalCacheOptions(CACHE_TAGS.products),
+      },
+    } as never) as unknown as Promise<{ products: HttpTypes.StoreProduct[]; count: number }>
+  )
     .then(({ products, count }) => {
       const nextPage = count > offset + limit ? pageParam + 1 : null;
 
@@ -143,51 +123,86 @@ export const listProducts = async ({
         queryParams,
       };
     })
-    .catch(() => {
-      cacheFailedRead();
-      return {
-        response: { products: [], count: 0 },
-        nextPage: null,
-        queryParams,
-      };
-    });
+    .catch(() => ({
+      response: { products: [], count: 0 },
+      nextPage: null,
+      queryParams,
+    }));
 };
 
-export type ProductSearchParams = {
-  query?: string;
-  countryCode?: string;
-  regionId?: string;
-  category_id?: string | string[];
-  collection_id?: string | string[];
-  seller_id?: string | string[];
-  attributes?: Record<string, string | string[]>;
-  page?: number;
-  limit?: number;
-  sortBy?: SortOptions;
-};
-
-export type ProductSearchResult = {
-  products: HttpTypes.StoreProduct[];
-  count: number;
-  nextPage: number | null;
-};
-
-export const isDefaultProductSearch = ({
-  query,
-  attributes,
+export const listProductsWithSort = async ({
   page = 1,
-  sortBy,
-}: ProductSearchParams) =>
-  !query &&
-  page <= 1 &&
-  (!sortBy || sortBy === 'created_at') &&
-  !Object.keys(attributes ?? {}).length;
+  queryParams,
+  sortBy = 'created_at',
+  countryCode,
+  category_id,
+  collection_id,
+}: {
+  page?: number;
+  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams;
+  sortBy?: SortOptions;
+  countryCode: string;
+  category_id?: string | string[];
+  collection_id?: string;
+}): Promise<{
+  response: { products: HttpTypes.StoreProduct[]; count: number };
+  nextPage: number | null;
+  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams;
+}> => {
+  const limit = queryParams?.limit || 12;
+
+  const {
+    response: { products, count },
+  } = await listProducts({
+    pageParam: 0,
+    queryParams: { ...queryParams, limit: 100 },
+    category_id,
+    collection_id,
+    countryCode,
+  });
+
+  const pricedProducts = products.filter(prod =>
+    prod.variants?.some(variant => variant.calculated_price !== null)
+  );
+
+  const sortedProducts = sortProducts(pricedProducts, sortBy);
+
+  const pageParam = (page - 1) * limit;
+  const nextPage = count > pageParam + limit ? pageParam + limit : null;
+  const paginatedProducts = sortedProducts.slice(pageParam, pageParam + limit);
+
+  return {
+    response: { products: paginatedProducts, count },
+    nextPage,
+    queryParams,
+  };
+};
+
+export const getProductByHandle = async (handle: string, regionId: string) => {
+  const next = getGlobalCacheOptions(
+    CACHE_TAGS.products,
+    CACHE_TAGS.product(handle)
+  );
+
+  return (
+    sdk.store.products.query({
+      handle,
+      region_id: regionId,
+      fields: PRODUCT_LIST_FIELDS,
+      fetchOptions: {
+        headers: { ...(await getAuthHeaders()) },
+        cache: 'force-cache',
+        next,
+      },
+    } as never) as unknown as Promise<{ products: HttpTypes.StoreProduct[] }>
+  ).then(({ products }) => products[0]);
+};
 
 /**
- * Price sorts are applied after fetching because `/store/products` can only order
+ * Price sorts are applied client-side because `/store/products` can only order
  * by product columns.
  */
-const fetchProductSearch = async ({
+export const searchProducts = async ({
   query,
   countryCode,
   regionId,
@@ -198,68 +213,60 @@ const fetchProductSearch = async ({
   page = 1,
   limit = 12,
   sortBy,
-}: ProductSearchParams): Promise<ProductSearchResult & { failed?: boolean }> => {
+}: {
+  query?: string;
+  countryCode?: string;
+  regionId?: string;
+  category_id?: string | string[];
+  collection_id?: string | string[];
+  seller_id?: string | string[];
+  attributes?: Record<string, string | string[]>;
+  page?: number;
+  limit?: number;
+  sortBy?: SortOptions;
+}): Promise<{
+  products: HttpTypes.StoreProduct[];
+  count: number;
+  nextPage: number | null;
+}> => {
   const region = countryCode ? await getRegion(countryCode) : { id: regionId };
 
   if (!region?.id) {
-    return { products: [], count: 0, nextPage: null, failed: true };
+    return { products: [], count: 0, nextPage: null };
   }
 
   const offset = Math.max(page - 1, 0) * limit;
   const order = !sortBy || sortBy === 'created_at' ? '-created_at' : undefined;
 
-  const hasAttributeFilters = attributes && Object.keys(attributes).length > 0;
+  const hasAttributeFilters =
+    attributes && Object.keys(attributes).length > 0;
 
-  const result = await queryProducts({
-    ...(query ? { q: query } : {}),
+  const { products, count } = await (sdk.store.products.query({
+    q: query || undefined,
     region_id: region.id,
     category_id,
     collection_id,
     seller_id,
-    ...(hasAttributeFilters ? { attributes } : {}),
+    attributes: hasAttributeFilters ? attributes : undefined,
     order,
     limit,
     offset,
-  }).catch(() => null);
-
-  if (!result) {
-    return { products: [], count: 0, nextPage: null, failed: true };
-  }
+    fields: PRODUCT_LIST_FIELDS,
+    fetchOptions: { headers: { ...(await getAuthHeaders()) }, cache: 'no-cache' },
+  } as never) as unknown as Promise<{
+    products: HttpTypes.StoreProduct[];
+    count: number;
+  }>).catch(() => ({
+    products: [] as HttpTypes.StoreProduct[],
+    count: 0,
+  }));
 
   const ordered =
     sortBy === 'price_asc' || sortBy === 'price_desc'
-      ? sortProducts(result.products, sortBy)
-      : result.products;
+      ? sortProducts(products, sortBy)
+      : products;
 
-  const nextPage = result.count > offset + limit ? page + 1 : null;
+  const nextPage = count > offset + limit ? page + 1 : null;
 
-  return { products: ordered, count: result.count, nextPage };
-};
-
-// Only the default first page of a listing is cached: each filter, sort, query
-// and page combination would be a rarely reused cache entry.
-const getDefaultProductSearch = async (
-  params: ProductSearchParams
-): Promise<ProductSearchResult> => {
-  'use cache';
-  cacheLife('max');
-  cacheTag(CACHE_TAGS.products);
-
-  const { failed, ...result } = await fetchProductSearch(params);
-  if (failed) {
-    cacheFailedRead();
-  }
-  return result;
-};
-
-export const searchProducts = async (
-  params: ProductSearchParams
-): Promise<ProductSearchResult> => {
-  if (isDefaultProductSearch(params)) {
-    const { countryCode, regionId, category_id, collection_id, seller_id, limit } = params;
-    return getDefaultProductSearch({ countryCode, regionId, category_id, collection_id, seller_id, limit });
-  }
-
-  const { failed: _failed, ...result } = await fetchProductSearch(params);
-  return result;
+  return { products: ordered, count, nextPage };
 };

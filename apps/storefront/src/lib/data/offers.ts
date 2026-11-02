@@ -1,8 +1,10 @@
+'use server';
+
 import { OfferDTO } from '@mercurjs/types';
-import { cacheLife, cacheTag } from 'next/cache';
 
 import { sdk } from '../client';
-import { CACHE_TAGS, cacheFailedRead } from './cache-tags';
+import { getAuthHeaders } from './cookies';
+import { CACHE_TAGS, getGlobalCacheOptions } from './cache-tags';
 import { getRegion } from './regions';
 
 // All fields are `+`-prefixed so they MERGE with the route defaults instead of
@@ -30,19 +32,16 @@ export const listOffers = async ({
   limit?: number;
   offset?: number;
 }): Promise<{ offers: OfferDTO[]; count: number }> => {
-  'use cache';
-  // Offer price and stock change with every order, which sends no webhook.
-  cacheLife('minutes');
-  cacheTag(CACHE_TAGS.offers);
-  if (productId) {
-    cacheTag(CACHE_TAGS.productOffers(productId));
-  }
-
   const region = regionId
     ? { id: regionId }
     : countryCode
       ? await getRegion(countryCode)
       : null;
+
+  const next = getGlobalCacheOptions(
+    CACHE_TAGS.offers,
+    productId ? CACHE_TAGS.productOffers(productId) : undefined
+  );
 
   return (
     sdk.store.offers.query({
@@ -53,24 +52,21 @@ export const listOffers = async ({
       limit,
       offset,
       fields: OFFER_FIELDS,
-      fetchOptions: { cache: 'no-store' },
+      fetchOptions: {
+        headers: { ...(await getAuthHeaders()) },
+        cache: 'force-cache',
+        next,
+      },
     } as never) as unknown as Promise<{ offers: OfferDTO[]; count: number }>
   )
     .then(({ offers, count }) => ({ offers, count }))
-    .catch(() => {
-      cacheFailedRead();
-      return { offers: [], count: 0 };
-    });
+    .catch(() => ({ offers: [], count: 0 }));
 };
 
 export const retrieveOffer = async (
   id: string,
   { countryCode, regionId }: { countryCode?: string; regionId?: string } = {}
 ): Promise<OfferDTO | null> => {
-  'use cache';
-  cacheLife('minutes');
-  cacheTag(CACHE_TAGS.offers, CACHE_TAGS.offer(id));
-
   const region = regionId
     ? { id: regionId }
     : countryCode
@@ -83,12 +79,13 @@ export const retrieveOffer = async (
       region_id: region?.id,
       country_code: countryCode,
       fields: OFFER_FIELDS,
-      fetchOptions: { cache: 'no-store' },
+      fetchOptions: {
+        headers: { ...(await getAuthHeaders()) },
+        cache: 'force-cache',
+        next: getGlobalCacheOptions(CACHE_TAGS.offers, CACHE_TAGS.offer(id)),
+      },
     } as never) as unknown as Promise<{ offer: OfferDTO }>
   )
     .then(({ offer }) => offer)
-    .catch(() => {
-      cacheFailedRead();
-      return null;
-    });
+    .catch(() => null);
 };
