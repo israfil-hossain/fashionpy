@@ -24,12 +24,17 @@ export const Header = async ({
   const user = await retrieveCustomer().catch(() => null)
   const isLoggedIn = Boolean(user)
 
-  const settings = await retrieveStoreSettings()
+  // Tolerate a missing/unreachable backend during `next build` prerender
+  // (Docker builds have no live API and api.fashionpy.com may not resolve).
+  const settings = await retrieveStoreSettings().catch(() => null)
   const announcement = settings?.announcement ?? { enabled: false, message: "", amount: null, link_label: null, link_href: null, starts_at: null, ends_at: null }
 
   const { categories, parentCategories } = (await listCategories({
     query: { include_ancestors_tree: true }
-  })) as {
+  }).catch(() => ({
+    categories: [] as HttpTypes.StoreProductCategory[],
+    parentCategories: [] as HttpTypes.StoreProductCategory[]
+  }))) as {
     categories: HttpTypes.StoreProductCategory[]
     parentCategories: HttpTypes.StoreProductCategory[]
   }
