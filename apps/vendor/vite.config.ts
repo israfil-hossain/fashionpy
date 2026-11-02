@@ -10,7 +10,9 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const backendUrl =
-    env.VITE_MERCUR_BACKEND_URL || env.MERCUR_BACKEND_URL
+    env.VITE_MERCUR_BACKEND_URL ||
+    env.MERCUR_BACKEND_URL ||
+    process.env.MERCUR_BACKEND_URL
 
   return {
     // Production builds served by the backend under a sub-path (e.g. /seller)
