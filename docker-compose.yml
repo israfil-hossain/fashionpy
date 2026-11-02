@@ -35,6 +35,11 @@ services:
       REDIS_URL: redis://default:Fashionpy%40166091@fashionpy-fashionpyredis-mrxeuy:6379
     ports:
       - "${API_PORT:-9000}:9000"
+    networks:
+      # dokploy-network: swarm Postgres/Redis DNS + Traefik data-plane.
+      # default: service-name DNS (storefront → http://api:9000).
+      - dokploy-network
+      - default
     healthcheck:
       test:
         [
@@ -79,6 +84,9 @@ services:
       REVALIDATE_SECRET: ${REVALIDATE_SECRET:-}
     ports:
       - "${STOREFRONT_PORT:-3000}:3000"
+    networks:
+      - dokploy-network
+      - default
     healthcheck:
       test:
         [
@@ -91,3 +99,7 @@ services:
       timeout: 10s
       retries: 10
       start_period: 30s
+
+networks:
+  dokploy-network:
+    external: true
