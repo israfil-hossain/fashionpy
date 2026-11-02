@@ -146,6 +146,7 @@ const useSidebarRoutes = () => {
       icon: item.icon ? <item.icon /> : undefined,
       translationNs: item.translationNs,
       group: item.group,
+      type: "extension" as const,
       items: addNestedItems(item.path, visibleMenuItems),
     }));
 
@@ -512,6 +513,12 @@ const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
       icon: <CreditCardRefresh />,
       label: t("payouts.domain"),
       to: "/payouts",
+      items: [
+        {
+          label: t("payoutAccounts.domain"),
+          to: "/payout-accounts",
+        },
+      ],
     },
     {
       icon: <Images />,

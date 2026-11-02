@@ -233,7 +233,9 @@ export type Routes = {
             paymentProviders: typeof import("@medusajs/medusa/api/admin/payments/payment-providers/route");
         };
         payouts: typeof import("../src/api/admin/payouts/route") & {
-            $id: typeof import("../src/api/admin/payouts/[id]/route");
+            $id: typeof import("../src/api/admin/payouts/[id]/route") & {
+                retry: typeof import("../src/api/admin/payouts/[id]/retry/route");
+            };
         };
         plugins: typeof import("@medusajs/medusa/api/admin/plugins/route");
         priceLists: typeof import("@medusajs/medusa/api/admin/price-lists/route") & {
@@ -380,7 +382,9 @@ export type Routes = {
             $id: typeof import("@medusajs/medusa/api/admin/refund-reasons/[id]/route");
         };
         regions: typeof import("@medusajs/medusa/api/admin/regions/route") & {
-            $id: typeof import("@medusajs/medusa/api/admin/regions/[id]/route");
+            $id: typeof import("@medusajs/medusa/api/admin/regions/[id]/route") & {
+                sellers: typeof import("../src/api/admin/regions/[id]/sellers/route");
+            };
         };
         reservations: typeof import("@medusajs/medusa/api/admin/reservations/route") & {
             $id: typeof import("@medusajs/medusa/api/admin/reservations/[id]/route");
@@ -434,6 +438,7 @@ export type Routes = {
                 terminate: typeof import("../src/api/admin/sellers/[id]/terminate/route");
                 unsuspend: typeof import("../src/api/admin/sellers/[id]/unsuspend/route");
                 unterminate: typeof import("../src/api/admin/sellers/[id]/unterminate/route");
+                regions: typeof import("../src/api/admin/sellers/[id]/regions/route");
             };
             statistics: typeof import("../src/api/admin/sellers/statistics/route");
         };
@@ -552,6 +557,12 @@ export type Routes = {
         };
         offerConditions: typeof import("../src/api/admin/offer-conditions/route") & {
             $id: typeof import("../src/api/admin/offer-conditions/[id]/route");
+        };
+        payoutAccounts: typeof import("../src/api/admin/payout-accounts/route") & {
+            $id: typeof import("../src/api/admin/payout-accounts/[id]/route") & {
+                refreshLink: typeof import("../src/api/admin/payout-accounts/[id]/refresh-link/route");
+                sync: typeof import("../src/api/admin/payout-accounts/[id]/sync/route");
+            };
         };
         reviews: typeof import("../src/api/admin/reviews/route") & {
             $id: typeof import("../src/api/admin/reviews/[id]/route") & {
@@ -878,6 +889,7 @@ export type Routes = {
             $id: typeof import("../src/api/vendor/payout-accounts/[id]/route") & {
                 onboarding: typeof import("../src/api/vendor/payout-accounts/[id]/onboarding/route");
             };
+            me: typeof import("../src/api/vendor/payout-accounts/me/route");
         };
         payouts: typeof import("../src/api/vendor/payouts/route") & {
             $id: typeof import("../src/api/vendor/payouts/[id]/route");
@@ -1051,6 +1063,11 @@ export type Routes = {
         };
         reviews: typeof import("../src/api/vendor/reviews/route") & {
             $id: typeof import("../src/api/vendor/reviews/[id]/route");
+        };
+    };
+    payout: {
+        onboarding: {
+            refresh: typeof import("../src/api/payout/onboarding/refresh/route");
         };
     };
 };

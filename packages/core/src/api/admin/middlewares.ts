@@ -12,7 +12,9 @@ import { adminCustomerGroupsMiddlewares } from "./customer-groups/middlewares"
 import { adminOffersMiddlewares } from "./offers/middlewares"
 import { adminOfferConditionsMiddlewares } from "./offer-conditions/middlewares"
 import { adminPayoutsMiddlewares } from "./payouts/middlewares"
+import { adminPayoutAccountsMiddlewares } from "./payout-accounts/middlewares"
 import { adminSellersMiddlewares } from "./sellers/middlewares"
+import { adminRegionsMiddlewares } from "./regions/middlewares"
 import { adminMembersMiddlewares } from "./members/middlewares"
 import { adminCommissionRatesMiddlewares } from "./commission-rates/middlewares"
 import { adminCourierAccountsMiddlewares } from "./courier-accounts/middlewares"
@@ -60,7 +62,9 @@ export const adminMiddlewares: MiddlewareRoute[] = [
   ...adminOffersMiddlewares,
   ...adminOfferConditionsMiddlewares,
   ...adminPayoutsMiddlewares,
+  ...adminPayoutAccountsMiddlewares,
   ...adminSellersMiddlewares,
+  ...adminRegionsMiddlewares,
   ...adminMembersMiddlewares,
   ...adminCommissionRatesMiddlewares,
   ...adminCourierAccountsMiddlewares,

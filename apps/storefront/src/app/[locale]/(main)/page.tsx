@@ -1,20 +1,18 @@
-import {
-  BannerSection,
-  BlogSection,
-  HeroCarousel,
-  TrustBarSection,
-  CategoryStrip,
-  TabbedProductGrid,
-  NewArrivalsSection,
-  BestDealsSection,
-  CollectionSliderSection,
-  CompanyBannerSlot,
-  OfferPriceSection,
-  ShopCollectionBanners,
-} from "@/components/sections"
+import { BannerSection } from '@/components/sections/BannerSection/BannerSection'
+import { BlogSection } from '@/components/sections/BlogSection/BlogSection'
+import { HeroCarousel } from '@/components/sections/HeroCarousel/HeroCarousel'
+import { TrustBarSection } from '@/components/sections/TrustBar/TrustBarSection'
+import { CategoryStrip } from '@/components/sections/CategoryStrip/CategoryStrip'
+import { TabbedProductGrid } from '@/components/sections/TabbedProductGrid/TabbedProductGrid'
+import { NewArrivalsSection } from '@/components/sections/NewArrivalsSection/NewArrivalsSection'
+import { BestDealsSection } from '@/components/sections/BestDealsSection/BestDealsSection'
+import { CollectionSliderSection } from '@/components/sections/CollectionSlider/CollectionSliderSection'
+import { CompanyBannerSlot } from '@/components/sections/CompanyBanner/CompanyBannerSlot'
+import { OfferPriceSection } from '@/components/sections/OfferPrice/OfferPriceSection'
+import { ShopCollectionBanners } from '@/components/sections/ShopCollectionBanners/ShopCollectionBanners'
 
 import type { Metadata } from "next"
-import { headers } from "next/headers"
+import { getBaseUrl } from "@/lib/helpers/base-url"
 import Script from "next/script"
 import { listRegions } from "@/lib/data/regions"
 import { listHeroBanners } from "@/lib/data/hero-banners"
@@ -31,10 +29,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params
 
-  const headersList = await headers()
-  const host = headersList.get("host")
-  const protocol = headersList.get("x-forwarded-proto") || "https"
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`
+  const baseUrl = getBaseUrl()
 
   let locales: string[] = []
   try {
@@ -111,10 +106,7 @@ export default async function Home({
 }) {
   const { locale } = await params
 
-  const headersList = await headers()
-  const host = headersList.get("host")
-  const protocol = headersList.get("x-forwarded-proto") || "https"
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`
+  const baseUrl = getBaseUrl()
 
   const siteName =
     process.env.NEXT_PUBLIC_SITE_NAME ||

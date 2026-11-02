@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FieldError, FieldValues, FormProvider, useForm, useFormContext } from 'react-hook-form';
 
-import { Button } from '@/components/atoms';
+import { Button } from '@/components/atoms/Button/Button';
 import { Alert } from '@/components/atoms/Alert/Alert';
 import { LabeledInput } from '@/components/cells';
 import { login, loginWithGoogle, transferCart } from '@/lib/data/customer';

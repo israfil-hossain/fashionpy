@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 import { Toaster } from '@medusajs/ui';
-import Head from 'next/head';
 
 import { GoogleAnalytics } from '@/components/atoms/GoogleAnalytics/GoogleAnalytics';
 import { HtmlLangSetter } from '@/components/atoms/HtmlLangSetter/HtmlLangSetter';
@@ -34,14 +33,14 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cart = await retrieveCart();
+  const cartPromise = retrieveCart();
 
-  // default lang updated by HtmlLangSetter
+  // LocaleProvider sets the visitor's language once the [locale] segment renders.
   const htmlLang = 'en';
 
   return (
@@ -49,7 +48,7 @@ export default async function RootLayout({
       lang={htmlLang}
       className=""
     >
-      <Head>
+      <head>
         <link
           rel="preconnect"
           href="https://i.imgur.com"
@@ -96,11 +95,11 @@ export default async function RootLayout({
           rel="dns-prefetch"
           href="https://api.mercurjs.com"
         />
-      </Head>
+      </head>
       <body className="relative bg-primary text-secondary antialiased">
         <GoogleAnalytics />
         <HtmlLangSetter />
-        <Providers cart={cart}>{children}</Providers>
+        <Providers cartPromise={cartPromise}>{children}</Providers>
         <Toaster position="top-right" />
       </body>
     </html>

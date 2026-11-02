@@ -1,5 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCan } from "@mercurjs/dashboard-shared";
+import {
+  buildScopedAdditionalData,
+  useCan,
+  useExtension,
+} from "@mercurjs/dashboard-shared";
 import { Button, toast } from "@medusajs/ui";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -11,17 +15,21 @@ import { useOfferConditions } from "../../../../hooks/api/offer-conditions";
 import { useBulkCreateOffers } from "../../../../hooks/api/offers";
 import { castNumber } from "../../../../lib/cast-number";
 import { useProducts } from "../../../../hooks/api/products";
-import { useCurrentSeller } from "../../../../hooks/api/sellers";
 import { useStockLocations } from "../../../../hooks/api/stock-locations";
+import { useSellerCurrencies } from "../../common/use-seller-currencies";
 import { CreateOfferCatalogueTab } from "./create-offer-catalogue";
 import { CreateOfferStockLevelsAndPricesTab } from "./create-offer-stock-levels-and-prices";
 import {
+  buildCreateOfferSchema,
   CreateOfferFormValues,
-  CreateOfferSchema,
+  GRID_COLUMN_IDS,
   OfferVariantRow,
   variantRowHasPartialInput,
   variantRowHasPrice,
 } from "./schema";
+
+const GRID_ZONE = "create";
+const GRID_TAB = "stockLevelsAndPrices";
 
 const DEFAULTS: CreateOfferFormValues = {
   selected_product_ids: [],
@@ -69,16 +77,33 @@ export const CreateOfferForm = ({
   const { t } = useTranslation();
   const { handleSuccess } = useRouteModal();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const extension = useExtension();
+  const rowAdditionalData = useMemo(
+    () =>
+      buildScopedAdditionalData(extension, {
+        model: "offer",
+        zone: GRID_ZONE,
+        tabs: [GRID_TAB],
+        exactTab: true,
+        builtInFieldIds: GRID_COLUMN_IDS,
+      }),
+    [extension],
+  );
+  const schema = useMemo(
+    () => buildCreateOfferSchema(rowAdditionalData.schema),
+    [rowAdditionalData],
+  );
+  const rowAdditionalDataDefaults = rowAdditionalData.defaults;
   const form = useForm<CreateOfferFormValues>({
     defaultValues: {
       ...DEFAULTS,
       ...defaultValues,
     },
-    resolver: zodResolver(CreateOfferSchema),
+    resolver: zodResolver(schema),
   });
 
   const { mutateAsync: bulkCreateOffers } = useBulkCreateOffers();
-  const { currency_code } = useCurrentSeller();
+  const { currencies, regions } = useSellerCurrencies();
   const canViewLocations = useCan("stock_locations");
   const { stock_locations } = useStockLocations(
     { limit: 100 },
@@ -93,6 +118,7 @@ export const CreateOfferForm = ({
   const selectedProductIds = form.watch("selected_product_ids") ?? [];
   const selectedProductIdsKey = selectedProductIds.join(",");
   const locationsKey = locationIds.join(",");
+  const currenciesKey = currencies.join(",");
 
   // Fetch the selected products with their variants — the stock & prices
   // tab fans each product out to one row per variant (SPEC-009).
@@ -111,9 +137,9 @@ export const CreateOfferForm = ({
   useEffect(() => {
     const locIds = locationsKey ? locationsKey.split(",") : [];
 
-    const emptyPrices: Record<string, number | ""> = currency_code
-      ? { [currency_code]: "" }
-      : {};
+    const emptyPrices: Record<string, number | ""> = Object.fromEntries(
+      (currenciesKey ? currenciesKey.split(",") : []).map((code) => [code, ""]),
+    );
     const emptyInventory = locIds.reduce<
       Record<
         string,
@@ -154,8 +180,11 @@ export const CreateOfferForm = ({
           sku: variant.sku ?? "",
           shipping_profile_id: "",
           condition_id: defaultConditionId,
+          leadtime_to_ship: "",
           prices: { ...emptyPrices },
+          region_prices: {},
           inventory: { ...emptyInventory },
+          additional_data: { ...rowAdditionalDataDefaults },
         });
       }
     }
@@ -167,9 +196,10 @@ export const CreateOfferForm = ({
   }, [
     selectedProductIdsKey,
     fetchedProducts,
-    currency_code,
+    currenciesKey,
     locationsKey,
     defaultConditionId,
+    rowAdditionalDataDefaults,
     form,
   ]);
 
@@ -180,7 +210,8 @@ export const CreateOfferForm = ({
       return;
     }
 
-    if (!currency_code) {
+    if (!currencies.length) {
+      toast.error(t("offers.validation.noCurrencies"));
       return;
     }
 
@@ -191,9 +222,9 @@ export const CreateOfferForm = ({
     for (let i = 0; i < variants.length; i++) {
       const row = variants[i];
 
-      if (!variantRowHasPrice(row, currency_code)) {
+      if (!variantRowHasPrice(row, currencies)) {
         if (variantRowHasPartialInput(row)) {
-          form.setError(`variants.${i}.prices.${currency_code}`, {
+          form.setError(`variants.${i}.prices.${currencies[0]}`, {
             type: "manual",
             message: t("offers.validation.priceRequired"),
           });
@@ -240,12 +271,25 @@ export const CreateOfferForm = ({
     setIsSubmitting(true);
 
     const payloadOffers = rows.map(({ row, sku }) => {
-      const prices = [
-        {
-          amount: numericOrZero(row.prices?.[currency_code]),
-          currency_code,
-        },
-      ];
+      const prices: {
+        amount: number;
+        currency_code: string;
+        rules?: Record<string, string>;
+      }[] = [];
+      for (const code of currencies) {
+        const value = row.prices?.[code];
+        if (value === "" || value === null || value === undefined) continue;
+        prices.push({ amount: numericOrZero(value), currency_code: code });
+      }
+      for (const region of regions) {
+        const value = row.region_prices?.[region.id];
+        if (value === "" || value === null || value === undefined) continue;
+        prices.push({
+          amount: numericOrZero(value),
+          currency_code: region.currency_code,
+          rules: { region_id: region.id },
+        });
+      }
 
       const stock_levels: { location_id: string; stocked_quantity: number }[] = [];
       for (const [locationId, level] of Object.entries(row.inventory ?? {})) {
@@ -261,6 +305,9 @@ export const CreateOfferForm = ({
         variant_id: row.variant_id,
         shipping_profile_id: row.shipping_profile_id,
         ...(row.condition_id ? { condition_id: row.condition_id } : {}),
+        ...(row.leadtime_to_ship !== "" && row.leadtime_to_ship !== undefined
+          ? { leadtime_to_ship: Number(row.leadtime_to_ship) }
+          : {}),
         prices,
         inventory_items: [
           {
@@ -268,6 +315,9 @@ export const CreateOfferForm = ({
             stock_levels,
           },
         ],
+        ...(row.additional_data && Object.keys(row.additional_data).length
+          ? { additional_data: row.additional_data }
+          : {}),
       };
     });
 

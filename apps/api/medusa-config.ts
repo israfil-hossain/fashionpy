@@ -16,6 +16,7 @@ if (process.env.S3_ACCESS_KEY_ID?.startsWith('cfat_')) {
 }
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379'
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY
 
 // Google OAuth is optional: the provider is only registered when credentials
 // are present, so the API boots cleanly without them.
@@ -55,7 +56,48 @@ export default withMercur({
   featureFlags: {
     seller_registration: true
   },
+  plugins: [
+    {
+      resolve: '@mercurjs/stripe-connector-plugin',
+      options: {
+        apiKey: STRIPE_SECRET_KEY,
+        webhookSecret: process.env.STRIPE_SELLERS_WEBHOOK_SECRET,
+        alerting: {
+          technicalEmail: process.env.PAYOUT_ALERT_EMAIL,
+          from: process.env.PAYOUT_ALERT_FROM,
+        },
+        notifications: {
+          url: process.env.STRIPE_NOTIFICATIONS_URL,
+          secret: process.env.STRIPE_NOTIFICATIONS_SECRET,
+        },
+      },
+    },
+  ],
   modules: [
+    ...(STRIPE_SECRET_KEY
+      ? [
+          {
+            resolve: '@mercurjs/core/modules/payout',
+            options: {
+              providers: [
+                {
+                  resolve: '@mercurjs/stripe-connector-plugin/providers/payout-stripe-connect',
+                  id: 'stripe',
+                  options: {
+                    apiKey: STRIPE_SECRET_KEY,
+                    webhookSecret: process.env.STRIPE_SELLERS_WEBHOOK_SECRET,
+                    manualPayouts: true,
+                  },
+                },
+              ],
+              onboarding: {
+                returnUrl: `${process.env.VENDOR_URL || 'http://localhost:7001'}/stripe`,
+                refreshBaseUrl: process.env.BACKEND_URL || 'http://localhost:9000',
+              },
+            },
+          },
+        ]
+      : []),
     {
       resolve: '@medusajs/medusa/auth',
       options: {
@@ -150,6 +192,18 @@ export default withMercur({
       resolve: "@medusajs/medusa/payment",
       options: {
         providers: [
+          ...(STRIPE_SECRET_KEY
+            ? [
+                {
+                  resolve: '@mercurjs/stripe-connector-plugin/providers/payment-stripe',
+                  id: 'stripe',
+                  options: {
+                    apiKey: STRIPE_SECRET_KEY,
+                    webhookSecret: process.env.STRIPE_OPERATOR_WEBHOOK_SECRET,
+                  },
+                },
+              ]
+            : []),
           {
             resolve: "@mercurjs/payment-cod",
             options: {},

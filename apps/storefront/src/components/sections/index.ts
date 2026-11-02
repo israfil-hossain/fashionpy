@@ -14,7 +14,6 @@ import { CollectionSliderSection } from "./CollectionSlider/CollectionSliderSect
 import { CompanyBannerSlot } from "./CompanyBanner/CompanyBannerSlot"
 import { OfferPriceSection } from "./OfferPrice/OfferPriceSection"
 import { ShopCollectionBanners } from "./ShopCollectionBanners/ShopCollectionBanners"
-import { ProductListing } from "./ProductListing/ProductListing"
 import { SellerPageHeader } from "./SellerPageHeader/SellerPageHeader"
 import { Cart } from "./Cart/Cart"
 import { ProductDetailsPage } from "./ProductDetailsPage/ProductDetailsPage"
@@ -39,7 +38,6 @@ export {
   CompanyBannerSlot,
   OfferPriceSection,
   ShopCollectionBanners,
-  ProductListing,
   SellerPageHeader,
   Cart,
   ProductDetailsPage,

@@ -1,7 +1,8 @@
 import Image from "next/image"
 import { HttpTypes } from "@medusajs/types"
 
-import { CartDropdown, MobileNavbar, Navbar } from "@/components/cells"
+import { MobileNavbar, Navbar } from "@/components/cells"
+import { CartDropdown } from "@/components/cells/CartDropdown/CartDropdown"
 import { UserDropdown } from "@/components/cells/UserDropdown/UserDropdown"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import { HeaderSearch } from "@/components/molecules/HeaderSearch/HeaderSearch"
@@ -15,7 +16,11 @@ import { AnnouncementBar } from "../AnnouncementBar/AnnouncementBar"
 
 const vendorUrl = process.env.NEXT_PUBLIC_VENDOR_URL || "http://localhost:7002"
 
-export const Header = async ({ locale }: { locale: string }) => {
+export const Header = async ({
+  locale = process.env.NEXT_PUBLIC_DEFAULT_REGION || "bd",
+}: {
+  locale?: string
+}) => {
   const user = await retrieveCustomer().catch(() => null)
   const isLoggedIn = Boolean(user)
 

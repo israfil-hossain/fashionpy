@@ -23,6 +23,9 @@ module.exports = withMercur({
   featureFlags: {
     seller_registration: true,
   },
+  plugins: [
+    { resolve: '@mercurjs/magento2-connector-plugin', options: {} },
+  ],
   modules: [
     {
       resolve: '@medusajs/medusa/auth',
@@ -40,6 +43,17 @@ module.exports = withMercur({
               clientSecret: 'test-google-client-secret',
               callbackUrl: 'http://localhost:3000/api/auth/google/callback',
             },
+          },
+        ],
+      },
+    },
+    {
+      resolve: '@medusajs/medusa/payment',
+      options: {
+        providers: [
+          {
+            resolve: '@mercurjs/magento2-connector-plugin/providers/payment-external',
+            id: 'external',
           },
         ],
       },

@@ -26,5 +26,6 @@ import "./definitions/notifications"
 import "./definitions/workflow-executions"
 import "./definitions/reviews"
 import "./definitions/messages"
+import "./definitions/integrations"
 
 export * from "./registry"
