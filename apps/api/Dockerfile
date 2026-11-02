@@ -25,18 +25,18 @@ RUN bunx turbo run build --concurrency=2 \
 # to the sub-path the backend serves them under (/dashboard, /seller).
 # Each panel gets its own public origin so the browser never sees an "api." host:
 # admin → admin.fashionpy.com, vendor → partner.fashionpy.com (same-origin API).
-# Uses MERCUR_BACKEND_URL (not VITE_*) because the vite configs read it via
-# loadEnv fallback and it is the path proven to reach the panel builds.
+# Written as .env.production because loadEnv() reads env files from the app
+# dir; passing vars only via RUN env was not reaching the Vite config.
 ARG MERCUR_ADMIN_BACKEND_URL
 ARG MERCUR_VENDOR_BACKEND_URL
 ARG MERCUR_VENDOR_URL
-RUN MERCUR_BACKEND_URL="$MERCUR_ADMIN_BACKEND_URL" \
-  MERCUR_VENDOR_URL="$MERCUR_VENDOR_URL" \
-  VITE_BASE_PATH=/dashboard/ \
-  bun run --filter=@acme/admin build
-RUN MERCUR_BACKEND_URL="$MERCUR_VENDOR_BACKEND_URL" \
-  VITE_BASE_PATH=/seller/ \
-  bun run --filter=@acme/vendor build
+RUN printf 'MERCUR_BACKEND_URL=%s\nMERCUR_VENDOR_URL=%s\n' \
+    "$MERCUR_ADMIN_BACKEND_URL" "$MERCUR_VENDOR_URL" \
+    > apps/admin-test/.env.production \
+  && VITE_BASE_PATH=/dashboard/ bun run --filter=@acme/admin build
+RUN printf 'MERCUR_BACKEND_URL=%s\n' "$MERCUR_VENDOR_BACKEND_URL" \
+    > apps/vendor/.env.production \
+  && VITE_BASE_PATH=/seller/ bun run --filter=@acme/vendor build
 
 # Build the Medusa backend → apps/api/.medusa/server
 RUN cd apps/api && bunx medusa build
