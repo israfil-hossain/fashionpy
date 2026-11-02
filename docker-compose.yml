@@ -20,7 +20,10 @@ services:
       # Override env_file: reach Postgres/Redis over the Docker overlay
       # network. The host public IP hangs from inside the container (NAT
       # hairpin); swarm service names resolve on dokploy-network.
-      DATABASE_URL: postgresql://fashionpy:Fashionpy%40166091@fashionpy-fashionpy-tymttl:5432/fashionpy_db
+      # sslmode=disable is required: Medusa's getDefaultDriverOptions enables
+      # TLS for any non-localhost URL, and this Postgres has no SSL — the
+      # handshake hangs until the migration connection timeout.
+      DATABASE_URL: postgresql://fashionpy:Fashionpy%40166091@fashionpy-fashionpy-tymttl:5432/fashionpy_db?sslmode=disable
       REDIS_URL: redis://default:Fashionpy%40166091@fashionpy-fashionpyredis-mrxeuy:6379
     ports:
       - "${API_PORT:-9000}:9000"
