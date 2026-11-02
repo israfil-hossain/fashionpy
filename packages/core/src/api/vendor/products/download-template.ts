@@ -2,6 +2,7 @@ import {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework/http"
+import { MedusaError } from "@medusajs/framework/utils"
 
 import path from "path"
 import fs from "fs"
