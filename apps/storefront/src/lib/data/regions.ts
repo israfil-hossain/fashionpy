@@ -56,3 +56,10 @@ export const getRegion = async (countryCode: string) => {
     return null;
   }
 };
+
+export const listCountryCodes = async (): Promise<string[]> => {
+  const regions = await listRegions().catch(() => [] as HttpTypes.StoreRegion[]);
+  return regions.flatMap(region =>
+    (region.countries ?? []).map(country => country.iso_2).filter((code): code is string => !!code)
+  );
+};
