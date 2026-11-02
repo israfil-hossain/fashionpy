@@ -32,7 +32,7 @@ const googleAuthConfigured = !!(
 const dashboardAppDir = (envVar: string, fallback: string) =>
   process.env[envVar] || path.join(__dirname, fallback)
 
-module.exports = withMercur({
+export default withMercur({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     redisUrl: REDIS_URL,
