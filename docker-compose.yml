@@ -17,8 +17,19 @@ services:
       DASHBOARDS_SERVE: "true"
       ADMIN_UI_APP_DIR: /app/apps/admin-test
       VENDOR_UI_APP_DIR: /app/apps/vendor
+      # Override env_file: reach Postgres/Redis over the Docker overlay
+      # network. The host public IP hangs from inside the container (NAT
+      # hairpin); swarm service names resolve on dokploy-network.
+      DATABASE_URL: postgresql://fashionpy:Fashionpy%40166091@fashionpy-fashionpy-tymttl:5432/fashionpy_db
+      REDIS_URL: redis://default:Fashionpy%40166091@fashionpy-fashionpyredis-mrxeuy:6379
     ports:
       - "${API_PORT:-9000}:9000"
+    networks:
+      default:
+        aliases:
+          # So server-side fetches to https://api.fashionpy.com resolve
+          # inside the compose network even before public DNS exists.
+          - api.fashionpy.com
     healthcheck:
       test:
         [
@@ -53,7 +64,10 @@ services:
     environment:
       NODE_ENV: production
       # Re-read at runtime by server components / revalidation routes.
-      MEDUSA_BACKEND_URL: ${MERCUR_BACKEND_URL}
+      # Internal URL: SSR runs inside the compose network and must not depend
+      # on public DNS for api.fashionpy.com. Browser-facing URLs use
+      # NEXT_PUBLIC_* / S3_FILE_URL instead.
+      MEDUSA_BACKEND_URL: http://api:9000
       REVALIDATE_SECRET: ${REVALIDATE_SECRET:-}
     ports:
       - "${STOREFRONT_PORT:-3000}:3000"
