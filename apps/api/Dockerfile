@@ -25,14 +25,16 @@ RUN bunx turbo run build --concurrency=2 \
 # to the sub-path the backend serves them under (/dashboard, /seller).
 # Each panel gets its own public origin so the browser never sees an "api." host:
 # admin → admin.fashionpy.com, vendor → partner.fashionpy.com (same-origin API).
+# Uses MERCUR_BACKEND_URL (not VITE_*) because the vite configs read it via
+# loadEnv fallback and it is the path proven to reach the panel builds.
 ARG MERCUR_ADMIN_BACKEND_URL
 ARG MERCUR_VENDOR_BACKEND_URL
 ARG MERCUR_VENDOR_URL
-RUN VITE_MERCUR_BACKEND_URL="$MERCUR_ADMIN_BACKEND_URL" \
-  VITE_MERCUR_VENDOR_URL="$MERCUR_VENDOR_URL" \
+RUN MERCUR_BACKEND_URL="$MERCUR_ADMIN_BACKEND_URL" \
+  MERCUR_VENDOR_URL="$MERCUR_VENDOR_URL" \
   VITE_BASE_PATH=/dashboard/ \
   bun run --filter=@acme/admin build
-RUN VITE_MERCUR_BACKEND_URL="$MERCUR_VENDOR_BACKEND_URL" \
+RUN MERCUR_BACKEND_URL="$MERCUR_VENDOR_BACKEND_URL" \
   VITE_BASE_PATH=/seller/ \
   bun run --filter=@acme/vendor build
 
