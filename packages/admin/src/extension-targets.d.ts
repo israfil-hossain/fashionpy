@@ -272,7 +272,7 @@ declare module "@mercurjs/dashboard-sdk" {
       displayZones: "general" | "icon" | "media" | "organize" | "products"
       displayFieldIds: "description" | "handle" | "is_active" | "is_internal" | "name"
       listZones: "list" | "products"
-      listColumnIds: "categories" | "collection" | "handle" | "is_active" | "is_internal" | "name" | "product" | "status" | "variants"
+      listColumnIds: "categories" | "collection" | "handle" | "is_active" | "is_internal" | "name" | "price" | "product" | "status" | "variants"
     }
     "collection": {
       formZones: "edit"
@@ -281,7 +281,7 @@ declare module "@mercurjs/dashboard-sdk" {
       displayZones: "general" | "icon" | "media" | "products"
       displayFieldIds: "handle" | "title"
       listZones: "list" | "products"
-      listColumnIds: "categories" | "collection" | "handle" | "product" | "products" | "status" | "title" | "variants"
+      listColumnIds: "categories" | "collection" | "handle" | "price" | "product" | "products" | "status" | "title" | "variants"
     }
     "customer": {
       formZones: "edit"
@@ -344,7 +344,7 @@ declare module "@mercurjs/dashboard-sdk" {
       displayZones: "general" | "media" | "organize" | "request" | "variants"
       displayFieldIds: "description" | "discountable" | "handle" | "status" | "subtitle" | "title"
       listZones: "list" | "variants"
-      listColumnIds: "categories" | "collection" | "product" | "sku" | "status" | "title" | "variants"
+      listColumnIds: "categories" | "collection" | "price" | "product" | "sku" | "status" | "title" | "variants"
     }
     "promotion": {
       formZones: "create" | "edit"
