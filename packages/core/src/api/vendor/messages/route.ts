@@ -2,7 +2,6 @@ import {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework"
-import { MedusaError } from "@medusajs/framework/utils"
 
 import { MESSAGING_MODULE } from "../../../modules/messaging"
 import type MessagingModuleService from "../../../modules/messaging/service"

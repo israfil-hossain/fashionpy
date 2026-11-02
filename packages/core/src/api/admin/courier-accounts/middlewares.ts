@@ -1,7 +1,5 @@
 import { requirePermission } from "../../utils"
 import {
-  AuthenticatedMedusaRequest,
-  MedusaResponse,
   MiddlewareRoute,
 } from "@medusajs/framework/http"
 import {
