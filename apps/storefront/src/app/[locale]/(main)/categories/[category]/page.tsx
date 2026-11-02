@@ -99,7 +99,7 @@ async function Category({
 
   // Include the whole category subtree so a parent department page lists every
   // product in its sub-categories, not just products attached to the parent.
-  const categoryIds = collectCategorySubtreeIds(category)
+  const categoryIds = await collectCategorySubtreeIds(category)
 
   const breadcrumbsItems = [
     {

@@ -4,9 +4,12 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
       args:
-        # Baked into the admin/vendor panels at build time — must be the
-        # publicly reachable backend origin (scheme + host, no path).
-        MERCUR_BACKEND_URL: ${MERCUR_BACKEND_URL:?set the public backend origin}
+        # Baked into each panel at build time — the panel's own public origin
+        # (same-origin API calls; no exposed "api." host). Hardcoded so a
+        # Dokploy .env rewrite cannot break the build.
+        MERCUR_ADMIN_BACKEND_URL: https://admin.fashionpy.com
+        MERCUR_VENDOR_BACKEND_URL: https://partner.fashionpy.com
+        MERCUR_VENDOR_URL: https://partner.fashionpy.com/seller
     restart: unless-stopped
     env_file:
       - .env
@@ -17,6 +20,11 @@ services:
       DASHBOARDS_SERVE: "true"
       ADMIN_UI_APP_DIR: /app/apps/admin-test
       VENDOR_UI_APP_DIR: /app/apps/vendor
+      # Panel origins (override env_file's stale api.fashionpy.com values).
+      ADMIN_CORS: https://admin.fashionpy.com
+      VENDOR_CORS: https://partner.fashionpy.com
+      AUTH_CORS: https://fashionpy.com,https://www.fashionpy.com,https://admin.fashionpy.com,https://partner.fashionpy.com
+      MERCUR_VENDOR_URL: https://partner.fashionpy.com/seller
       # Override env_file: reach Postgres/Redis over the Docker overlay
       # network. The host public IP hangs from inside the container (NAT
       # hairpin); swarm service names resolve on dokploy-network.
@@ -27,12 +35,6 @@ services:
       REDIS_URL: redis://default:Fashionpy%40166091@fashionpy-fashionpyredis-mrxeuy:6379
     ports:
       - "${API_PORT:-9000}:9000"
-    networks:
-      default:
-        aliases:
-          # So server-side fetches to https://api.fashionpy.com resolve
-          # inside the compose network even before public DNS exists.
-          - api.fashionpy.com
     healthcheck:
       test:
         [
@@ -52,13 +54,16 @@ services:
       dockerfile: apps/storefront/Dockerfile
       args:
         # NEXT_PUBLIC_* are inlined into the bundle during the image build.
-        MEDUSA_BACKEND_URL: ${MERCUR_BACKEND_URL:?set the public backend origin}
+        # SSR reads MEDUSA_BACKEND_URL at runtime (set below to the internal
+        # URL); this build-time value is only a placeholder for next build.
+        MEDUSA_BACKEND_URL: ${MEDUSA_BACKEND_URL:-http://api:9000}
         NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:?set the publishable key}
         NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:?set the public storefront origin}
         NEXT_PUBLIC_DEFAULT_REGION: ${NEXT_PUBLIC_DEFAULT_REGION:-bd}
         NEXT_PUBLIC_SITE_NAME: ${NEXT_PUBLIC_SITE_NAME:-FashionPy}
         NEXT_PUBLIC_SITE_DESCRIPTION: ${NEXT_PUBLIC_SITE_DESCRIPTION:-}
-        NEXT_PUBLIC_VENDOR_URL: ${NEXT_PUBLIC_VENDOR_URL:-}
+        # Hardcoded: SellNowButton/Header link to the vendor panel in-browser.
+        NEXT_PUBLIC_VENDOR_URL: https://partner.fashionpy.com/seller
         NEXT_PUBLIC_STRIPE_KEY: ${NEXT_PUBLIC_STRIPE_KEY:-}
         REVALIDATE_SECRET: ${REVALIDATE_SECRET:-}
     restart: unless-stopped

@@ -28,7 +28,7 @@ export const TabbedProductGrid = async ({ locale }: { locale: string }) => {
 
   const categoryTabs = await Promise.all(
     parentCategories.map(async (category) => {
-      const categoryIds = collectCategorySubtreeIds(category)
+      const categoryIds = await collectCategorySubtreeIds(category)
       const { response } = await listProducts({
         countryCode: locale,
         category_id: categoryIds,

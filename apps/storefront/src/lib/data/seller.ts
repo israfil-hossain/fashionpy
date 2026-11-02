@@ -1,3 +1,5 @@
+'use server';
+
 import { SellerDTO } from '@mercurjs/types';
 
 import { sdk } from '../client';

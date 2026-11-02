@@ -23,10 +23,17 @@ RUN bunx turbo run build --concurrency=2 \
 
 # Panels bake their backend origin at build time and must emit assets relative
 # to the sub-path the backend serves them under (/dashboard, /seller).
-ARG MERCUR_BACKEND_URL
-RUN MERCUR_BACKEND_URL="$MERCUR_BACKEND_URL" VITE_BASE_PATH=/dashboard/ \
+# Each panel gets its own public origin so the browser never sees an "api." host:
+# admin → admin.fashionpy.com, vendor → partner.fashionpy.com (same-origin API).
+ARG MERCUR_ADMIN_BACKEND_URL
+ARG MERCUR_VENDOR_BACKEND_URL
+ARG MERCUR_VENDOR_URL
+RUN VITE_MERCUR_BACKEND_URL="$MERCUR_ADMIN_BACKEND_URL" \
+  VITE_MERCUR_VENDOR_URL="$MERCUR_VENDOR_URL" \
+  VITE_BASE_PATH=/dashboard/ \
   bun run --filter=@acme/admin build
-RUN MERCUR_BACKEND_URL="$MERCUR_BACKEND_URL" VITE_BASE_PATH=/seller/ \
+RUN VITE_MERCUR_BACKEND_URL="$MERCUR_VENDOR_BACKEND_URL" \
+  VITE_BASE_PATH=/seller/ \
   bun run --filter=@acme/vendor build
 
 # Build the Medusa backend → apps/api/.medusa/server

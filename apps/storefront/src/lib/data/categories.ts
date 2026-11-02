@@ -1,3 +1,5 @@
+'use server';
+
 import { HttpTypes } from '@medusajs/types';
 
 import { sdk } from '@/lib/client';
@@ -67,12 +69,12 @@ export const getCategoryByHandle = async (categoryHandle: string) => {
 // Medusa's `/store/products?category_id=` filters by the exact category only —
 // it does not walk into descendants. To make a parent category page list every
 // product beneath it, collect the whole subtree of ids and pass them all.
-export const collectCategorySubtreeIds = (
+export const collectCategorySubtreeIds = async (
   category: Pick<HttpTypes.StoreProductCategory, 'id' | 'category_children'>
-): string[] => {
+): Promise<string[]> => {
   const ids = [category.id];
   for (const child of category.category_children ?? []) {
-    ids.push(...collectCategorySubtreeIds(child));
+    ids.push(...(await collectCategorySubtreeIds(child)));
   }
   return ids;
 };
