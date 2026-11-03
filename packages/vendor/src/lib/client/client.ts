@@ -6,9 +6,12 @@ import { clearAuthToken, getAuthHeaders } from './auth-token'
 
 declare const __BACKEND_URL__: string
 
-// Baked by the dashboard-sdk Vite plugin via `define`. The virtual:mercur/config
-// module was not carrying backendUrl through to the bundle reliably.
-export const backendUrl = __BACKEND_URL__
+// Prod: panel and API share one origin (partner.fashionpy.com), so the browser
+// origin IS the backend — no baked URL needed. Dev: vite define supplies the
+// local API origin (localhost:9000).
+export const backendUrl = import.meta.env.PROD
+  ? window.location.origin
+  : __BACKEND_URL__
 
 export const sdk: InferClient<Routes> = createClient({
   baseUrl: backendUrl,
