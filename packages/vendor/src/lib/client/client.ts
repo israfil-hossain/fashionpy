@@ -1,11 +1,14 @@
 import { createClient, InferClient, vendorAuth } from '@mercurjs/client'
 import { Routes } from '@mercurjs/core/_generated'
-import config from 'virtual:mercur/config'
 
 import { assetUrl } from '../../utils/asset-url'
 import { clearAuthToken, getAuthHeaders } from './auth-token'
 
-export const backendUrl = config.backendUrl ?? 'http://localhost:9000'
+declare const __BACKEND_URL__: string
+
+// Baked by the dashboard-sdk Vite plugin via `define`. The virtual:mercur/config
+// module was not carrying backendUrl through to the bundle reliably.
+export const backendUrl = __BACKEND_URL__
 
 export const sdk: InferClient<Routes> = createClient({
   baseUrl: backendUrl,
