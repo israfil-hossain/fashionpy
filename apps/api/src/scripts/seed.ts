@@ -6,6 +6,7 @@ import {
 } from "@medusajs/framework/utils";
 import {
   AttributeType,
+  MercurModules,
   ProductStatus,
   type CreateOfferDTO,
   type CreateProductDTO,
@@ -20,6 +21,7 @@ import {
   createSellerAccountWorkflow,
   createSellerShippingOptionsWorkflow,
   createSellerStockLocationsWorkflow,
+  updateSellerAddressWorkflow,
 } from "@mercurjs/core/workflows";
 import {
   createWorkflow,
@@ -37,6 +39,7 @@ import {
   createTaxRegionsWorkflow,
   linkSalesChannelsToApiKeyWorkflow,
   linkSalesChannelsToStockLocationWorkflow,
+  updateRegionsWorkflow,
   updateStoresStep,
   updateStoresWorkflow,
 } from "@medusajs/medusa/core-flows";
@@ -77,8 +80,8 @@ export default async function seedDemoData({ container }: ExecArgs) {
   const storeModuleService = container.resolve(Modules.STORE);
 
   const countries = ["bd"];
-// Demo prices in seed-catalog are EUR-scale (e.g. 155); 1 EUR ~ 130 BDT.
-// Demo prices in seed-catalog are EUR-scale (e.g. 155); 1 EUR ~ 130 BDT.
+  // Demo prices in seed-catalog are EUR-scale (e.g. 155); 1 EUR ~ 130 BDT.
+  const BDT_SCALE = 130;
 
   logger.info("Seeding store data...");
   const [store] = await storeModuleService.listStores();
@@ -119,7 +122,10 @@ export default async function seedDemoData({ container }: ExecArgs) {
     },
   });
 
-await updateStoresWorkflow(container).run({
+  // Demo presentation: seed once, so admin edits (store name, announcement)
+  // survive re-seeding — the container runs this script on every boot.
+  if (!store.metadata?.announcement) {
+    await updateStoresWorkflow(container).run({
       input: {
         selector: { id: store.id },
         update: {
@@ -139,6 +145,7 @@ await updateStoresWorkflow(container).run({
         },
       },
     });
+  }
     logger.info("Seeding region data...");
   const regionModuleService = container.resolve(Modules.REGION);
 
@@ -155,6 +162,12 @@ await updateStoresWorkflow(container).run({
 
   const unassignedCountries = countries.filter(c => !assignedCountries.has(c));
 
+  const MARKETPLACE_REGION = {
+    name: "Bangladesh",
+    currency_code: "bdt",
+    payment_providers: ["pp_system_default", "pp_cod"],
+  };
+
   let region;
   if (unassignedCountries.length === 0) {
     region = existingRegions.find(r =>
@@ -167,10 +180,8 @@ await updateStoresWorkflow(container).run({
       input: {
         regions: [
           {
-            name: "Europe",
-            currency_code: "eur",
+            ...MARKETPLACE_REGION,
             countries: unassignedCountries,
-            payment_providers: ["pp_system_default", "pp_cod"],
           },
         ],
       },
@@ -181,15 +192,39 @@ await updateStoresWorkflow(container).run({
       input: {
         regions: [
           {
-            name: "Europe",
-            currency_code: "eur",
+            ...MARKETPLACE_REGION,
             countries,
-            payment_providers: ["pp_system_default", "pp_cod"],
           },
         ],
       },
     });
     region = regionResult[0];
+  }
+
+  // Older seeds created the bd region as Europe/eur; the storefront resolves
+  // the default region as bd, so normalize name and currency in place.
+  if (region && (region.currency_code !== "bdt" || region.name !== "Bangladesh")) {
+    await updateRegionsWorkflow(container).run({
+      input: {
+        selector: { id: region.id },
+        update: {
+          name: MARKETPLACE_REGION.name,
+          currency_code: MARKETPLACE_REGION.currency_code,
+        },
+      },
+    });
+    region = { ...region, name: MARKETPLACE_REGION.name, currency_code: MARKETPLACE_REGION.currency_code };
+    logger.info("Normalized existing region to Bangladesh/bdt.");
+  }
+
+  if (!store.default_region_id && region) {
+    await updateStoresWorkflow(container).run({
+      input: {
+        selector: { id: store.id },
+        update: { default_region_id: region.id },
+      },
+    });
+    store.default_region_id = region.id;
   }
   logger.info("Finished seeding regions.");
 
@@ -448,13 +483,139 @@ await updateStoresWorkflow(container).run({
 
   logger.info("Finished seeding global product attributes.");
 
+  // Production databases boot with sellers that signed up before this seed
+  // ever ran: the EUR-only store forced their currency, and the optional
+  // onboarding steps left address and warehouse unset. Fill those gaps; every
+  // check below is a no-op once the data exists, so it is safe to re-run.
+  logger.info("Seeding seller currency, address and location defaults...");
+
+  const sellerService = container.resolve(MercurModules.SELLER);
+
+  const [metadataStore] = await storeModuleService.listStores();
+  const storeMetadata = (metadataStore.metadata ?? {}) as Record<string, unknown>;
+  if (!storeMetadata.bdt_seller_currency_backfill) {
+    const { data: eurSellers } = await query.graph({
+      entity: "seller",
+      fields: ["id"],
+      filters: { currency_code: "eur" },
+    });
+    if (eurSellers.length) {
+      await sellerService.updateSellers(
+        eurSellers.map((s) => ({ id: s.id as string, currency_code: "bdt" }))
+      );
+      logger.info(`Moved ${eurSellers.length} seller(s) from eur to bdt.`);
+    }
+    await updateStoresWorkflow(container).run({
+      input: {
+        selector: { id: metadataStore.id },
+        update: {
+          metadata: {
+            ...storeMetadata,
+            bdt_seller_currency_backfill: new Date().toISOString(),
+          },
+        },
+      },
+    });
+  }
+
+  const { data: sellersForBackfill } = await query.graph({
+    entity: "seller",
+    fields: [
+      "id",
+      "name",
+      "address.id",
+      "address.address_1",
+      "address.city",
+      "address.country_code",
+      "address.postal_code",
+      "address.province",
+    ],
+    filters: { status: { $ne: "terminated" } },
+  });
+  const { data: locationLinks } = await query.graph({
+    entity: "stock_location_seller",
+    fields: ["seller_id"],
+  });
+  const sellersWithLocation = new Set(
+    locationLinks.map((l) => l.seller_id as string)
+  );
+
+  for (const seller of sellersForBackfill) {
+    const sellerId = seller.id as string;
+    const sellerName = seller.name as string;
+    try {
+      if (!seller.address) {
+        await updateSellerAddressWorkflow(container).run({
+          input: {
+            seller_id: sellerId,
+            data: { name: sellerName, country_code: "bd" },
+          },
+        });
+        logger.info(`Backfilled the store address for "${sellerName}".`);
+      }
+
+      if (sellersWithLocation.has(sellerId)) {
+        continue;
+      }
+
+      const sellerAddress = seller.address as {
+        address_1?: string | null;
+        city?: string | null;
+        country_code?: string | null;
+        postal_code?: string | null;
+        province?: string | null;
+      } | null;
+
+      const { result: locations } = await createSellerStockLocationsWorkflow(
+        container
+      ).run({
+        input: {
+          seller_id: sellerId,
+          locations: [
+            {
+              name: `${sellerName} Warehouse`,
+              address: {
+                address_1: sellerAddress?.address_1 || "Main Warehouse",
+                city: sellerAddress?.city || undefined,
+                country_code: sellerAddress?.country_code || "bd",
+                postal_code: sellerAddress?.postal_code || undefined,
+                province: sellerAddress?.province || undefined,
+              },
+            },
+          ],
+        },
+      });
+
+      await link.create({
+        [Modules.STOCK_LOCATION]: { stock_location_id: locations[0].id },
+        [Modules.FULFILLMENT]: { fulfillment_provider_id: "manual_manual" },
+      });
+      if (defaultSalesChannel[0]) {
+        await linkSalesChannelsToStockLocationWorkflow(container).run({
+          input: {
+            id: locations[0].id,
+            add: [defaultSalesChannel[0].id],
+          },
+        });
+      }
+      logger.info(`Provisioned a default warehouse for "${sellerName}".`);
+    } catch (error) {
+      logger.error(
+        `Failed to backfill seller defaults for "${sellerName}": ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+  logger.info("Finished seeding seller defaults.");
+
   const SELLER_PASSWORD = "supersecret";
   const SELLER_CONFIGS = [
-    { name: "Sole Society", email: "seller@mercur.dev", first_name: "Demo", last_name: "Seller", city: "Berlin", country_code: "DE", address_1: "Alexanderplatz 1" },
-    { name: "Kickz Corner", email: "kickz@mercur.dev", first_name: "Kai", last_name: "Corner", city: "Amsterdam", country_code: "NL", address_1: "Damrak 12" },
-    { name: "Trailhead Outfitters", email: "trailhead@mercur.dev", first_name: "Tara", last_name: "Head", city: "Munich", country_code: "DE", address_1: "Marienplatz 3" },
-    { name: "Urban Step", email: "urbanstep@mercur.dev", first_name: "Uma", last_name: "Step", city: "Paris", country_code: "FR", address_1: "Rue de Rivoli 45" },
-    { name: "Peak & Pace", email: "peakpace@mercur.dev", first_name: "Piotr", last_name: "Pace", city: "Madrid", country_code: "ES", address_1: "Gran Via 8" },
+    { name: "Sole Society", email: "seller@mercur.dev", first_name: "Demo", last_name: "Seller", city: "Dhaka", country_code: "bd", address_1: "Gulshan Avenue 1" },
+    { name: "Kickz Corner", email: "kickz@mercur.dev", first_name: "Kai", last_name: "Corner", city: "Chattogram", country_code: "bd", address_1: "Agrabad Road 12" },
+    { name: "Trailhead Outfitters", email: "trailhead@mercur.dev", first_name: "Tara", last_name: "Head", city: "Sylhet", country_code: "bd", address_1: "Zindabazar 3" },
+    { name: "Urban Step", email: "urbanstep@mercur.dev", first_name: "Uma", last_name: "Step", city: "Dhaka", country_code: "bd", address_1: "Banani Road 11" },
+    { name: "Peak & Pace", email: "peakpace@mercur.dev", first_name: "Piotr", last_name: "Pace", city: "Chattogram", country_code: "bd", address_1: "Khatunganj Road 5" },
   ];
   const PRIMARY_SELLER_EMAIL = SELLER_CONFIGS[0].email;
 
@@ -541,10 +702,16 @@ await updateStoresWorkflow(container).run({
         seller: {
           name: sellerConfig.name,
           email: sellerConfig.email,
-          currency_code: "eur",
+          currency_code: "bdt",
           description: `${sellerConfig.name} — a demo marketplace footwear seller.`,
           logo: sellerLogo(sellerConfig.name),
           banner: sellerBanner(sellerConfig.name),
+        },
+        address: {
+          name: sellerConfig.name,
+          address_1: sellerConfig.address_1,
+          city: sellerConfig.city,
+          country_code: sellerConfig.country_code,
         },
       },
     });
@@ -632,7 +799,7 @@ await updateStoresWorkflow(container).run({
         data: [
           {
             fulfillment_set_id: fulfillmentSetId,
-            name: `${sellerConfig.name} Europe`,
+            name: `${sellerConfig.name} Bangladesh`,
             geo_zones: countries.map((country_code) => ({
               country_code,
               type: "country" as const,
@@ -661,9 +828,8 @@ await updateStoresWorkflow(container).run({
               code: "standard",
             },
             prices: [
-              { currency_code: "usd", amount: 10 },
-              { currency_code: "eur", amount: 10 },
-              { region_id: region.id, amount: 10 },
+              { currency_code: "bdt", amount: 150 },
+              { region_id: region.id, amount: 150 },
             ],
             rules: [
               { attribute: "enabled_in_store", value: "true", operator: "eq" },
@@ -682,9 +848,8 @@ await updateStoresWorkflow(container).run({
               code: "express",
             },
             prices: [
-              { currency_code: "usd", amount: 10 },
-              { currency_code: "eur", amount: 10 },
-              { region_id: region.id, amount: 10 },
+              { currency_code: "bdt", amount: 150 },
+              { region_id: region.id, amount: 150 },
             ],
             rules: [
               { attribute: "enabled_in_store", value: "true", operator: "eq" },
@@ -855,6 +1020,7 @@ await updateStoresWorkflow(container).run({
           const jitter = 1 + (rand() * 0.3 - 0.15); // ±15%
           const eur = Math.max(1, Math.round(basePrice * jitter));
           const usd = Math.round(eur * 1.08);
+          const bdt = Math.max(1, Math.round(eur * BDT_SCALE));
           const sku = `OFFER-${seller.id.slice(-4)}-${variant.sku}-${o + 1}`;
           offers.push({
             seller_id: seller.id,
@@ -874,6 +1040,7 @@ await updateStoresWorkflow(container).run({
               },
             ],
            prices: [
+              { amount: bdt, currency_code: "bdt" },
               { amount: eur, currency_code: "eur" },
               { amount: usd, currency_code: "usd" },
             ],

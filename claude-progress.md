@@ -6,13 +6,43 @@ session detail aggressively. The per-spec source of truth lives in
 
 ## Current Verified State
 
-- **Repository root**: `/Users/viktorholik/Desktop/mercur`
-- **Current branch**: `feat/extendable-offer-tables-forms`
+- **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`
+- **Current branch**: `main` (changes uncommitted)
 - **Current version**: `2.2.0-rc.1`
 - **Standard startup path**: `bun install && bun run dev`
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
   `bun run test:integration:http -- <pattern>`
 - **Current blocker**: none
+
+## Session — Production BDT seeding + seller-signup 401s (2026-11-03), branch `main`
+
+Production never ran the seed (Dockerfile was `db:migrate && start` only), so Medusa's boot
+default left the store EUR-only with no region: new sellers were created with EUR, store
+address/warehouses were missing, and onboarding spammed 401s. Landed:
+`GET /vendor/sellers` returns an empty list (200) for a registered member without
+`actor_id` instead of 401 — that 401 made `@mercurjs/client` drop the auth token
+mid-onboarding, which caused the `/vendor/sellers/handle-availability` 401 cascade and
+blocked `POST /vendor/sellers`. `POST /vendor/sellers` now provisions a default warehouse
+(`<name> Warehouse`, signup address or `bd`, linked to the default sales channel +
+`manual_manual`; failure logs, never fails signup). Seed (`apps/api`): region
+"Bangladesh"/`bdt` (+ in-place normalization of a legacy Europe/eur bd region), sets
+`store.default_region_id` when unset, demo name/announcement only when absent (admin edits
+survive restarts), one-shot `eur→bdt` seller flip guarded by store metadata
+`bdt_seller_currency_backfill`, gap-fills missing seller addresses (`country bd`) and
+warehouses (per-seller try/catch), demo sellers fully BD/BDT (BD addresses, `bdt` currency,
+shipping ৳150 + region price, offers `bdt = eur×130` with eur/usd rows kept, service zone
+"… Bangladesh"). Dockerfile CMD: `db:migrate && bun run seed && bunx medusa start`
+(idempotent, runs every boot). Onboarding store step preselects the store default currency.
+Verified: `bun run lint` clean; `bun run build` 18/18;
+`test:integration:http -- seller/vendor/seller` 88/88 (new: pre-onboarding empty list,
+unauthenticated 401, default warehouse with and without signup address); seed run twice on
+the local dev DB (second run fully no-op — flip marker + gap-fills skipped; 6/6 sellers
+bdt, 6 addresses, 6 warehouses, `default_region_id` set, store currencies bdt/e/usd);
+fresh scratch DB `db:migrate + seed` exercised the full first-boot path (Bangladesh/bdt
+region, 5 BD demo sellers, 1026 offers incl. bdt prices, shipping ৳150, announcement set),
+scratch DB dropped. Owed: on next prod deploy confirm partner.fashionpy.com shows BDT +
+region bd; existing sellers' product/variant prices were NOT converted (currency label is
+now bdt — review the numbers manually).
 
 ## Session — Extendable offer tables, grid and form fields (2026-10-26), branch `feat/extendable-offer-tables-forms`
 

@@ -56,4 +56,7 @@ ENV ADMIN_UI_APP_DIR=/app/apps/admin-test \
 
 EXPOSE 9000
 WORKDIR /app/apps/api
-CMD ["sh", "-c", "bunx medusa db:migrate && bunx medusa start"]
+# The seed is idempotent (every section skips data that already exists) and
+# carries the marketplace defaults the app expects in production: bdt store
+# currencies, the bd region, and seller address/warehouse backfills.
+CMD ["sh", "-c", "bunx medusa db:migrate && bun run seed && bunx medusa start"]

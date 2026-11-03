@@ -76,7 +76,9 @@ export const StoreStep = ({
       name: "",
       email: "",
       phone: "",
-      currency_code: "",
+      currency_code:
+        store?.supported_currencies?.find((sc) => sc.is_default)
+          ?.currency_code ?? "",
       description: "",
       handle: "",
     },
