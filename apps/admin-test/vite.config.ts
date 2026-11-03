@@ -22,6 +22,12 @@ export default defineConfig(({ mode }) => {
 
 return {
     base,
+    // Set define at the USER config level — the plugin's config() return
+    // define was not reaching the output bundle.
+    define: {
+      __BACKEND_URL__: JSON.stringify(backendUrl || 'http://localhost:9000'),
+      __VENDOR_URL__: JSON.stringify(vendorUrl || ''),
+    },
     plugins: [
       react(),
       mercurDashboardPlugin({

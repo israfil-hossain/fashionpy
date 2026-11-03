@@ -19,6 +19,10 @@ export default defineConfig(({ mode }) => {
     // must emit assets relative to that sub-path or they 404 once the backend
     // strips the route prefix. Defaults to "/" for local dev.
     base: env.VITE_BASE_PATH || '/',
+    // User-level define — the plugin's config() define was not reaching output.
+    define: {
+      __BACKEND_URL__: JSON.stringify(backendUrl || 'http://localhost:9000'),
+    },
     resolve: {
       alias: {
         // `@mercurjs/vendor/extension-targets` is a build-time marker module the
