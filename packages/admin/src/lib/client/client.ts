@@ -6,12 +6,16 @@ import { clearAuthToken, getAuthHeaders } from './auth-token'
 
 declare const __BACKEND_URL__: string
 
-// Prod: panel and API share one origin (admin.fashionpy.com), so the browser
-// origin IS the backend — no baked URL needed. Dev: vite define supplies the
-// local API origin (localhost:9000).
-export const backendUrl = import.meta.env.PROD
-  ? window.location.origin
-  : __BACKEND_URL__
+// Prod panels are served same-origin with the API (admin.fashionpy.com), so
+// the browser origin IS the backend. The vite dev server runs on a different
+// port than the API, so localhost falls back to the __BACKEND_URL__ define.
+const isBrowser = typeof window !== "undefined"
+const hostname = isBrowser ? window.location.hostname : ""
+
+export const backendUrl =
+  isBrowser && hostname !== "localhost" && hostname !== "127.0.0.1"
+    ? window.location.origin
+    : __BACKEND_URL__
 
 export const sdk: InferClient<Routes> = createClient({
   baseUrl: backendUrl,
