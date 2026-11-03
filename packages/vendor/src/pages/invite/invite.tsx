@@ -121,11 +121,11 @@ export const Invite = () => {
           )}
         </AnimatePresence>
       </div>
-      <div className="hidden lg:flex flex-1 relative overflow-hidden">
+      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-white">
         <img
-          src={assetUrl("/onboarding/illustration.svg")}
+          src={assetUrl("/auth-banner.jpg")}
           alt=""
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
       </div>
     </div>

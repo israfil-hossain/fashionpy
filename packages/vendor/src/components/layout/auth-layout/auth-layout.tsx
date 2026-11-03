@@ -18,11 +18,11 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
           {children}
         </div>
       </div>
-      <div className="relative hidden flex-1 overflow-hidden lg:flex">
+      <div className="relative hidden flex-1 overflow-hidden bg-white lg:flex">
         <img
-          src={assetUrl("/onboarding/illustration.svg")}
+          src={assetUrl("/auth-banner.jpg")}
           alt=""
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
       </div>
     </div>

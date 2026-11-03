@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 
 import { IconAvatar } from "../icon-avatar";
 import config from "virtual:mercur/config";
+import { assetUrl } from "../../../utils/asset-url";
 
 export default function AvatarBox({ checked }: { checked?: boolean }) {
   const fallbackLetter = config.name?.charAt(0)?.toUpperCase() ?? "M";
@@ -49,7 +50,7 @@ export default function AvatarBox({ checked }: { checked?: boolean }) {
       )}
       {config.logo ? (
         <img
-          src={config.logo}
+          src={assetUrl(config.logo)}
           alt={config.name ?? ""}
           className="h-full w-full rounded-[10px] object-cover"
         />
