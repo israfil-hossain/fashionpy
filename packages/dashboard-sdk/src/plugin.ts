@@ -362,6 +362,13 @@ export function mercurDashboardPlugin(pluginConfig: MercurConfig): Vite.Plugin {
             const backendUrl = pluginConfig.backendUrl ?? "http://localhost:9000";
             const imageLimit = pluginConfig.imageLimit ?? 2 * 1024 * 1024;
 
+            // eslint-disable-next-line no-console
+            console.log("[mercur-plugin-debug]", {
+                pluginConfigBackendUrl: pluginConfig.backendUrl,
+                resolvedBackendUrl: backendUrl,
+                defineWillBe: JSON.stringify(backendUrl),
+            });
+
             config = {
                 ...pluginConfig,
                 backendUrl,
