@@ -2,11 +2,80 @@ import {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework"
-import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
+import type { MedusaContainer } from "@medusajs/framework/types"
+import {
+  ContainerRegistrationKeys,
+  MedusaError,
+  Modules,
+} from "@medusajs/framework/utils"
+import { linkSalesChannelsToStockLocationWorkflow } from "@medusajs/medusa/core-flows"
 import { HttpTypes, SellerStatus } from "@mercurjs/types"
 
 import { VendorCreateSellerAccountType } from "./validators"
 import { createSellerAccountWorkflow } from "../../../workflows/seller"
+import { createSellerStockLocationsWorkflow } from "../../../workflows/stock-location"
+
+// The stock-location address table requires address_1, which an onboarding
+// seller may legitimately have skipped.
+const DEFAULT_WAREHOUSE_ADDRESS_LINE = "Main Warehouse"
+
+const createDefaultStockLocation = async (
+  container: MedusaContainer,
+  seller: { id: string; name: string },
+  address: VendorCreateSellerAccountType["address"]
+) => {
+  const link = container.resolve(ContainerRegistrationKeys.LINK)
+  const query = container.resolve(ContainerRegistrationKeys.QUERY)
+
+  const {
+    data: [store],
+  } = await query.graph({
+    entity: "store",
+    fields: ["default_sales_channel_id"],
+  })
+
+  const { result: locations } = await createSellerStockLocationsWorkflow(
+    container
+  ).run({
+    input: {
+      seller_id: seller.id,
+      locations: [
+        {
+          name: `${seller.name} Warehouse`,
+          address: {
+            address_1:
+              address?.address_1 || DEFAULT_WAREHOUSE_ADDRESS_LINE,
+            city: address?.city || undefined,
+            country_code: address?.country_code || "bd",
+            postal_code: address?.postal_code || undefined,
+            province: address?.province || undefined,
+          },
+        },
+      ],
+    },
+  })
+
+  const location = locations[0]
+
+  const defaultSalesChannelId = (
+    store as { default_sales_channel_id?: string | null } | undefined
+  )?.default_sales_channel_id
+  if (defaultSalesChannelId) {
+    await linkSalesChannelsToStockLocationWorkflow(container).run({
+      input: {
+        id: location.id,
+        add: [defaultSalesChannelId],
+      },
+    })
+  }
+
+  await link.create({
+    [Modules.STOCK_LOCATION]: { stock_location_id: location.id },
+    [Modules.FULFILLMENT]: { fulfillment_provider_id: "manual_manual" },
+  })
+
+  return location
+}
 
 export const GET = async (
   req: AuthenticatedMedusaRequest,
@@ -15,11 +84,17 @@ export const GET = async (
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
   const memberId = req.auth_context?.actor_id
 
+  // The onboarding wizard calls this with a token issued at registration,
+  // before app_metadata carries a member id. 401 here would make the client
+  // drop the auth token mid-signup, so report "no sellers yet" instead.
   if (!memberId) {
-    throw new MedusaError(
-      MedusaError.Types.UNAUTHORIZED,
-      "You must be authenticated to access seller information."
-    )
+    res.json({
+      seller_members: [],
+      count: 0,
+      offset: req.queryConfig.pagination?.skip ?? 0,
+      limit: req.queryConfig.pagination?.take ?? 0,
+    })
+    return
   }
 
   const { data: sellerMembers, metadata } = await query.graph({
@@ -82,6 +157,18 @@ export const POST = async (
       additional_data,
     },
   })
+
+  try {
+    await createDefaultStockLocation(req.scope, seller, address)
+  } catch (error) {
+    req.scope
+      .resolve(ContainerRegistrationKeys.LOGGER)
+      .error(
+        `Failed to provision the default stock location for seller ${seller.id}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      )
+  }
 
   res.status(201).json({ seller })
 }

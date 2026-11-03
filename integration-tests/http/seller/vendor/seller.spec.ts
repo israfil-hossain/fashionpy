@@ -220,6 +220,82 @@ medusaIntegrationTestRunner({
           expect(response.data.seller).toBeDefined()
         })
 
+        it("should provision a default stock location for the new seller", async () => {
+          const { headers } = await createUnregisteredToken()
+
+          const response = await api.post(
+            `/vendor/sellers`,
+            {
+              name: "Warehouse Vendor",
+              email: "warehousevendor@test.com",
+              member_email: "warehousevendor-member@test.com",
+              currency_code: "bdt",
+            },
+            headers
+          )
+
+          expect(response.status).toEqual(201)
+
+          const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
+          const { data: links } = await query.graph({
+            entity: "stock_location_seller",
+            fields: ["stock_location_id"],
+            filters: { seller_id: response.data.seller.id },
+          })
+
+          expect(links).toHaveLength(1)
+
+          const { data: locations } = await query.graph({
+            entity: "stock_location",
+            fields: ["id", "name", "address.country_code", "address.address_1"],
+            filters: { id: links[0].stock_location_id },
+          })
+
+          expect(locations[0].name).toEqual("Warehouse Vendor Warehouse")
+          expect(locations[0].address.country_code).toEqual("bd")
+          expect(locations[0].address.address_1).toEqual("Main Warehouse")
+        })
+
+        it("should use the signup address for the default stock location", async () => {
+          const { headers } = await createUnregisteredToken()
+
+          const response = await api.post(
+            `/vendor/sellers`,
+            {
+              name: "Addressed Warehouse Vendor",
+              email: "addressedwarehouse@test.com",
+              member_email: "addressedwarehouse-member@test.com",
+              currency_code: "bdt",
+              address: {
+                address_1: "Gulshan Avenue 1",
+                city: "Dhaka",
+                country_code: "bd",
+              },
+            },
+            headers
+          )
+
+          expect(response.status).toEqual(201)
+
+          const query = appContainer.resolve(ContainerRegistrationKeys.QUERY)
+          const { data: links } = await query.graph({
+            entity: "stock_location_seller",
+            fields: ["stock_location_id"],
+            filters: { seller_id: response.data.seller.id },
+          })
+          expect(links).toHaveLength(1)
+
+          const { data: locations } = await query.graph({
+            entity: "stock_location",
+            fields: ["name", "address.country_code", "address.address_1", "address.city"],
+            filters: { id: links[0].stock_location_id },
+          })
+
+          expect(locations[0].address.address_1).toEqual("Gulshan Avenue 1")
+          expect(locations[0].address.country_code).toEqual("bd")
+          expect(locations[0].address.city).toEqual("Dhaka")
+        })
+
         it("should create a second store for an existing member", async () => {
           const response = await api.post(
             `/vendor/sellers`,
@@ -435,6 +511,23 @@ medusaIntegrationTestRunner({
           expect(sellerIdsA).not.toContain(sellerB.id)
           expect(sellerIdsB).toContain(sellerB.id)
           expect(sellerIdsB).not.toContain(sellerA.id)
+        })
+
+        it("should return an empty list for a registered member before onboarding", async () => {
+          const { headers } = await createUnregisteredToken()
+
+          const response = await api.get(`/vendor/sellers`, headers)
+
+          expect(response.status).toEqual(200)
+          expect(response.data.seller_members).toEqual([])
+          expect(response.data.count).toEqual(0)
+          expect(response.data.offset).toEqual(0)
+        })
+
+        it("should reject requests without a token", async () => {
+          const error = await api.get(`/vendor/sellers`).catch((e) => e)
+
+          expect(error.response.status).toEqual(401)
         })
       })
 
