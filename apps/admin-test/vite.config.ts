@@ -13,8 +13,6 @@ export default defineConfig(({ mode }) => {
     env.VITE_MERCUR_VENDOR_URL ||
     env.MERCUR_VENDOR_URL ||
     process.env.MERCUR_VENDOR_URL
-  // eslint-disable-next-line no-console
-  console.log('[vite-config-debug]', { mode, cwd: process.cwd(), backendUrl, vendorUrl, envKeys: Object.keys(env).filter(k => k.includes('MERCUR')) })
   // Production builds served by the backend under a sub-path (e.g. /dashboard)
   // must emit assets relative to that sub-path or they 404 once the backend
   // strips the route prefix. Defaults to "/" for local dev.
