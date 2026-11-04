@@ -44,6 +44,61 @@ scratch DB dropped. Owed: on next prod deploy confirm partner.fashionpy.com show
 region bd; existing sellers' product/variant prices were NOT converted (currency label is
 now bdt — review the numbers manually).
 
+## Session — Store offers on the Medusa index engine (2026-11-03), branch `feat/index-engine-store-offers`
+
+`GET /store/offers` goes through `api/utils/list-offers.ts` `listOffers()`: `query.index` with seller visibility
+(`seller.status = open`, scheduled-closure dates) and `product.status = published` as index filters, `query.graph`
+with the previous id-list prefetch when a filter isn't indexed (`q`) or the index is off. The index can only join
+across modules through link tables, so `offer_seller` and `offer_product` are now writable links (`isList` on the
+offer side) that `createOffersWorkflow` writes next to `offer.seller_id` / `product_id`; migration script
+`backfill-offer-links.ts` seeds rows for existing offers after `db:migrate` syncs the tables. `withMercur` passes
+`utils/index-schema.ts` (Medusa's product schema + `Offer` + `Seller`) as the index module's `schema` option. Shared
+index helpers moved to `api/utils/index-engine.ts`. The detail route checks seller/product visibility from the
+database (the index is async). Tests: store `store-offers.spec` 16/16 with `helpers/wait-for-indexed-offers.ts`;
+`http/offer` vendor + store specs pass; `order.spec` / `multi-seller-shipping-methods.spec` 500 locally with the
+nested-worktree awilix leak, not this change (CI is the source of truth).
+
+Pre-existing, unchanged: the seller visibility rule hides a seller whenever `closed_to` is in the future, even
+before `closed_from`, in both `resolveVisibleSellerIds` and `store/sellers/middlewares.ts`.
+
+## Session — Product lists on the Medusa index engine (2026-11-03), branch `feat/index-engine-product-lists`
+
+`GET /admin|/vendor|/store/products` now go through `api/utils/list-products.ts` `listProducts()`. It uses
+`query.index` when every filter key and the sort fall in the indexed whitelist, otherwise `query.graph` (categories,
+tags, variant options, withDeleted, admin `seller_id`). `count` = `estimate_count`, exact when the page isn't full;
+`estimate_count` is also returned. `withMercur` enables `index_engine` and injects `@medusajs/index` (direct dep
+of apps/api, integration-tests, templates/basic api). `product_seller` link is `filterable`. Vendor list no longer
+scans every seller's `product_seller` rows: visibility is own PRODUCT_ADD ids (draft/proposed), plus published with
+no `product_seller` row, plus published `id IN` this seller's own rows. It's passed per engine through
+`ProductVisibility`. The detail guard is one product query + the scoped authorship lookup. `has_offer` filters by
+`offer.product_id`. New index `IDX_product_change_created_by`. Tests: vendor `product.spec` 17/17 (new graph-fallback
+and count cases), admin `product` + `product-publish-and-sku` 26 pass (4 pre-existing skips), store `product/` 18/18,
+with deterministic index waits (`helpers/wait-for-indexed-products.ts`). Core tsc green; full `bun run build` not run.
+
+Open risk: sellers created after boot never land in the index (`seller.seller.created` doesn't reach it), so
+`sellers.id` filters are unusable. Production needs the Redis event bus for incremental index sync.
+
+Follow-up (same day, same PR #1740): Medusa Caching Module. `withMercur` sets the `caching` flag and registers
+`@medusajs/medusa/caching`, using the Redis provider when `projectConfig.redisUrl` is set (dep in apps/api +
+template) and in-memory otherwise (tests). `listProducts` takes `cache: { ttl, tags }`, always tags
+`Product:list:*` (automatic tags come from rows, so empty pages would otherwise never clear) and caps index-backed
+entries at 5s: one event clears the cache and starts the async index sync, so a request in between re-caches the
+pre-write state. Store 300s / admin 60s / vendor 60s + `LinkProductSeller:list:*` (link attach only clears that
+tag). Invalidation tests: store 22/22, vendor 19/19, admin 26 pass.
+
+Follow-ups (same day, same PR):
+- **Exact counts** on admin/vendor via an ids-only index call; it's what `query.index` sends internally, minus
+  pagination. Measured cost: 234ms vendor / 33ms admin at 20k.
+- **Routing:** plain lists go to `query.graph`; the index is only used for `product_seller` / sales channel / price
+  filters.
+- **Seller events:** the service overrides now use `@InjectManager` + `@EmitEvents` + `@MedusaContext`, so
+  `seller.seller.*` is emitted and sellers reach the index. Deployments need one full index sync.
+- **Previously no-op cache calls**, now live:
+  - CI caught them (store-offers, offer-region-prices). Each got the link/list tag that actually clears.
+  - Membership checks are no longer cached.
+- **Open:** tie ordering. `query.index` takes one sort key only, so there's no `id` tiebreak and paging can repeat or
+  skip products when `created_at` ties (on main too).
+
 ## Session — Extendable offer tables, grid and form fields (2026-10-26), branch `feat/extendable-offer-tables-forms`
 
 Panel extensions can now hide, replace, and add columns and fields beyond list pages, reusing the existing

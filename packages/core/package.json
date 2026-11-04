@@ -101,8 +101,8 @@
     "cheerio": "^1.0.0",
     "pkg-dir": "4",
     "resolve-cwd": "^3.0.0",
-    "sanitize-html": "2.17.7",
-    "zod": "4.6.5",
+    "sanitize-html": "2.18.1",
+    "zod": "4.6.6",
     "ioredis": "^5.4.1"
   }
 }

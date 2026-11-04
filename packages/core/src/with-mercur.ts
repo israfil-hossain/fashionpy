@@ -1,9 +1,14 @@
 import "./patches/register"
 
 import type { InputConfigWithArrayModules } from "@medusajs/framework/types"
-import { defineConfig } from '@medusajs/framework/utils'
+import {
+  defineConfig,
+  MODULE_PACKAGE_NAMES,
+  Modules,
+} from '@medusajs/framework/utils'
 import { assertPatchesDisabled } from "./patches"
 import { disableMedusaMiddlewares } from "./utils/disable-medusa-middlewares"
+import { mercurIndexSchema } from "./utils/index-schema"
 
 type HttpConfig = NonNullable<NonNullable<InputConfigWithArrayModules["projectConfig"]>["http"]>
 
@@ -48,9 +53,45 @@ export function withMercur(config: MercurInputConfig = {}): InputConfigWithArray
 
   const featureFlags = {
     ...config.featureFlags,
+    index_engine: config.featureFlags?.index_engine ?? true,
+    caching: config.featureFlags?.caching ?? true,
   }
 
-  const modules = [...(config.modules ?? [])]
+  const redisUrl = config.projectConfig?.redisUrl
+
+  // The in-memory provider is per process, so multi-instance setups need Redis
+  // for invalidation to reach every instance. Without clones it hands out the
+  // cached objects themselves, and routes decorate rows (offers, prices).
+  const cachingModule = {
+    resolve: MODULE_PACKAGE_NAMES[Modules.CACHING],
+    options: redisUrl
+      ? {
+          providers: [
+            {
+              resolve: "@medusajs/medusa/caching-redis",
+              id: "caching-redis",
+              is_default: true,
+              options: { redisUrl, prefix: "mercur:" },
+            },
+          ],
+        }
+      : { in_memory: { enable: true, useClones: true } },
+  }
+
+  // Defaults go first: defineConfig keys modules by service name and the last
+  // entry wins, so any registration (or `disable`) in the project overrides them.
+  const modules = [
+    ...(featureFlags.index_engine
+      ? [
+          {
+            resolve: MODULE_PACKAGE_NAMES[Modules.INDEX],
+            options: { schema: mercurIndexSchema },
+          },
+        ]
+      : []),
+    ...(featureFlags.caching ? [cachingModule] : []),
+    ...(config.modules ?? []),
+  ]
 
   const plugins = [
     ...(config.plugins ?? []),

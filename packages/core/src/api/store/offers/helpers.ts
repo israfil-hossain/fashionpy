@@ -247,7 +247,14 @@ export const wrapOffersWithInventoryQuantityForSalesChannel = async (
       fields: ["stock_locations.id"],
       filters: { id: channelToUse },
     },
-    { cache: { enable: true } }
+    {
+      cache: {
+        enable: true,
+        // Linking a location to the channel only clears this link tag.
+        tags: ["LinkSalesChannelStockLocation:list:*"],
+        computeAutomaticTags: true,
+      },
+    }
   )
 
   const channelLocationIds = new Set<string>(
@@ -339,7 +346,7 @@ export const splitComputedOfferFields = (fields: string[]) => {
 
 export const EFFECTIVE_LEADTIME_FIELD = "effective_leadtime_to_ship"
 
-type LeadtimeOffer = {
+export type LeadtimeOffer = {
   seller_id?: string | null
   leadtime_to_ship?: number | null
   effective_leadtime_to_ship?: number | null
