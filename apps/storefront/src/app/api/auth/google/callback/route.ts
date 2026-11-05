@@ -26,7 +26,7 @@ const redirectLogin = () =>
   NextResponse.redirect(new URL('/login', publicOrigin()));
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = request;
+  const { searchParams } = request.nextUrl;
   const code = searchParams.get('code');
   const state = searchParams.get('state');
 
