@@ -43,6 +43,7 @@ function applyBlogPostVisibilityFilters(
     and.push({
       $or: [
         { country_codes: null },
+        { country_codes: { $eq: [] } },
         { country_codes: { $contains: [countryCode] } },
       ],
     })
