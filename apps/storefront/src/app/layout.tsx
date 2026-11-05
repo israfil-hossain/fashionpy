@@ -95,6 +95,19 @@ export default function RootLayout({
           rel="dns-prefetch"
           href="https://api.mercurjs.com"
         />
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body className="relative bg-primary text-secondary antialiased">
         <GoogleAnalytics />

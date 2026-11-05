@@ -1,6 +1,5 @@
+import { AuthShowcase } from "@mercurjs/dashboard-shared";
 import { ReactNode } from "react";
-
-import { assetUrl } from "../../../utils/asset-url";
 
 type AuthLayoutProps = {
   children: ReactNode;
@@ -14,11 +13,11 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
           {children}
         </div>
       </div>
-      <div className="relative hidden flex-1 overflow-hidden bg-white lg:flex">
-        <img
-          src={assetUrl("/auth-banner.jpg")}
-          alt=""
-          className="h-full w-full object-contain"
+      <div className="relative hidden flex-1 overflow-hidden bg-[#FAF8FD] lg:flex">
+        <AuthShowcase
+          headline="Run every store from one rail."
+          subline="Orders, stock and payouts for all your fashion stores, together in one dashboard."
+          className="h-full w-full rounded-none border-0"
         />
       </div>
     </div>
