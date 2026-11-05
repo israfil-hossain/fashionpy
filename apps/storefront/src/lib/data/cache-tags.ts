@@ -20,6 +20,7 @@ export const CACHE_TAGS = {
   category: (handle: string) => `category-${handle}`,
   store: 'store',
   heroBanners: 'hero-banners',
+  blogPosts: 'blog-posts',
 } as const;
 
 /**

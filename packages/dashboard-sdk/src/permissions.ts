@@ -71,6 +71,7 @@ export interface PermissionKeys {
     "notifications": true
     "workflow_executions": true
     "reviews": true
+    "blog": true
 }
 
 export type PermissionKey = Extract<keyof PermissionKeys, string>

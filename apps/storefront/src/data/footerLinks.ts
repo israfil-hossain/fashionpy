@@ -22,6 +22,7 @@ const links = {
     { label: "Seller Policy", path: "/policies/seller-policy" },
     { label: "Product Policy", path: "/policies/product-policy" },
     { label: "Pickup & Delivery Policy", path: "/policies/pickup-delivery" },
+    { label: "Blog", path: "/blog" },
   ],
   followUs: [
     { label: "Facebook", path: "https://www.facebook.com", icon: "FacebookIcon" },

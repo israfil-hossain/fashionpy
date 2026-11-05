@@ -73,6 +73,7 @@ export const CORE_ROUTE_PERMISSIONS: CoreRoutePermission[] = [
   { pattern: /^\/admin\/workflows-executions(\/|$)/, key: "workflow_executions" },
   { pattern: /^\/admin\/(search|search-indexes|index|views|property-labels|plugins|layouts)(\/|$)/, key: "store" },
   { pattern: /^\/admin\/hero-banners(\/|$)/, key: "store" },
+  { pattern: /^\/admin\/blog-(posts|categories)(\/|$)/, key: "blog" },
 ]
 
 export function matchCoreRoutePermission(

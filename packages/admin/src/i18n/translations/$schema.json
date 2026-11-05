@@ -17470,6 +17470,146 @@
         },
         "leadtimeInvalid": {
           "type": "string"
+        },
+        "blog": {
+          "type": "object",
+          "properties": {
+            "domain": {
+              "type": "string"
+            },
+            "header": {
+              "type": "string"
+            },
+            "empty": {
+              "type": "string"
+            },
+            "create": {
+              "type": "string"
+            },
+            "save": {
+              "type": "string"
+            },
+            "edit": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "slug": {
+              "type": "string"
+            },
+            "excerpt": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "coverImage": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "statusAll": {
+              "type": "string"
+            },
+            "statusDraft": {
+              "type": "string"
+            },
+            "statusPublished": {
+              "type": "string"
+            },
+            "category": {
+              "type": "string"
+            },
+            "noCategory": {
+              "type": "string"
+            },
+            "categoriesHeader": {
+              "type": "string"
+            },
+            "categoriesEmpty": {
+              "type": "string"
+            },
+            "categoryName": {
+              "type": "string"
+            },
+            "categoryAdd": {
+              "type": "string"
+            },
+            "categoryCreated": {
+              "type": "string"
+            },
+            "categoryDeleted": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "string"
+            },
+            "author": {
+              "type": "string"
+            },
+            "publishedAt": {
+              "type": "string"
+            },
+            "unpublishedAt": {
+              "type": "string"
+            },
+            "countries": {
+              "type": "string"
+            },
+            "countriesAll": {
+              "type": "string"
+            },
+            "countriesHint": {
+              "type": "string"
+            },
+            "toast_create": {
+              "type": "string"
+            },
+            "toast_update": {
+              "type": "string"
+            },
+            "toast_delete": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "domain",
+            "header",
+            "empty",
+            "create",
+            "save",
+            "edit",
+            "title",
+            "slug",
+            "excerpt",
+            "content",
+            "coverImage",
+            "status",
+            "statusAll",
+            "statusDraft",
+            "statusPublished",
+            "category",
+            "noCategory",
+            "categoriesHeader",
+            "categoriesEmpty",
+            "categoryName",
+            "categoryAdd",
+            "categoryCreated",
+            "categoryDeleted",
+            "tags",
+            "author",
+            "publishedAt",
+            "unpublishedAt",
+            "countries",
+            "countriesAll",
+            "countriesHint",
+            "toast_create",
+            "toast_update",
+            "toast_delete"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -17477,7 +17617,8 @@
         "defaultLeadtimeHint",
         "leadtimeDays_one",
         "leadtimeDays_other",
-        "leadtimeInvalid"
+        "leadtimeInvalid",
+        "blog"
       ],
       "additionalProperties": false
     }

@@ -1057,6 +1057,36 @@ export function getRouteMap({
                 ],
               },
               {
+                path: "/blog",
+                errorElement: <ErrorBoundary />,
+                handle: {
+                  breadcrumb: () => t("marketplace.blog.domain"),
+                  permissions: "blog:view",
+                },
+                children: [
+                  {
+                    path: "",
+                    lazy: () => import("./pages/blog/blog-list/blog-list"),
+                  },
+                  {
+                    path: "create",
+                    handle: { permissions: "blog:edit" },
+                    lazy: () => import("./pages/blog/blog-create/blog-create"),
+                  },
+                  {
+                    path: "categories",
+                    handle: { permissions: "blog:view" },
+                    lazy: () =>
+                      import("./pages/blog/blog-categories/blog-categories"),
+                  },
+                  {
+                    path: ":id/edit",
+                    handle: { permissions: "blog:edit" },
+                    lazy: () => import("./pages/blog/blog-edit/blog-edit"),
+                  },
+                ],
+              },
+              {
                 path: "/messages",
                 errorElement: <ErrorBoundary />,
                 handle: {

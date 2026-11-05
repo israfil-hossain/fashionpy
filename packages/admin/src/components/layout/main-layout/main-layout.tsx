@@ -9,6 +9,7 @@ import {
   Images,
   MagnifyingGlass,
   MinusMini,
+  Newspaper,
   OpenRectArrowOut,
   ReceiptPercent,
   ShoppingCart,
@@ -524,6 +525,11 @@ const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
       icon: <Images />,
       label: t("marketplace.banners.domain"),
       to: "/banners",
+    },
+    {
+      icon: <Newspaper />,
+      label: t("marketplace.blog.domain"),
+      to: "/blog",
     },
     {
       icon: <ChatBubbleLeftRight />,

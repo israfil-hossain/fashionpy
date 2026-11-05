@@ -98,7 +98,13 @@ export async function signup(formData: FormData) {
     const customerCacheTag = await getCacheTag('customers');
     revalidateTag(customerCacheTag, "max");
 
-    await transferCart();
+    // Cart transfer is best-effort: the account already exists, so a
+    // failed transfer must not surface as a signup failure.
+    try {
+      await transferCart();
+    } catch {
+      // ignore
+    }
 
     return createdCustomer;
   } catch (error: any) {

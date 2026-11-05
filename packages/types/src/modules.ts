@@ -17,4 +17,5 @@ export enum MercurModules {
     COURIER = "courier",
     NOTIFICATION_FEED = "notification_feed",
     TELEMETRY = "telemetry",
+    BLOG = "blog",
 }

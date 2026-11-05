@@ -521,6 +521,12 @@ export type Routes = {
             };
         };
         analytics: typeof import("../src/api/admin/analytics/route");
+        blogCategories: typeof import("../src/api/admin/blog-categories/route") & {
+            $id: typeof import("../src/api/admin/blog-categories/[id]/route");
+        };
+        blogPosts: typeof import("../src/api/admin/blog-posts/route") & {
+            $id: typeof import("../src/api/admin/blog-posts/[id]/route");
+        };
         courierAccounts: typeof import("../src/api/admin/courier-accounts/route");
         fp: {
             analytics: typeof import("../src/api/admin/fp/analytics/route");
@@ -699,6 +705,12 @@ export type Routes = {
             $id: {
                 calculate: typeof import("@medusajs/medusa/api/store/shipping-options/[id]/calculate/route");
             };
+        };
+        blogCategories: typeof import("../src/api/store/blog-categories/route") & {
+            $id: typeof import("../src/api/store/blog-categories/[id]/route");
+        };
+        blogPosts: typeof import("../src/api/store/blog-posts/route") & {
+            $slug: typeof import("../src/api/store/blog-posts/[slug]/route");
         };
         fp: {
             bundles: typeof import("../src/api/store/fp/bundles/route") & {

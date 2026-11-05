@@ -28,6 +28,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[]> = {
   "/reviews": "reviews:view",
   "/payouts": "payouts:view",
   "/banners": "store:view",
+  "/blog": "blog:view",
 
   "/settings/regions": "regions:view",
   "/settings/marketplace": "store:view",

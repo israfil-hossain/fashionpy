@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { sdk } from '@/lib/client';
+import { getBaseUrl } from '@/lib/helpers/base-url';
 import { decodeJwt } from '@/lib/helpers/token';
 
 export const runtime = 'nodejs';
@@ -16,17 +17,22 @@ type CallbackResponse = {
   verification_required?: boolean;
 };
 
-const redirectLogin = (origin: string) =>
-  NextResponse.redirect(new URL('/login', origin));
+// request.nextUrl.origin is the container-internal address behind the
+// reverse proxy (e.g. https://0.0.0.0:3000 in production), so redirects
+// must use the public base URL from the environment.
+const publicOrigin = () => getBaseUrl();
+
+const redirectLogin = () =>
+  NextResponse.redirect(new URL('/login', publicOrigin()));
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request;
   const code = searchParams.get('code');
   const state = searchParams.get('state');
 
   // Google returns `error` (e.g. access_denied) when the user cancels.
   if (searchParams.get('error') || !code || !state) {
-    return redirectLogin(origin);
+    return redirectLogin();
   }
 
   let token: string;
@@ -39,12 +45,12 @@ export async function GET(request: NextRequest) {
     } as never) as unknown as Promise<CallbackResponse>);
 
     if (!result?.token || result.mfa_required || result.verification_required) {
-      return redirectLogin(origin);
+      return redirectLogin();
     }
 
     token = result.token;
   } catch {
-    return redirectLogin(origin);
+    return redirectLogin();
   }
 
   const decoded = decodeJwt(token) as {
@@ -104,7 +110,7 @@ export async function GET(request: NextRequest) {
     revalidateTag(`customers-${cacheId}`, 'max');
   }
 
-  const response = NextResponse.redirect(new URL('/user', origin));
+  const response = NextResponse.redirect(new URL('/user', publicOrigin()));
   response.cookies.set('_medusa_jwt', token, {
     maxAge: 60 * 60 * 24 * 7,
     httpOnly: true,

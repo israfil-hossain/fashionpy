@@ -167,7 +167,7 @@ export default async function Home({
           <BestDealsSection locale={locale} />
           <TabbedProductGrid locale={locale} />
           <BannerSection />
-          <BlogSection />
+          <BlogSection locale={locale} />
         </div>
       </div>
     </main>

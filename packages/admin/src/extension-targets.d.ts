@@ -190,6 +190,7 @@ declare module "@mercurjs/dashboard-sdk" {
   interface NavItemRegistry {
     "analytics": true
     "banners": true
+    "blog": true
     "campaigns": true
     "categories": true
     "collections": true
@@ -229,6 +230,7 @@ declare module "@mercurjs/dashboard-sdk" {
   interface NavParentRegistry {
     "analytics": true
     "banners": true
+    "blog": true
     "customers": true
     "inventory": true
     "messages": true

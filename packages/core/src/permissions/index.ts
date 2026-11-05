@@ -25,6 +25,7 @@ import "./definitions/translations"
 import "./definitions/notifications"
 import "./definitions/workflow-executions"
 import "./definitions/reviews"
+import "./definitions/blog"
 import "./definitions/messages"
 import "./definitions/integrations"
 
