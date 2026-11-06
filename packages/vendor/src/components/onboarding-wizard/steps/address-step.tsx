@@ -14,11 +14,10 @@ import { StepActions } from "./step-actions";
 import { StepProps } from "./types";
 
 const AddressStepSchema = z.object({
-  name: z.string().min(1, i18n.t("onboarding.wizard.validation.nameRequired")),
-  address_1: z.string().optional(),
+  address_1: z.string().min(1, i18n.t("onboarding.wizard.validation.addressRequired")),
   address_2: z.string().optional(),
   postal_code: z.string().optional(),
-  city: z.string().optional(),
+  city: z.string().min(1, i18n.t("onboarding.wizard.validation.cityRequired")),
   country_code: z.string().min(1, i18n.t("onboarding.wizard.validation.countryRequired")),
   province: z.string().optional(),
 });
@@ -43,7 +42,6 @@ export const AddressStep = ({
     zone: "onboarding",
     tab: "address",
     defaultValues: {
-      name: "",
       address_1: "",
       address_2: "",
       postal_code: "",
@@ -68,25 +66,10 @@ export const AddressStep = ({
           <div className="flex flex-col gap-y-4">
             <Form.Field
               control={form.control}
-              name="name"
-              render={({ field }) => (
-                <Form.Item>
-                  <Form.Label>
-                    {t("onboarding.wizard.address.name")}
-                  </Form.Label>
-                  <Form.Control>
-                    <Input {...field} />
-                  </Form.Control>
-                  <Form.ErrorMessage />
-                </Form.Item>
-              )}
-            />
-            <Form.Field
-              control={form.control}
               name="address_1"
               render={({ field }) => (
                 <Form.Item>
-                  <Form.Label optional>{t("onboarding.wizard.address.address")}</Form.Label>
+                  <Form.Label>{t("onboarding.wizard.address.address")}</Form.Label>
                   <Form.Control>
                     <Input autoComplete="address-line1" {...field} />
                   </Form.Control>
@@ -127,7 +110,7 @@ export const AddressStep = ({
               name="city"
               render={({ field }) => (
                 <Form.Item>
-                  <Form.Label optional>{t("onboarding.wizard.address.city")}</Form.Label>
+                  <Form.Label>{t("onboarding.wizard.address.city")}</Form.Label>
                   <Form.Control>
                     <Input autoComplete="address-level2" {...field} />
                   </Form.Control>

@@ -25,8 +25,7 @@ const HANDLE_CHECK_DEBOUNCE_MS = 400;
 
 const StoreStepSchema = z.object({
   name: z.string().min(1, i18n.t("onboarding.wizard.validation.nameRequired")),
-  email: z.string().email(i18n.t("onboarding.wizard.validation.emailInvalid")),
-  phone: z.string().optional(),
+  phone: z.string().min(1, i18n.t("onboarding.wizard.validation.phoneRequired")),
   currency_code: z.string().min(1, i18n.t("onboarding.wizard.validation.currencyRequired")),
   description: z.string().optional(),
   handle: z
@@ -74,7 +73,6 @@ export const StoreStep = ({
     data: store,
     defaultValues: {
       name: "",
-      email: "",
       phone: "",
       currency_code:
         store?.supported_currencies?.find((sc) => sc.is_default)
@@ -160,23 +158,10 @@ export const StoreStep = ({
             />
             <Form.Field
               control={form.control}
-              name="email"
-              render={({ field }) => (
-                <Form.Item>
-                  <Form.Label>{t("onboarding.wizard.store.email")}</Form.Label>
-                  <Form.Control>
-                    <Input type="email" autoComplete="email" {...field} />
-                  </Form.Control>
-                  <Form.ErrorMessage />
-                </Form.Item>
-              )}
-            />
-            <Form.Field
-              control={form.control}
               name="phone"
               render={({ field }) => (
                 <Form.Item>
-                  <Form.Label optional>{t("fields.phone")}</Form.Label>
+                  <Form.Label>{t("fields.phone")}</Form.Label>
                   <Form.Control>
                     <Input type="tel" autoComplete="tel" {...field} />
                   </Form.Control>

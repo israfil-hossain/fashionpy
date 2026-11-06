@@ -15594,9 +15594,6 @@
                 "name": {
                   "type": "string"
                 },
-                "email": {
-                  "type": "string"
-                },
                 "handle": {
                   "type": "string"
                 },
@@ -15634,7 +15631,6 @@
               "required": [
                 "title",
                 "name",
-                "email",
                 "handle",
                 "handleTooltip",
                 "handlePlaceholder",
@@ -15661,12 +15657,6 @@
                 "title": {
                   "type": "string"
                 },
-                "name": {
-                  "type": "string"
-                },
-                "namePlaceholder": {
-                  "type": "string"
-                },
                 "address": {
                   "type": "string"
                 },
@@ -15688,8 +15678,6 @@
               },
               "required": [
                 "title",
-                "name",
-                "namePlaceholder",
                 "address",
                 "address2",
                 "postalCode",
@@ -15772,6 +15760,15 @@
                 "emailInvalid": {
                   "type": "string"
                 },
+                "phoneRequired": {
+                  "type": "string"
+                },
+                "addressRequired": {
+                  "type": "string"
+                },
+                "cityRequired": {
+                  "type": "string"
+                },
                 "currencyRequired": {
                   "type": "string"
                 },
@@ -15785,6 +15782,9 @@
               "required": [
                 "nameRequired",
                 "emailInvalid",
+                "phoneRequired",
+                "addressRequired",
+                "cityRequired",
                 "currencyRequired",
                 "countryRequired",
                 "accountNameRequired"

@@ -9,15 +9,13 @@ import type { StepSubmission } from "../steps/types";
 
 type StoreData = {
   name: string;
-  email: string;
-  phone?: string;
+  phone: string;
   currency_code: string;
   description?: string;
   handle: string;
 };
 
 type AddressData = {
-  name?: string;
   address_1?: string;
   address_2?: string;
   postal_code?: string;
@@ -113,8 +111,8 @@ export const useOnboarding = (memberEmail: string, steps: OnboardingStep[]) => {
       const result = await createSeller({
         name: storeData.name,
         handle: storeData.handle,
-        email: storeData.email,
-        phone: storeData.phone || undefined,
+        email: memberEmail,
+        phone: storeData.phone,
         member_email: memberEmail,
         first_name: registerDraft.first_name,
         last_name: registerDraft.last_name,
@@ -125,7 +123,6 @@ export const useOnboarding = (memberEmail: string, steps: OnboardingStep[]) => {
           : {}),
         address: addressData
           ? {
-              name: addressData.name || undefined,
               address_1: addressData.address_1 || undefined,
               address_2: addressData.address_2 || undefined,
               postal_code: addressData.postal_code || undefined,

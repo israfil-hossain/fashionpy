@@ -126,7 +126,7 @@ export const GET = async (
     .whereNull("oi.deleted_at")
     .whereNull("oli.deleted_at")
     .select("oli.product_id", "oli.product_title")
-    .select(knex.raw("COALESCE(SUM(oli.quantity), 0) as units"))
+    .select(knex.raw("COALESCE(SUM(oi.quantity), 0) as units"))
     .select(knex.raw("COALESCE(SUM(oi.unit_price * oi.quantity), 0) as revenue"))
     .groupBy("oli.product_id", "oli.product_title")
     .orderByRaw("revenue desc")

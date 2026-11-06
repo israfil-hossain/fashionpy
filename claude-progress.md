@@ -14,6 +14,29 @@ session detail aggressively. The per-spec source of truth lives in
   `bun run test:integration:http -- <pattern>`
 - **Current blocker**: none
 
+## Session — Onboarding wizard fields + vendor analytics 500 (2026-11-06), branch `main`
+
+Vendor onboarding: Step 1 (store) lost its Email field (seller email now = member email,
+sent as `email` + `member_email` in `createSeller`), Name label → "Store name", Phone now
+required (zod min(1) + label not optional); field label "Handle" → "Store public Link"
+(en.json + $schema.json parity kept — tooltip/required/availability strings reworded).
+Step 2 (address) lost its Name field entirely (payload drops `address.name`; server schema
+always had it optional) and `address_1` + `city` are now required. New i18n keys
+`validation.{phoneRequired,addressRequired,cityRequired}` (en only; other locales fall back).
+Vendor analytics `GET /vendor/analytics` 500'd in production (verified live): three raw-SQL
+bugs in `packages/core/src/api/vendor/analytics/route.ts` — (1) `fp_promotion.seller_id`
+filter against a column that has never existed (model + sole migration define no such
+column; promotions are platform-scoped like admin analytics), (2) top-products summed
+`oli.quantity` but quantity lives on `order_item` (`oi.quantity`) — same bug also in
+`admin/analytics/route.ts`, fixed both, (3) payouts KPI filtered `payout.data->>'seller_id'`
+which is stripped before insert (always 0) — now joins the `payout_payout_seller_seller`
+link table, guarded by `hasTable` for both tables (payout module is optional). New test
+`integration-tests/http/analytics/vendor/analytics.spec.ts` (3 cases: payload shape, all
+period buckets, 401 unauth) — red on the original code, green after; it caught bug (2)
+itself. Verified: `bun run lint` clean; `bun run build` 18/18;
+`test:integration:http -- analytics` 3/3. Prod re-verify owed after deploy: analytics 200
++ onboarding wizard labels/required fields on partner.fashionpy.com. Changes uncommitted.
+
 ## Session — Production BDT seeding + seller-signup 401s (2026-11-03), branch `main`
 
 Production never ran the seed (Dockerfile was `db:migrate && start` only), so Medusa's boot

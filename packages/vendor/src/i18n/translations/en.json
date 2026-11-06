@@ -3934,16 +3934,15 @@
       },
       "store": {
         "title": "Enter your store details",
-        "name": "Name",
-        "email": "Email",
-        "handle": "Handle",
-        "handleTooltip": "The handle becomes the URL slug for your store. Use lowercase letters, numbers and hyphens.",
+        "name": "Store name",
+        "handle": "Store public Link",
+        "handleTooltip": "This becomes your store's public link slug. Use lowercase letters, numbers and hyphens.",
         "handlePlaceholder": "my-store",
-        "handleRequired": "Handle is required",
+        "handleRequired": "Store public link is required",
         "handleInvalid": "Use lowercase letters, numbers and single hyphens",
         "handleChecking": "Checking availability…",
-        "handleAvailable": "This handle is available",
-        "handleTaken": "This handle is already taken",
+        "handleAvailable": "This store link is available",
+        "handleTaken": "This store link is already taken",
         "currency": "Currency",
         "selectCurrency": "Select",
         "currencyHint": "Cannot be changed after store is created"
@@ -3952,8 +3951,6 @@
       "finish": "Finish",
       "address": {
         "title": "Enter your address",
-        "name": "Name",
-        "namePlaceholder": "Headquarters",
         "address": "Address",
         "address2": "Apartment, suite, etc.",
         "postalCode": "Postal Code",
@@ -3980,6 +3977,9 @@
       "validation": {
         "nameRequired": "Please enter a name",
         "emailInvalid": "Please enter an email",
+        "phoneRequired": "Please enter a phone number",
+        "addressRequired": "Please enter an address",
+        "cityRequired": "Please enter a city",
         "currencyRequired": "Please select a currency",
         "countryRequired": "Please select a country",
         "accountNameRequired": "Please enter an account name"

@@ -59,9 +59,9 @@ export const GET = async (
     .where("status", "active")
     .select(knex.raw("COUNT(*) as active_bundles"))
 
+  // Promotions are platform-scoped: fp_promotion has no seller_id column.
   const [promosRow] = await knex("fp_promotion")
     .whereNull("deleted_at")
-    .where("seller_id", sellerId)
     .where("status", "active")
     .select(knex.raw("COUNT(*) as active_promotions"))
 
@@ -110,7 +110,7 @@ export const GET = async (
     .whereNull("oi.deleted_at")
     .whereNull("oli.deleted_at")
     .select("oli.product_id", "oli.product_title")
-    .select(knex.raw("COALESCE(SUM(oli.quantity), 0) as units"))
+    .select(knex.raw("COALESCE(SUM(oi.quantity), 0) as units"))
     .select(knex.raw("COALESCE(SUM(oi.unit_price * oi.quantity), 0) as revenue"))
     .groupBy("oli.product_id", "oli.product_title")
     .orderByRaw("revenue desc")
@@ -130,13 +130,28 @@ export const GET = async (
     .orderBy("o.created_at", "desc")
     .limit(8)
 
-  // Payouts summary
-  const [payoutsRow] = await knex("payout")
-    .whereNull("deleted_at")
-    .whereRaw("data->>'seller_id' = ?", [sellerId])
-    .select(knex.raw("COALESCE(SUM(amount) FILTER (WHERE status = 'paid'), 0) as paid"))
-    .select(knex.raw("COALESCE(SUM(amount) FILTER (WHERE status IN ('pending','processing')), 0) as pending"))
-    .select(knex.raw("COUNT(*) FILTER (WHERE status IN ('pending','processing')) as pending_count"))
+  // Payouts summary. Seller scope lives in the payout↔seller link table —
+  // seller_id is stripped from the payout row before insert — and both tables
+  // are only present when the payout module is registered.
+  let payouts = { paid: 0, pending: 0, pending_count: 0 }
+  if (
+    (await knex.schema.hasTable("payout")) &&
+    (await knex.schema.hasTable("payout_payout_seller_seller"))
+  ) {
+    const [payoutsRow] = await knex("payout as p")
+      .join("payout_payout_seller_seller as ps", "ps.payout_id", "p.id")
+      .whereNull("p.deleted_at")
+      .whereNull("ps.deleted_at")
+      .where("ps.seller_id", sellerId)
+      .select(knex.raw("COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'paid'), 0) as paid"))
+      .select(knex.raw("COALESCE(SUM(p.amount) FILTER (WHERE p.status IN ('pending','processing')), 0) as pending"))
+      .select(knex.raw("COUNT(*) FILTER (WHERE p.status IN ('pending','processing')) as pending_count"))
+    payouts = {
+      paid: Number(payoutsRow?.paid ?? 0),
+      pending: Number(payoutsRow?.pending ?? 0),
+      pending_count: Number(payoutsRow?.pending_count ?? 0),
+    }
+  }
 
   res.json({
     period,
@@ -172,10 +187,6 @@ export const GET = async (
       email: r.email,
       created_at: r.created_at,
     })),
-    payouts: {
-      paid: Number(payoutsRow?.paid ?? 0),
-      pending: Number(payoutsRow?.pending ?? 0),
-      pending_count: Number(payoutsRow?.pending_count ?? 0),
-    },
+    payouts,
   })
 }
