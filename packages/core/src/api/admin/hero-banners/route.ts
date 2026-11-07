@@ -2,7 +2,7 @@ import {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { HttpTypes } from "@mercurjs/types"
 
 import { MercurModules } from "@mercurjs/types"
@@ -39,6 +39,12 @@ export const POST = async (
   const service = req.scope.resolve<HeroBannerModuleService>(MercurModules.HERO_BANNER)
 
   const created = await service.createHeroBanners(req.validatedBody)
+
+  const eventBus = req.scope.resolve(Modules.EVENT_BUS)
+  await eventBus.emit({
+    name: "hero_banner.created",
+    data: [{ id: (created as any).id }],
+  })
 
   const {
     data: [hero_banner],

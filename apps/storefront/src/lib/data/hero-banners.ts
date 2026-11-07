@@ -54,7 +54,8 @@ const listBannersForSlot = async (slot: HeroBannerSlot): Promise<HeroBannerSlide
         startsAt: b.starts_at ?? null,
         endsAt: b.ends_at ?? null,
       }))
-  } catch {
+  } catch (error) {
+    console.error("[hero-banners] failed to fetch banners:", error)
     return []
   }
 }

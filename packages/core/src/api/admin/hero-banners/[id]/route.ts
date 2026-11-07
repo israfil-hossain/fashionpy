@@ -5,6 +5,7 @@ import {
 import {
   ContainerRegistrationKeys,
   MedusaError,
+  Modules,
 } from "@medusajs/framework/utils"
 import { HttpTypes } from "@mercurjs/types"
 
@@ -61,6 +62,12 @@ export const POST = async (
 
   await service.updateHeroBanners({ id: req.params.id, ...req.validatedBody })
 
+  const eventBus = req.scope.resolve(Modules.EVENT_BUS)
+  await eventBus.emit({
+    name: "hero_banner.updated",
+    data: [{ id: req.params.id }],
+  })
+
   const {
     data: [hero_banner],
   } = await query.graph({
@@ -80,7 +87,13 @@ export const DELETE = async (
 
   await service.softDeleteHeroBanners([req.params.id])
 
-res.json({
+  const eventBus = req.scope.resolve(Modules.EVENT_BUS)
+  await eventBus.emit({
+    name: "hero_banner.deleted",
+    data: [{ id: req.params.id }],
+  })
+
+  res.json({
     id: req.params.id,
     object: "hero_banner",
     deleted: true,

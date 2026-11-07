@@ -14,6 +14,31 @@ session detail aggressively. The per-spec source of truth lives in
   `bun run test:integration:http -- <pattern>`
 - **Current blocker**: none
 
+## Session — Storefront hero banners not showing after admin add (2026-11-07), branch `main`
+
+Root cause (verified live: API `GET /store/hero-banners?slot=hero` returned the banner with
+200 while `fashionpy.com/bd` HTML had **no** `data-testid="hero-carousel"` at all): the
+storefront fetch is `cache:"force-cache"` + `revalidate:false` tagged `hero-banners`
+(`apps/storefront/src/lib/data/hero-banners.ts`), and `cache-tags.ts` documents the ONLY
+invalidation path as a backend-pushed `revalidateTag` — but no `hero_banner.*` event ever
+existed: admin create/update/delete routes called the service plainly, and
+`storefront-cache-revalidate.ts` never listened for banners (nor did `buildTags` emit the
+`hero-banners` tag). First homepage render cached the pre-banner list forever; the
+`catch { return [] }` also silently masked any fetch error. Fix: admin hero-banner routes
+now `eventBus.emit` `hero_banner.created|updated|deleted`; the subscriber listens for
+them and maps to tag `hero-banners` (→ POST `/api/revalidate` → `revalidateTag`); storefront
+catch now logs the error; store query-config returns `is_active/starts_at/ends_at` so the
+client-side visibility filters in `hero-banners.ts` (previously dead code — fields were
+never in the response) actually run. New spec
+`integration-tests/http/hero-banners/store/hero-banners.spec.ts` (5 cases: visible,
+inactive hidden, date-window hidden, slot filter, events emitted) — store read path had
+zero coverage before. Verified: `bun run lint` clean; `test:integration:http -- hero-banners`
+8/8 (3 pre-existing admin + 5 new). Builds: core + storefront green with the fix; the
+panel packages (`@mercurjs/admin|vendor`, `@acme/admin|vendor` + all deps) finished
+`turbo run build --concurrency=1` → 10/10 successful (full-repo build thrashed for hours
+because the machine was running several parallel agent sessions + a Next build in swap —
+@mercurjs/admin DTS alone took 82 min; sequential concurrency was the only way through).
+
 ## Session — Onboarding wizard fields + vendor analytics 500 (2026-11-06), branch `main`
 
 Vendor onboarding: Step 1 (store) lost its Email field (seller email now = member email,

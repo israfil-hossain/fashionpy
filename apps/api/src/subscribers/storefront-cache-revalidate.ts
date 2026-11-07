@@ -43,6 +43,11 @@ const buildTags = async (
     return [...tags]
   }
 
+  if (eventName.startsWith("hero_banner.")) {
+    tags.add("hero-banners")
+    return [...tags]
+  }
+
   const isOffer = eventName.startsWith("offer.")
   const productId = isOffer ? payload.product_id : payload.id
 
@@ -110,6 +115,9 @@ export const config: SubscriberConfig = {
     ProductWorkflowEvents.REJECTED,
     "product.updated",
     "store.updated",
+    "hero_banner.created",
+    "hero_banner.updated",
+    "hero_banner.deleted",
   ],
   context: {
     subscriberId: "storefront-cache-revalidate-handler",
