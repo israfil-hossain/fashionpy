@@ -45,7 +45,11 @@ export const ProductDetailsPage = async ({
   ])
 
   const storeOffers = offers as StoreOffer[]
-  const seller = getBuyboxWinner(rankOffers(storeOffers))?.seller
+  // Buybox winner, else any offer carrying a seller — the store/brand line
+  // must not silently disappear when no winner resolves.
+  const seller =
+    getBuyboxWinner(rankOffers(storeOffers))?.seller ??
+    storeOffers.find((offer) => offer.seller)?.seller
 
   let wishlist: Wishlist[] = []
   if (user) {
@@ -93,6 +97,28 @@ export const ProductDetailsPage = async ({
       : []),
     { label: prod.title, path: `/products/${prod.handle}` },
   ]
+
+  // "Similar items": same category first, latest products as fallback.
+  // The current product is always excluded.
+  let similarProducts: HttpTypes.StoreProduct[] = []
+  const collectSimilar = (products: HttpTypes.StoreProduct[]) =>
+    products.filter((p) => p.id !== prod.id).slice(0, 8)
+
+  if (category) {
+    const { response } = await listProducts({
+      countryCode: locale,
+      category_id: category.id,
+      queryParams: { limit: 9 },
+    })
+    similarProducts = collectSimilar(response.products)
+  }
+  if (!similarProducts.length) {
+    const { response } = await listProducts({
+      countryCode: locale,
+      queryParams: { limit: 9, order: "-created_at" },
+    })
+    similarProducts = collectSimilar(response.products)
+  }
 
   return (
     <>
@@ -146,6 +172,16 @@ export const ProductDetailsPage = async ({
       <div className="mt-8" data-testid="product-details-lower">
         <ProductDetails product={prod} offers={storeOffers} user={user} />
       </div>
+
+      {similarProducts.length > 0 && (
+        <div className="my-8" data-testid="similar-items-section">
+          <HomeProductSection
+            heading="Similar items"
+            products={similarProducts}
+            locale={locale}
+          />
+        </div>
+      )}
 
       {sellerProducts.length > 0 && (
         <div className="my-8">

@@ -1,6 +1,7 @@
 import { SellerDTO } from "@mercurjs/types"
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
+import { ProductShare } from "@/components/molecules/ProductShare/ProductShare"
 import { AdditionalAttributeProps } from "@/types/product"
 
 const HIGHLIGHT_LIMIT = 5
@@ -41,8 +42,11 @@ export const ProductInfoColumn = ({
           {product.title}
         </h1>
         {seller && (
-          <div className="mt-2 flex items-center gap-2" data-testid="product-seller-line">
-            <span className="label-md text-secondary">Sold by</span>
+          <div
+            className="mt-2 flex flex-wrap items-center gap-2"
+            data-testid="product-brand-line"
+          >
+            <span className="label-md text-secondary">Brand</span>
             <LocalizedClientLink
               href={`/sellers/${seller.handle}`}
               className="label-md text-primary underline-offset-2 hover:underline"
@@ -60,6 +64,9 @@ export const ProductInfoColumn = ({
             )}
           </div>
         )}
+        <div className="mt-3">
+          <ProductShare title={product.title} />
+        </div>
       </div>
 
       {highlights.length > 0 && (

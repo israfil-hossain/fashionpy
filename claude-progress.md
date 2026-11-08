@@ -7,12 +7,53 @@ session detail aggressively. The per-spec source of truth lives in
 ## Current Verified State
 
 - **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`
-- **Current branch**: `main` (changes uncommitted)
+- **Current branch**: `main`
 - **Current version**: `2.2.0-rc.1`
 - **Standard startup path**: `bun install && bun run dev`
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
   `bun run test:integration:http -- <pattern>`
 - **Current blocker**: none
+
+## Session — PDP polish: magnifier zoom, brand/store lines, share, similar items, recently-viewed fix (2026-11-08), branch `main`
+
+Six storefront items (user-confirmed choices: brand = seller store name, 260px/3.5x lens,
+similar = same category w/ latest fallback): `ProductImageMagnifier` lens 140→260, zoom
+2.2→3.5, lens position clamped in-bounds; `ProductInfoColumn` brand line under title
+(`Brand: <store link>`, replaces "Sold by") + new `ProductShare` row (copy-link w/ 2s
+"Copied!" state, WhatsApp `wa.me`, Messenger `share/?link=`; new `ShareIcon`/`CopyIcon`,
+WhatsApp/Messenger glyphs inline — note existing `WhatsAppIcon` path is a generic
+share-arrow, not the real logo); `ProductDetailsPage` seller fallback
+(`buybox winner ?? first offer with seller`) so the store line never silently disappears;
+`ProductBuyBox` shop-name row at top (reuses `SellerAvatar` + `/sellers/{handle}` link +
+Premium badge); `Similar items` via `listProducts({category_id})` exclude-current →
+latest `-created_at` fallback, rendered before "More from this shop"; `RecentlyViewedSection`
+card width bug — `ProductCard` root is `w-full` so 1–2 cards stretched across the row;
+now `w-[260px] sm:w-[280px] shrink-0` (matches `HomeProductsCarousel` default width).
+`HomeProductSection.products` widened to `StoreProduct[] | Product[]` (fixes 2 pre-existing
+tsc errors). New testids: `product-brand-line`, `product-share`, `share-{copy,whatsapp,
+messenger}`, `product-buybox-store(-link)`, `similar-items-section`.
+Verified: `bun run lint` clean; `bun run build --filter=@mercurjs/storefront` green;
+`apps/storefront` tsc has 0 errors in touched files (131 total vs 133 baseline).
+No storefront/PDP e2e harness exists (only admin-login/guides) and no API change —
+manual PDP spot-check (lens edges, share actions, similar fallback, rv cards at 1 item) owed.
+
+## Session — Dokploy OOM: fashionpy deploys cancelled (2026-11-08)
+
+Every Dokploy deploy since Nov 6 died mid-build → `cancelled` with empty errorMessage.
+Root cause (server `5.189.148.53` / `vmi3604607`, Dokploy v0.30.8): 11 GiB host running
+several stacks exhausted RAM+swap while `api` + `storefront` images built **in parallel**;
+kernel OOM killer killed buildkit/node and Dokploy itself (exit 137) → on restart
+`initCancelDeployments` marked the in-flight run `cancelled` ("Cancelled 1 deployments"
+in dokploy logs). Evidence: `dmesg` OOM kills at exactly each cancelled run's build window;
+GitHub CI green throughout (server-side only). Fixes applied:
+1. +8G `/swapfile2` (total 16G, fstab-persisted).
+2. `compose.command` override for the `fashionpy` compose (DB) — serializes builds:
+   `compose ... build api && docker compose ... build storefront && docker compose ... up -d --remove-orphans`
+   (Dokploy `createCommand` allows `&&` chains whose later parts start `docker compose `).
+Deploy re-triggered via `POST /api/deploy/compose/<refreshToken>` (webhook,
+`x-github-event: push` payload, branch `main`) → `done` in 24 min, 0 OOM kills,
+containers healthy, all domains 200/301/307. **Note**: `compose.command` lives in the
+Dokploy DB — a future compose edit/reset in the UI loses it; re-apply if builds die OOM again.
 
 ## Session — Etsy-style storefront PDP redesign + store review listing API (2026-11-07), branch `main`
 
@@ -42,8 +83,9 @@ needed `jest.setTimeout(180000)` (setup migrations exceed 50s when the machine i
 Verified: `bun run lint` clean; `bun run build --filter=@mercurjs/storefront --filter=@mercurjs/core`
 green (6/6); `test:integration:http -- review/store` 7/7. Testids contract preserved
 (`product-details-page`, `product-gallery*`, `product-title`, `product-price-*`,
-`product-add-to-cart-button`, `compare-offers-button`, `wishlist-button`, …). Uncommitted;
-manual PDP spot-check (desktop/mobile, guest vs logged-in wishlist/chat, delivery deep-link,
+`product-add-to-cart-button`, `compare-offers-button`, `wishlist-button`, …). Committed
+as `e646129f8` and deployed to prod (Dokploy `done`, 2026-11-08). Manual PDP spot-check
+(desktop/mobile, guest vs logged-in wishlist/chat, delivery deep-link,
 empty shop section) owed.
 
 ## Session — Storefront hero banners not showing after admin add (2026-11-07), branch `main`

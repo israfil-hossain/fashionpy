@@ -90,7 +90,7 @@ export const RecentlyViewedSection = ({
           <ProductCard
             key={product.id}
             product={product}
-            className="min-w-[200px]"
+            className="w-[260px] shrink-0 sm:w-[280px]"
           />
         ))}
       </div>

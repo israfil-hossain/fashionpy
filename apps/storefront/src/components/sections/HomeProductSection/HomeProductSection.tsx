@@ -1,5 +1,6 @@
 import { HomeProductsCarousel } from '@/components/organisms/HomeProductsCarousel/HomeProductsCarousel';
 import { Product } from "@/types/product"
+import { HttpTypes } from "@medusajs/types"
 
 export const HomeProductSection = async ({
   heading,
@@ -9,7 +10,7 @@ export const HomeProductSection = async ({
 }: {
   heading: string
   locale?: string
-  products?: Product[]
+  products?: HttpTypes.StoreProduct[] | Product[]
   home?: boolean
 }) => {
   return (

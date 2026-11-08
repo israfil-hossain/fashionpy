@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { Button } from '@/components/atoms/Button/Button';
 import { HttpTypes } from "@medusajs/types"
+import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
+import { SellerAvatar } from "@/components/cells/SellerAvatar/SellerAvatar"
 import { ProductVariants } from '@/components/molecules/ProductVariants/ProductVariants';
 import useGetAllSearchParams from "@/hooks/useGetAllSearchParams"
 import { getProductPrice } from "@/lib/helpers/get-product-price"
@@ -189,6 +191,26 @@ export const ProductBuyBox = ({
       className="border rounded-sm p-5 bg-primary sticky top-[112px]"
       data-testid="product-details-header"
     >
+      {seller && (
+        <div
+          className="mb-3 flex items-center gap-2 border-b pb-3"
+          data-testid="product-buybox-store"
+        >
+          <SellerAvatar photo={seller.logo || ""} size={28} alt={seller.name} />
+          <LocalizedClientLink
+            href={`/sellers/${seller.handle}`}
+            className="label-md text-primary underline-offset-2 hover:underline"
+            data-testid="product-buybox-store-link"
+          >
+            {seller.name}
+          </LocalizedClientLink>
+          {seller.is_premium && (
+            <span className="label-sm rounded-xs bg-action-secondary px-1.5 py-0.5 text-action-on-secondary">
+              Premium
+            </span>
+          )}
+        </div>
+      )}
       <div
         className="mb-3 label-md text-secondary"
         data-testid="product-offers-urgency"

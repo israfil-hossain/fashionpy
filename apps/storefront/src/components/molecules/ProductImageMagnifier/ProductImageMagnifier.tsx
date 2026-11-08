@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 
-const LENS_SIZE = 140
-const ZOOM = 2.2
+const LENS_SIZE = 260
+const ZOOM = 3.5
 
 /**
  * Desktop-only hover magnifier. Renders the child image normally and, on
@@ -47,9 +47,20 @@ export const ProductImageMagnifier = ({
       return
     }
 
+    // Clamp so the (large) lens never hangs outside the image bounds —
+    // the container is overflow-hidden, so anything past the edge is cut.
+    const lensLeft = Math.min(
+      Math.max(x - LENS_SIZE / 2, 0),
+      Math.max(rect.width - LENS_SIZE, 0)
+    )
+    const lensTop = Math.min(
+      Math.max(y - LENS_SIZE / 2, 0),
+      Math.max(rect.height - LENS_SIZE, 0)
+    )
+
     setLens({
-      left: x - LENS_SIZE / 2,
-      top: y - LENS_SIZE / 2,
+      left: lensLeft,
+      top: lensTop,
       bgX: (x / rect.width) * 100,
       bgY: (y / rect.height) * 100,
     })
