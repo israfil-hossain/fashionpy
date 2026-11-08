@@ -19,7 +19,6 @@ import { PriceFilter } from './PriceFilter/PriceFilter';
 import { ProductAdditionalAttributes } from './ProductAdditionalAttributes/ProductAdditionalAttributes';
 import { ProductCarousel } from './ProductCarousel/ProductCarousel';
 import { ProductDetailsFooter } from './ProductDetailsFooter/ProductDetailsFooter';
-import { ProductDetailsHeader } from './ProductDetailsHeader/ProductDetailsHeader';
 import { ProductDetailsMeasurements } from './ProductDetailsMeasurements/ProductDetailsMeasurements';
 import { ProductDetailsSeller } from './ProductDetailsSeller/ProductDetailsSeller';
 import { ProductDetailsSellerReviews } from './ProductDetailsSellerReviews/ProductDetailsSellerReviews';
@@ -44,7 +43,6 @@ export {
   SellerRatingFilter,
   ActiveFilterElement,
   MobileNavbar,
-  ProductDetailsHeader,
   ProductPageDetails,
   ProductDetailsMeasurements,
   ProductDetailsShipping,

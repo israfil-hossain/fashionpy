@@ -1,11 +1,9 @@
 import { ProductDetailsFooter } from '@/components/cells/ProductDetailsFooter/ProductDetailsFooter';
-import { ProductDetailsHeader } from '@/components/cells/ProductDetailsHeader/ProductDetailsHeader';
-import { ProductDetailsSeller } from '@/components/cells/ProductDetailsSeller/ProductDetailsSeller';
-import { ProductDetailsShipping } from '@/components/cells/ProductDetailsShipping/ProductDetailsShipping';
-import { ProductPageDetails } from '@/components/cells/ProductPageDetails/ProductPageDetails';
-import { ProductAdditionalAttributes } from '@/components/cells/ProductAdditionalAttributes/ProductAdditionalAttributes';
+import { MeetYourSeller } from '@/components/organisms/MeetYourSeller/MeetYourSeller';
+import { ProductTabContent } from '@/components/organisms/ProductTabContent/ProductTabContent';
+import { ProductReviews } from '@/components/organisms/ProductReviews/ProductReviews';
+import { listProductReviews } from '@/lib/data/reviews';
 
-import { Wishlist } from "@/types/wishlist"
 import {
   getBuyboxWinner,
   rankOffers,
@@ -14,41 +12,43 @@ import {
 import { AdditionalAttributeProps } from "@/types/product"
 import { HttpTypes } from "@medusajs/types"
 
-export const ProductDetails = ({
+/**
+ * Below-the-fold product content: About/Delivery tabs, reviews, meet your
+ * seller, tags/report footer. Buy box and info column live in
+ * ProductDetailsPage.
+ */
+export const ProductDetails = async ({
   product,
-  locale,
   offers = [],
   user,
-  wishlist,
 }: {
   product: HttpTypes.StoreProduct & {
     attribute_values?: AdditionalAttributeProps[]
   }
-  locale: string
+  locale?: string
   offers?: StoreOffer[]
-  user: HttpTypes.StoreCustomer | null
-  wishlist?: Wishlist[]
+  user?: HttpTypes.StoreCustomer | null
+  wishlist?: unknown
 }) => {
-  // Master products have no seller; the seller shown comes from the buybox
-  // winning offer.
-  const seller = getBuyboxWinner(rankOffers(offers))?.seller
+  const winner = getBuyboxWinner(rankOffers(offers))
+  const seller = winner?.seller
+  const leadtimeDays =
+    winner?.leadtime_to_ship ?? seller?.default_leadtime_to_ship ?? null
+
+  const reviews = await listProductReviews(product.id)
 
   return (
-    <div>
-      <ProductDetailsHeader
+    <div className="flex flex-col gap-8" data-testid="product-details-body">
+      <ProductTabContent
         product={product}
-        locale={locale}
-        user={user}
-        offers={offers}
         seller={seller}
-        wishlist={wishlist}
+        leadtimeDays={leadtimeDays}
       />
-      <ProductPageDetails details={product?.description || ""} />
-      <ProductAdditionalAttributes
-        attributes={product?.attribute_values || []}
-      />
-      <ProductDetailsShipping />
-      <ProductDetailsSeller seller={seller} />
+
+      <ProductReviews reviews={reviews} seller={seller} />
+
+      <MeetYourSeller seller={seller} user={user} product={product} />
+
       <ProductDetailsFooter
         tags={product?.tags || []}
         posted={product?.created_at}

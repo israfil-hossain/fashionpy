@@ -1,11 +1,14 @@
-import { ProductPageAccordion } from '@/components/molecules/ProductPageAccordion/ProductPageAccordion';
 import { isRichText, sanitizeRichText } from "@/lib/helpers/sanitize-rich-text"
 
+/**
+ * Full seller's description (About tab). Open content — no accordion.
+ */
 export const ProductPageDetails = ({ details }: { details: string }) => {
   if (!details) return null
 
   return (
-    <ProductPageAccordion heading="Product details" defaultOpen={false} data-testid="product-details-section">
+    <div data-testid="product-details-section">
+      <h3 className="label-lg uppercase mb-2">Seller's description</h3>
       {isRichText(details) ? (
         <div
           className="product-details"
@@ -22,6 +25,7 @@ export const ProductPageDetails = ({ details }: { details: string }) => {
           {details}
         </div>
       )}
-    </ProductPageAccordion>
+    </div>
   )
 }
+

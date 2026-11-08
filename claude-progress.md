@@ -14,6 +14,38 @@ session detail aggressively. The per-spec source of truth lives in
   `bun run test:integration:http -- <pattern>`
 - **Current blocker**: none
 
+## Session — Etsy-style storefront PDP redesign + store review listing API (2026-11-07), branch `main`
+
+Three-phase PDP redesign (user-approved defaults: existing `/store/reviews` API, seller-leadtime
++ honest cost/returns delivery copy, single wishlist heart on main image, no fake Etsy stats).
+Phase 1: new `ProductImageMagnifier` (hover-lens), `ProductInfoColumn`, `ProductBuyBox` (sticky
+`top-[112px]`, multi-seller buybox/CompareOffers preserved), `ProductDeliveryTeaser`,
+`ProductBackLink`; rewrote `ProductCarousel` (thumb rail + arrows + magnifier),
+`GalleryCarousel`/`ProductGallery`, `ProductDetailsPage` (breadcrumb + 3-col); `PRODUCT_LIST_FIELDS`
+now includes `*categories`. Phase 2: `ProductTabs` (About/Delivery, `#product-delivery-tab`
+deep-link), `ProductTabContent`, `ProductDeliveryPanel`, `MeetYourSeller`, `ProductReviews`
+(+ `lib/data/reviews.ts`), `ProductDetails` async orchestrator, `RecentlyViewedSection`
+(localStorage, MAX 8), seller-products re-fetched by handles for full variant prices
+("More from this shop" only when non-empty), open (non-accordion) details. Phase 3 backend:
+`StoreGetReviewsParams` gains `product_id`/`seller_id`/`reference`/`status`;
+`storeReviewsMiddlewares` — `applyStoreReviewFilters` runs BEFORE the three
+`maybeApplyLinkFilter`s (link filters delete `product_id`/`seller_id`/`customer_id`), public
+listing forces `status="published"` (client `status` ignored), personal list without
+`product_id`/`seller_id` requires auth (MedusaError `NOT_ALLOWED` → HTTP 400) and sets
+`customer_id = actor_id`. New spec `integration-tests/http/review/store/review.spec.ts`
+(7 cases: published-only public listing, hides pending/rejected, forces published vs client
+`status`, wrong-product excluded, unauth personal list → 400, personal list scoped to customer,
+pending alongside published). Debug notes: `ProductStatus` is a runtime enum from
+`@medusajs/framework/utils` (not `/types` — type-only there → `undefined`); authenticated store
+calls need publishable-key AND customer bearer merged into one headers object; hook timeout
+needed `jest.setTimeout(180000)` (setup migrations exceed 50s when the machine is loaded).
+Verified: `bun run lint` clean; `bun run build --filter=@mercurjs/storefront --filter=@mercurjs/core`
+green (6/6); `test:integration:http -- review/store` 7/7. Testids contract preserved
+(`product-details-page`, `product-gallery*`, `product-title`, `product-price-*`,
+`product-add-to-cart-button`, `compare-offers-button`, `wishlist-button`, …). Uncommitted;
+manual PDP spot-check (desktop/mobile, guest vs logged-in wishlist/chat, delivery deep-link,
+empty shop section) owed.
+
 ## Session — Storefront hero banners not showing after admin add (2026-11-07), branch `main`
 
 Root cause (verified live: API `GET /store/hero-banners?slot=hero` returned the banner with

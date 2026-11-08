@@ -8,10 +8,12 @@ export const ProductPageAccordion = ({
   children,
   heading,
   defaultOpen = true,
+  "data-testid": dataTestId,
 }: {
   children: React.ReactNode;
   heading: string;
   defaultOpen?: boolean;
+  "data-testid"?: string;
 }) => {
   const [open, setOpen] = useState(defaultOpen);
   const [contentHeight, setContentHeight] = useState(
@@ -31,7 +33,7 @@ export const ProductPageAccordion = ({
     setOpen(!open);
   };
   return (
-    <Card>
+    <Card data-testid={dataTestId}>
       <div
         onClick={openHandler}
         className='flex justify-between items-center cursor-pointer px-2 py-4'
