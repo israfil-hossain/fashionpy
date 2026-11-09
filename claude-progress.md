@@ -14,6 +14,34 @@ session detail aggressively. The per-spec source of truth lives in
   `bun run test:integration:http -- <pattern>`
 - **Current blocker**: none
 
+## Session — Injected `init` payloads broke the Dokploy build; host malware cleaned (2026-11-09), branch `main`
+
+Deploy died at the Dockerfile's `bunx turbo run build` — `@mercurjs/dashboard-sdk#build`
+and `@mercurjs/docs#build` threw `child.stdin.unref is not a function` from `packages/*/init`.
+Not a build bug: GitHub `main` tip was `96b15730e` (pushed today 07:02 +0100, same parent
+and message as our clean local `ef75eee20`) — a rewritten commit carrying an injection:
+35 `init` files (benign stub + obfuscated payload, marker `uFZJCBPkZizvf`), every
+`package.json` `build/dev/start` prefixed `node init &&` (+ CRLF churn), 30 KB payload
+appended to `apps/storefront/postcss.config.mjs` (`var z = '-7406'` matches the C2 config
+`_V: "A9-7406"`); it also dropped legit lines (`.env`/`.env.local` in `.gitignore`,
+TEST_TYPE block in 2 `jest.config.js`). Only ref containing the payload was `fashionpy/main`.
+Source was this Mac, not the server: `~/.node_modules/.npm-ws*` loader (C2
+`http://95.135.181.151:443`, XOR key + `eval`, dropper since Sep 12, respawned once) plus
+stage-2 `~/.config/gvfs-network/runtime.js` (1 MB) kept alive by launchd agent
+`com.apple.security.pboxd.agent` and a every-minute + `@reboot` crontab `cron-watch.sh`;
+both payload files self-updated mid-session. Fix: verified clean tree (`bun run lint`,
+turbo build 15/15 mirroring the Dockerfile step) → `git push --force-with-lease fashionpy main`
+→ `ef75eee20`; re-grepped all refs — clean. Cleanup: agents killed + respawn-watched,
+launchd agent booted out, dirs quarantined to `~/Malware-Quarantine-2026-11-09/` (mode 700).
+`com.ui.uid.standard-desktop` LaunchDaemon is Ubiquiti-signed (false alarm); sibling repos
+under `~/Proejcts` scanned clean.
+Owed / next: user purges the 2 dead crontab entries from their own Terminal (setuid
+`crontab` is EPERM under this tool's sandbox): `crontab -l | grep -v gvfs-network | crontab -`;
+rotate GitHub PATs/OAuth apps/SSH + high-value secrets (C2 had ~2 months access) and read
+GitHub's security log for the `96b15730e` push; redeploy Dokploy from the new tip;
+`dependabot/github_actions/actions/setup-node-7.1.0` vanished from GitHub mid-session —
+confirm whether that was expected.
+
 ## Session — PDP polish: magnifier zoom, brand/store lines, share, similar items, recently-viewed fix (2026-11-08), branch `main`
 
 Six storefront items (user-confirmed choices: brand = seller store name, 260px/3.5x lens,
