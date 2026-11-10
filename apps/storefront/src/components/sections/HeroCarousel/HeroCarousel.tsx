@@ -1,7 +1,7 @@
 "use client"
 
 import { Swiper, SwiperSlide } from "swiper/react"
-import { Autoplay, Pagination, Navigation, EffectFade } from "swiper/modules"
+import { Autoplay, Pagination, EffectFade } from "swiper/modules"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRightIcon } from "@/icons"
@@ -9,7 +9,6 @@ import { SearchBar } from "@/components/molecules/SearchBar/SearchBar"
 
 import "swiper/css"
 import "swiper/css/pagination"
-import "swiper/css/navigation"
 import "swiper/css/effect-fade"
 
 import type { HeroBannerSlide } from "@/lib/data/hero-banners"
@@ -22,14 +21,12 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
   return (
     <section className="w-full relative" data-testid="hero-carousel">
       <Swiper
-        modules={[Autoplay, Pagination, Navigation, EffectFade]}
+        modules={[Autoplay, Pagination, EffectFade]}
         effect="fade"
         spaceBetween={0}
         slidesPerView={1}
-        navigation
         pagination={{
           clickable: true,
-          dynamicBullets: true,
         }}
         autoplay={{
           delay: 5000,
@@ -111,27 +108,6 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
       </div>
 
       <style jsx global>{`
-        .hero-swiper .swiper-button-next,
-        .hero-swiper .swiper-button-prev {
-          color: white;
-          background: rgba(0, 0, 0, 0.5);
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          transition: all 0.3s;
-        }
-
-        .hero-swiper .swiper-button-next:hover,
-        .hero-swiper .swiper-button-prev:hover {
-          background: rgba(0, 0, 0, 0.8);
-          transform: scale(1.1);
-        }
-
-        .hero-swiper .swiper-button-next::after,
-        .hero-swiper .swiper-button-prev::after {
-          font-size: 20px;
-        }
-
         .hero-swiper .swiper-pagination-bullet {
           width: 12px;
           height: 12px;
@@ -145,13 +121,9 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
         }
 
         @media (max-width: 767px) {
-          .hero-swiper .swiper-pagination {
-            bottom: 64px;
-          }
-
-          .hero-swiper .swiper-button-next,
-          .hero-swiper .swiper-button-prev {
-            display: none;
+          .hero-swiper {
+            --swiper-pagination-top: auto;
+            --swiper-pagination-bottom: 64px;
           }
         }
 
