@@ -689,6 +689,13 @@ how it was verified, what's owed/next. Move durable facts into
 - **Verified.** build / lint / test result.
 - **Owed / next.** What the next session should pick up.
 
+### Session: 2026-11-10 -- SPEC-001 In-app notification feed (admin · vendor · customer)
+
+- **Goal.** Complete the in-app notification feed across all three surfaces (admin, vendor, storefront).
+- **Landed.** Verified all backend API routes (`packages/core/src/api/{admin,vendor,store}/notifications`), fan-out subscribers for seller lifecycle (`notifications-seller.ts`), order events (`notifications-order.ts`), and product events (`notifications-product.ts`). Frontend components: Admin bell in topbar widget zone (`packages/admin/src/components/common/notifications-bell`), Vendor bell in topbar (`packages/vendor/src/components/common/notifications-bell`), Storefront bell in header + `/user/notifications` list page (`apps/storefront/src/components/molecules/NotificationsButton`, `NotificationsList`, `notifications.ts`).
+- **Verified.** `bun run lint` (0 errors), `bun run build` (18/18 tasks pass), `bun run test:integration:http -- notifications` (20/20 tests pass across admin, vendor, store).
+- **Owed / next.** None — SPEC-001 is complete. Pick next highest-priority spec (SPEC-002 is already passing).
+
 ### Session: 2026-11-01 -- Storefront Google Analytics
 
 - **Goal.** Add Google Analytics 4 to the storefront with measurement ID G-XT4RJ6N1DW.
