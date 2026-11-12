@@ -1,7 +1,7 @@
-import Image from "next/image"
-
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
+import { CategoryImage } from "@/components/atoms/CategoryImage/CategoryImage"
 import { listCategories } from "@/lib/data/categories"
+import { getCategoryAvatarImage } from "@/lib/helpers/category-image"
 
 export const CategoryStrip = async () => {
   const { parentCategories } = await listCategories()
@@ -22,8 +22,8 @@ export const CategoryStrip = async () => {
               className="group flex w-[88px] shrink-0 flex-col items-center gap-2 text-center"
             >
               <div className="h-20 w-20 overflow-hidden rounded-full bg-gray-100">
-                <Image
-                  src={`/images/categories/${category.handle}.png`}
+                <CategoryImage
+                  src={getCategoryAvatarImage(category)}
                   alt={category.name}
                   width={80}
                   height={80}

@@ -1,5 +1,5 @@
 "use server"
-import { CACHE_TAGS, getGlobalCacheOptions } from "./cache-tags"
+import { CACHE_TAGS, getCatalogFetchOptions } from "./cache-tags"
 import { sdk } from "../client"
 
 export type HeroBannerSlot =
@@ -25,11 +25,10 @@ export type HeroBannerSlide = {
 
 const listBannersForSlot = async (slot: HeroBannerSlot): Promise<HeroBannerSlide[]> => {
   try {
-    const next = getGlobalCacheOptions(CACHE_TAGS.heroBanners)
     const res = (await (sdk.store.hero_banners.query({
       limit: 50,
       slot,
-      fetchOptions: { next, cache: "force-cache" },
+      fetchOptions: getCatalogFetchOptions(CACHE_TAGS.heroBanners),
     } as any))) as { hero_banners?: any[] }
     const now = Date.now()
     return (res?.hero_banners ?? [])
@@ -65,9 +64,9 @@ export const listHeroBanners = async (): Promise<HeroBannerSlide[]> => {
   return banners.slice(0, 5)
 }
 
-export const listShopCollectionBanners = async (): Promise<
-  HeroBannerSlide[]
-> => listBannersForSlot("shop_collection")
+// The `shop_collection` slot is still accepted by the admin banner page for
+// existing entries, but the storefront no longer renders it: that section is
+// driven by product collections (see ShopCollectionBanners).
 
 export const listCompanyBanner = async (
   slot: "company_1" | "company_2"

@@ -1,6 +1,7 @@
 import { Carousel } from "@/components/cells"
 import { listCategories } from "@/lib/data/categories"
 import { CategoryCard } from "@/components/organisms/CategoryCard/CategoryCard"
+import { getCategoryImage } from "@/lib/helpers/category-image"
 
 export const CategoryCarousel = async () => {
   const { categories } = await listCategories()
@@ -13,7 +14,7 @@ export const CategoryCarousel = async () => {
           <CategoryCard
             key={category.id}
             category={category}
-            imageSrc={`/images/categories/${category.handle}.png`}
+            imageSrc={getCategoryImage(category)}
           />
         ))}
       />

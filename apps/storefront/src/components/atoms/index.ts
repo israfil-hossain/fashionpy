@@ -3,6 +3,7 @@ import { IconButton } from "./IconButton/IconButton"
 import { Avatar } from "./Avatar/Avatar"
 import { Badge } from "./Badge/Badge"
 import { Breadcrumbs } from "./Breadcrumbs/Breadcrumbs"
+import { CategoryImage } from "./CategoryImage/CategoryImage"
 import { Checkbox } from "./Checkbox/Checkbox"
 import { Chip } from "./Chip/Chip"
 import { Divider } from "./Divider/Divider"
@@ -24,6 +25,7 @@ export {
   Avatar,
   Badge,
   Breadcrumbs,
+  CategoryImage,
   Checkbox,
   Chip,
   Divider,

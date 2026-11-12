@@ -1,5 +1,5 @@
 /**
- * Stable, catalog-wide cache tags. Unlike the per-visitor `getCacheOptions` in
+ * Catalog-wide cache tags. Unlike the per-visitor `getCacheOptions` in
  * `cookies.ts`, these are NOT suffixed with `_medusa_cache_id`, so the backend
  * can name and invalidate them from a webhook (see
  * `src/app/api/revalidate/route.ts`). Only use these for non-personalized
@@ -24,14 +24,32 @@ export const CACHE_TAGS = {
 } as const;
 
 /**
- * Heavy, indefinite caching: `revalidate: false` caches the fetch forever, with
- * the ONLY invalidation path being a `revalidateTag` on one of these tags
- * (pushed from the backend webhook). No time-based revalidation.
+ * Webhook-driven invalidation with a time-based fallback: the backend pushes a
+ * `revalidateTag` from its subscriber, and the 5-minute TTL catches anything
+ * the webhook missed (or was never sent for).
  */
+const FALLBACK_TTL_SECONDS = 300;
+
 export const getGlobalCacheOptions = (
   base: string,
   scoped?: string
-): { revalidate: false; tags: string[] } => {
+): { revalidate: number; tags: string[] } => {
   const tags = scoped ? [base, scoped] : [base];
-  return { revalidate: false, tags };
+  return { revalidate: FALLBACK_TTL_SECONDS, tags };
+};
+
+/**
+ * Fetch options for catalog data. Production serves the tagged, TTL-cached
+ * response; development never caches so admin edits show up on refresh.
+ */
+export const getCatalogFetchOptions = (
+  base: string,
+  scoped?: string
+):
+  | { cache: 'no-store' }
+  | { cache: 'force-cache'; next: { revalidate: number; tags: string[] } } => {
+  if (process.env.NODE_ENV === 'development') {
+    return { cache: 'no-store' };
+  }
+  return { cache: 'force-cache', next: getGlobalCacheOptions(base, scoped) };
 };

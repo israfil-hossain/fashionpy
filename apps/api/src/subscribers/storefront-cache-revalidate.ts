@@ -48,6 +48,18 @@ const buildTags = async (
     return [...tags]
   }
 
+  if (eventName.startsWith("product-category.")) {
+    tags.add("categories")
+    return [...tags]
+  }
+
+  if (eventName.startsWith("product-collection.")) {
+    tags.add("collections")
+    return [...tags]
+  }
+
+  tags.add("products")
+
   const isOffer = eventName.startsWith("offer.")
   const productId = isOffer ? payload.product_id : payload.id
 
@@ -118,6 +130,12 @@ export const config: SubscriberConfig = {
     "hero_banner.created",
     "hero_banner.updated",
     "hero_banner.deleted",
+    "product-category.created",
+    "product-category.updated",
+    "product-category.deleted",
+    "product-collection.created",
+    "product-collection.updated",
+    "product-collection.deleted",
   ],
   context: {
     subscriberId: "storefront-cache-revalidate-handler",

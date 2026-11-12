@@ -1,11 +1,12 @@
-import Image from "next/image"
 import { HttpTypes } from "@medusajs/types"
 
+import { CategoryImage } from "@/components/atoms/CategoryImage/CategoryImage"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
+import { getCategoryImage } from "@/lib/helpers/category-image"
 
 export const CategoryCard = ({
   category,
-  imageSrc = "/images/placeholder.svg",
+  imageSrc,
 }: {
   category: HttpTypes.StoreProductCategory
   imageSrc?: string
@@ -16,8 +17,8 @@ export const CategoryCard = ({
       data-testid="category-card"
     >
       <LocalizedClientLink href={`/categories/${category.handle}`}>
-        <Image
-          src={imageSrc}
+        <CategoryImage
+          src={imageSrc ?? getCategoryImage(category)}
           alt={category.name}
           width={200}
           height={200}

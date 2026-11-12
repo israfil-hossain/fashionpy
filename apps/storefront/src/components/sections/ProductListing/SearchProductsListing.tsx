@@ -7,6 +7,8 @@ import { ProductSearchSidebar } from "@/components/organisms/ProductSearchSideba
 import { ProductsPagination } from "@/components/organisms/ProductsPagination/ProductsPagination"
 import { PRODUCT_LIMIT } from "@/const"
 import { getSearchFacets, searchProducts } from "@/lib/data/products"
+import { findCategoryTrail } from "@/lib/helpers/category-tree"
+import { listCategoryTree } from "@/lib/data/categories"
 import type { SortOptions } from "@/types/product"
 
 import { ListingResultsBoundary } from "./ListingResultsBoundary"
@@ -25,12 +27,16 @@ export const SearchProductsListing = ({
   seller_id,
   locale,
   searchParams,
+  showCategories = false,
+  activeCategoryHandle,
 }: {
   category_id?: string | string[]
   collection_id?: string
   seller_id?: string
   locale: string
   searchParams: ListingSearchParams
+  showCategories?: boolean
+  activeCategoryHandle?: string
 }) => (
   <div className="min-h-[70vh]" data-testid="product-listing-container">
     <div className="hidden md:block min-h-6">
@@ -41,7 +47,10 @@ export const SearchProductsListing = ({
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <aside className="md:col-span-1">
         <Suspense fallback={null}>
-          <ListingFacets />
+          <ListingFacets
+            showCategories={showCategories}
+            activeCategoryHandle={activeCategoryHandle}
+          />
         </Suspense>
       </aside>
       <div className="md:col-span-3 w-full flex flex-col">
@@ -61,9 +70,32 @@ export const SearchProductsListing = ({
   </div>
 )
 
-const ListingFacets = async () => {
+const ListingFacets = async ({
+  showCategories = false,
+  activeCategoryHandle,
+}: {
+  showCategories?: boolean
+  activeCategoryHandle?: string
+}) => {
   const facets = await getSearchFacets()
-  return <ProductSearchSidebar facets={facets} />
+
+  if (!showCategories) {
+    return <ProductSearchSidebar facets={facets} />
+  }
+
+  const tree = await listCategoryTree()
+  const activeTrail = activeCategoryHandle
+    ? findCategoryTrail(activeCategoryHandle, tree)
+    : []
+
+  return (
+    <ProductSearchSidebar
+      facets={facets}
+      categoryTree={tree}
+      activeCategoryHandle={activeCategoryHandle}
+      activeCategoryTrail={activeTrail}
+    />
+  )
 }
 
 const ListingResults = async ({

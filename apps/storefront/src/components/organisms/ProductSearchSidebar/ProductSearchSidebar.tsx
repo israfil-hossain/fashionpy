@@ -14,13 +14,25 @@ import React, { useEffect, useState } from "react"
 import { ProductListingActiveFilters } from "../ProductListingActiveFilters/ProductListingActiveFilters"
 import useGetAllSearchParams from "@/hooks/useGetAllSearchParams"
 import type { SearchFacets } from "@/lib/data/products"
+import type { CategoryTreeNode } from "@/lib/helpers/category-tree"
+import { CategoryTree } from "@/components/organisms/CategoryTree/CategoryTree"
 
 export type FacetModel = {
   value: string
   count: number
 }
 
-export const ProductSearchSidebar = ({ facets }: { facets: SearchFacets }) => {
+export const ProductSearchSidebar = ({
+  facets,
+  categoryTree,
+  activeCategoryHandle,
+  activeCategoryTrail,
+}: {
+  facets: SearchFacets
+  categoryTree?: CategoryTreeNode[]
+  activeCategoryHandle?: string | null
+  activeCategoryTrail?: string[]
+}) => {
   const [isMobile, setIsMobile] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -47,6 +59,15 @@ export const ProductSearchSidebar = ({ facets }: { facets: SearchFacets }) => {
       />
     ))
 
+  const renderCategoryTree = () =>
+    categoryTree?.length ? (
+      <CategoryTree
+        tree={categoryTree}
+        activeHandle={activeCategoryHandle}
+        activeTrail={activeCategoryTrail}
+      />
+    ) : null
+
   return isMobile ? (
     <>
       <Button onClick={() => setIsOpen(true)} className="w-full uppercase mb-4">
@@ -56,6 +77,7 @@ export const ProductSearchSidebar = ({ facets }: { facets: SearchFacets }) => {
         <Modal heading="Filters" onClose={() => setIsOpen(false)}>
           <div className="px-4">
             <ProductListingActiveFilters />
+            {renderCategoryTree()}
             {/* TODO: price filter — native /store/products has no price filter
                 (calculated_price is computed post-query, schema is .strict()).
                 Needs a custom core endpoint or client-side filtering first. */}
@@ -71,6 +93,7 @@ export const ProductSearchSidebar = ({ facets }: { facets: SearchFacets }) => {
     </>
   ) : (
     <div>
+      {renderCategoryTree()}
       {/* TODO: price filter — native /store/products has no price filter
           (calculated_price is computed post-query, schema is .strict()).
           Needs a custom core endpoint or client-side filtering first. */}

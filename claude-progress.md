@@ -149,7 +149,7 @@ routes aren't cached) but the cached homepage/header predated it.
   deploy it self-heals within the 5-minute TTL, or POST
   `{"tags":["categories","collections"]}` to `/api/revalidate` immediately.
   Production `Gift` has no media/icon yet and will show the placeholder until one
-  is uploaded. Nothing committed — no commit was requested.
+  is uploaded. Committed to main later, once requested.
 
 ## Session — Injected `init` payloads broke the Dokploy build; host malware cleaned (2026-11-09), branch `main`
 

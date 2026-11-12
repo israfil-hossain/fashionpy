@@ -2,7 +2,7 @@
 
 import { sdk } from '../client';
 import { getAuthHeaders } from './cookies';
-import { CACHE_TAGS, getGlobalCacheOptions } from './cache-tags';
+import { CACHE_TAGS, getCatalogFetchOptions } from './cache-tags';
 import type { StoreReview } from '@/components/organisms/ProductReviews/ProductReviews';
 
 /**
@@ -22,8 +22,7 @@ export const listProductReviews = async (
       limit: 50,
       fetchOptions: {
         headers,
-        cache: 'force-cache',
-        next: getGlobalCacheOptions(CACHE_TAGS.products),
+        ...getCatalogFetchOptions(CACHE_TAGS.products),
       },
     } as never)) as { reviews?: StoreReview[] }
 

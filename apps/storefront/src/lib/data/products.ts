@@ -7,7 +7,7 @@ import { SortOptions } from '@/types/product';
 
 import { sdk } from '../client';
 import { getAuthHeaders } from './cookies';
-import { CACHE_TAGS, getGlobalCacheOptions } from './cache-tags';
+import { CACHE_TAGS, getCatalogFetchOptions } from './cache-tags';
 import { getRegion, retrieveRegion } from './regions';
 
 const PRODUCT_LIST_FIELDS =
@@ -109,8 +109,7 @@ export const listProducts = async ({
       ...queryParams,
       fetchOptions: {
         headers: { ...(await getAuthHeaders()) },
-        cache: 'force-cache',
-        next: getGlobalCacheOptions(CACHE_TAGS.products),
+        ...getCatalogFetchOptions(CACHE_TAGS.products),
       },
     } as never) as unknown as Promise<{ products: HttpTypes.StoreProduct[]; count: number }>
   )
@@ -179,11 +178,6 @@ export const listProductsWithSort = async ({
 };
 
 export const getProductByHandle = async (handle: string, regionId: string) => {
-  const next = getGlobalCacheOptions(
-    CACHE_TAGS.products,
-    CACHE_TAGS.product(handle)
-  );
-
   return (
     sdk.store.products.query({
       handle,
@@ -191,8 +185,7 @@ export const getProductByHandle = async (handle: string, regionId: string) => {
       fields: PRODUCT_LIST_FIELDS,
       fetchOptions: {
         headers: { ...(await getAuthHeaders()) },
-        cache: 'force-cache',
-        next,
+        ...getCatalogFetchOptions(CACHE_TAGS.products, CACHE_TAGS.product(handle)),
       },
     } as never) as unknown as Promise<{ products: HttpTypes.StoreProduct[] }>
   ).then(({ products }) => products[0]);

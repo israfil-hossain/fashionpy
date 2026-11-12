@@ -36,6 +36,14 @@ const buildTags = async (
   eventName: string,
   payload: EventPayload
 ): Promise<string[]> => {
+  if (eventName.startsWith("product-category.")) {
+    return ["categories"]
+  }
+
+  if (eventName.startsWith("product-collection.")) {
+    return ["collections"]
+  }
+
   const tags = new Set<string>(["products"])
 
   const isOffer = eventName.startsWith("offer.")
@@ -104,6 +112,12 @@ export const config: SubscriberConfig = {
     ProductWorkflowEvents.PUBLISHED,
     ProductWorkflowEvents.REJECTED,
     "product.updated",
+    "product-category.created",
+    "product-category.updated",
+    "product-category.deleted",
+    "product-collection.created",
+    "product-collection.updated",
+    "product-collection.deleted",
   ],
   context: {
     subscriberId: "storefront-cache-revalidate-handler",
