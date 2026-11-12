@@ -101,8 +101,8 @@ the homepage hard-coded it and no other page declared `og:image` at all (page-le
   product page keeps its own thumbnail when present.
 - **Owed / next.** Deploy, then re-scrape in the Facebook Sharing Debugger /
   WhatsApp preview — both cache previews per URL. Local `NEXT_PUBLIC_BASE_URL` is
-  `http://localhost:3000`, so production URLs come from that env var. Nothing
-  committed.
+  `http://localhost:3000`, so production URLs come from that env var.
+  Committed to main later, once requested.
 
 ## Session — Storefront catalog cache + category sidebar + collection-driven banner section (2026-11-10), branch `main`
 

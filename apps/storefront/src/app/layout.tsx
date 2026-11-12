@@ -7,22 +7,35 @@ import { Toaster } from '@medusajs/ui';
 import { GoogleAnalytics } from '@/components/atoms/GoogleAnalytics/GoogleAnalytics';
 import { HtmlLangSetter } from '@/components/atoms/HtmlLangSetter/HtmlLangSetter';
 import { retrieveCart } from '@/lib/data/cart';
+import { defaultOgImage } from '@/lib/helpers/og-image';
 
 import { Providers } from './providers';
 
+const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'FashionPy';
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: {
-    template: `%s | ${process.env.NEXT_PUBLIC_SITE_NAME || 'FashionPy'}`,
-    default: process.env.NEXT_PUBLIC_SITE_NAME || 'FashionPy'
+    template: `%s | ${siteName}`,
+    default: siteName
   },
   description:
     process.env.NEXT_PUBLIC_SITE_DESCRIPTION ||
     'FashionPy - Your marketplace for fashion, beauty and lifestyle products',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(baseUrl),
   alternates: {
     languages: {
-      'x-default': process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      'x-default': baseUrl
     }
+  },
+  openGraph: {
+    type: 'website',
+    siteName,
+    images: defaultOgImage(baseUrl)
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: defaultOgImage(baseUrl)
   },
   icons: {
     icon: [

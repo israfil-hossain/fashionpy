@@ -10,6 +10,7 @@ import {
   buildHreflangAlternates,
   getStorefrontLocales,
 } from "@/lib/helpers/hreflang"
+import { defaultOgImage } from "@/lib/helpers/og-image"
 
 export async function generateMetadata({
   params,
@@ -54,7 +55,7 @@ export async function generateMetadata({
       type: "article",
       images: post.cover_image_url
         ? [{ url: post.cover_image_url, width: 1200, height: 630, alt: title }]
-        : undefined,
+        : defaultOgImage(baseUrl),
     },
   }
 }

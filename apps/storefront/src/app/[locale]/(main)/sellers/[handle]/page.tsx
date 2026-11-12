@@ -11,6 +11,7 @@ import {
   buildHreflangAlternates,
   getStorefrontLocales,
 } from "@/lib/helpers/hreflang"
+import { defaultOgImage } from "@/lib/helpers/og-image"
 import type { Metadata } from "next"
 import { getBaseUrl } from "@/lib/helpers/base-url"
 
@@ -61,6 +62,7 @@ export async function generateMetadata({
       url: canonical,
       siteName: process.env.NEXT_PUBLIC_SITE_NAME || "Storefront",
       type: "website",
+      images: defaultOgImage(baseUrl),
     },
   }
 }

@@ -21,6 +21,7 @@ import {
   getStorefrontLocales,
   toHreflang,
 } from "@/lib/helpers/hreflang"
+import { defaultOgImage } from "@/lib/helpers/og-image"
 
 export async function generateMetadata({
   params,
@@ -48,7 +49,6 @@ export async function generateMetadata({
   const title = "Home"
   const description =
     "Welcome to FashionPy! Create a modern marketplace that you own and customize in every aspect with high-performance, fully customizable storefront."
-  const ogImage = "/B2C_Storefront_Open_Graph.png"
 
   return {
     title,
@@ -79,22 +79,13 @@ export async function generateMetadata({
         process.env.NEXT_PUBLIC_SITE_NAME ||
         "FashionPy - Marketplace Storefront",
       type: "website",
-      images: [
-        {
-          url: ogImage.startsWith("http") ? ogImage : `${baseUrl}${ogImage}`,
-          width: 1200,
-          height: 630,
-          alt:
-            process.env.NEXT_PUBLIC_SITE_NAME ||
-            "FashionPy - Marketplace Storefront",
-        },
-      ],
+      images: defaultOgImage(baseUrl),
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [ogImage.startsWith("http") ? ogImage : `${baseUrl}${ogImage}`],
+      images: defaultOgImage(baseUrl),
     },
   }
 }

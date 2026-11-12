@@ -9,6 +9,7 @@ import {
   buildHreflangAlternates,
   getStorefrontLocales,
 } from "@/lib/helpers/hreflang"
+import { defaultOgImage } from "@/lib/helpers/og-image"
 
 
 export async function generateMetadata({
@@ -52,6 +53,7 @@ export async function generateMetadata({
       url: canonical,
       siteName: process.env.NEXT_PUBLIC_SITE_NAME || "Storefront",
       type: "website",
+      images: defaultOgImage(baseUrl),
     },
   }
 }
@@ -119,7 +121,11 @@ export default async function AllCategories({
 
       <h1 className="heading-xl uppercase">All Products</h1>
 
-      <SearchProductsListing locale={locale} searchParams={searchParams} />
+      <SearchProductsListing
+        locale={locale}
+        searchParams={searchParams}
+        showCategories
+      />
     </main>
   )
 }

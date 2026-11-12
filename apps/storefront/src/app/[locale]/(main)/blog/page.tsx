@@ -9,6 +9,7 @@ import {
   buildHreflangAlternates,
   getStorefrontLocales,
 } from "@/lib/helpers/hreflang"
+import { defaultOgImage } from "@/lib/helpers/og-image"
 
 const BLOG_LIMIT = 12
 
@@ -50,6 +51,7 @@ export async function generateMetadata({
       url: canonical,
       siteName: process.env.NEXT_PUBLIC_SITE_NAME || "Storefront",
       type: "website",
+      images: defaultOgImage(baseUrl),
     },
   }
 }

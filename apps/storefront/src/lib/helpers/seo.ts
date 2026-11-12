@@ -7,6 +7,7 @@ import {
   buildHreflangAlternates,
   getStorefrontLocales,
 } from "@/lib/helpers/hreflang"
+import { defaultOgImage } from "@/lib/helpers/og-image"
 
 export const generateProductMetadata = async (
   product: HttpTypes.StoreProduct,
@@ -31,6 +32,17 @@ export const generateProductMetadata = async (
     locales,
   })
 
+  const images = product?.thumbnail
+    ? [
+        {
+          url: product.thumbnail,
+          width: 1200,
+          height: 630,
+          alt: product?.title,
+        },
+      ]
+    : defaultOgImage(baseUrl)
+
   return {
     title: product?.title,
     description: `${product?.title} - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
@@ -46,25 +58,14 @@ export const generateProductMetadata = async (
       description: `${product?.title} - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
       url: canonical,
       siteName: process.env.NEXT_PUBLIC_SITE_NAME,
-      images: [
-        {
-          url:
-            product?.thumbnail ||
-            `${protocol}://${host}/images/placeholder.svg`,
-          width: 1200,
-          height: 630,
-          alt: product?.title,
-        },
-      ],
+      images,
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: product?.title,
       description: `${product?.title} - ${process.env.NEXT_PUBLIC_SITE_NAME}`,
-      images: [
-        product?.thumbnail || `${protocol}://${host}/images/placeholder.svg`,
-      ],
+      images: images.map((image) => image.url),
     },
   }
 }
