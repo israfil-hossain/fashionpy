@@ -639,6 +639,7 @@
       "name": "@mercurjs/payout-local",
       "version": "2.4.0",
       "devDependencies": {
+        "@medusajs/cli": "2.22.0",
         "@medusajs/core-flows": "2.22.0",
         "@medusajs/framework": "2.22.0",
         "@medusajs/medusa": "2.22.0",

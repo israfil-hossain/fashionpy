@@ -37,6 +37,7 @@
     "@mercurjs/types": "*"
   },
   "devDependencies": {
+    "@medusajs/cli": "2.22.0",
     "@medusajs/core-flows": "2.22.0",
     "@medusajs/framework": "2.22.0",
     "@medusajs/medusa": "2.22.0",
