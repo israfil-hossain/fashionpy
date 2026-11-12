@@ -17,6 +17,12 @@ export const CourierShipment = model.define("courier_shipment", {
   cod_amount: model.bigNumber().nullable(),
   delivery_fee: model.bigNumber().nullable(),
   currency_code: model.text().nullable(),
+  /**
+   * When the courier remitted this shipment's COD cash to the platform.
+   * Seller payouts that include the shipment wait on this.
+   */
+  cod_remitted_at: model.dateTime().nullable(),
+  cod_remittance_reference: model.text().nullable(),
   /** Last raw payload received from the courier (create or webhook) */
   data: model.json().nullable(),
 })

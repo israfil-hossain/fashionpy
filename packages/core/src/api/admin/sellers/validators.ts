@@ -165,6 +165,14 @@ export const UpsertSellerPaymentDetails = z.object({
   bic: z.string().nullable().optional(),
   routing_number: z.string().nullable().optional(),
   account_number: z.string().nullable().optional(),
+  payout_method: z.enum(["bank", "bkash", "nagad"]).nullable().optional(),
+  wallet_number: z
+    .string()
+    .trim()
+    .max(20)
+    .regex(/^[0-9+]*$/, "Wallet number must be digits")
+    .nullable()
+    .optional(),
 })
 export const AdminUpsertSellerPaymentDetails = WithAdditionalData(UpsertSellerPaymentDetails)
 

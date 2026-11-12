@@ -56,6 +56,33 @@ export type PaymentState = {
   data: Record<string, unknown>
 } | null
 
+export type CodShipmentRow = {
+  id: string
+  order_id: string
+  cod_amount: BigNumberInput | null
+  status: string
+  cod_remitted_at?: Date | string | null
+}
+
+/** Shipments whose COD cash the courier keeps: nothing was collected. */
+const COD_REMITTANCE_EXEMPT_STATUSES = ["canceled", "failed", "returned"]
+
+/**
+ * COD shipments of an order whose cash the courier has collected but not yet
+ * remitted to the platform. The payout waits so the platform never pays a
+ * seller from money it has not received.
+ */
+export function codShipmentsAwaitingRemittance(
+  shipments: CodShipmentRow[] | null | undefined
+): CodShipmentRow[] {
+  return (shipments ?? []).filter(
+    (shipment) =>
+      MathBN.gt(shipment.cod_amount ?? 0, 0) &&
+      !COD_REMITTANCE_EXEMPT_STATUSES.includes(shipment.status) &&
+      !shipment.cod_remitted_at
+  )
+}
+
 export type PayoutDecision = {
   status: PayoutStatus
   status_reason: PayoutStatusReasonCode | null
@@ -195,7 +222,7 @@ export function commissionLineFilters(orders: Pick<PayoutOrder, "items" | "shipp
 }
 
 /**
- * Order of checks: canceled, account, fulfilled, paid, amount.
+ * Order of checks: canceled, account, fulfilled, paid, COD remittance, amount.
  */
 export function decideOrderPayout(input: {
   order: {
@@ -210,6 +237,7 @@ export function decideOrderPayout(input: {
   payment: PaymentState
   commission_total: BigNumberInput
   required_fulfillment_status: FulfillmentStatus
+  cod_shipments?: CodShipmentRow[]
 }): PayoutDecision {
   const { order, account, payment } = input
 
@@ -239,6 +267,15 @@ export function decideOrderPayout(input: {
   }
   if (!payment.captured) {
     return hold(PayoutStatusReason.PAYMENT_NOT_READY, `Payment ${payment.id} is not ready yet, status is authorized`)
+  }
+
+  const awaitingRemittance = codShipmentsAwaitingRemittance(input.cod_shipments)
+  if (awaitingRemittance.length) {
+    return hold(
+      PayoutStatusReason.COD_NOT_REMITTED,
+      `COD cash for shipment${awaitingRemittance.length > 1 ? "s" : ""} ` +
+        `${awaitingRemittance.map((shipment) => shipment.id).join(", ")} has not been remitted yet`
+    )
   }
 
   return ready(MathBN.sub(order.total, input.commission_total), order.currency_code)
@@ -308,9 +345,16 @@ export function planOrderPayouts(input: {
   commission_lines: CommissionLine[]
   payouts: PayoutDTO[]
   required_fulfillment_status: FulfillmentStatus
+  cod_shipments?: CodShipmentRow[]
 }): OrderPayoutsPlan {
   const commissions = commissionTotalsOf(input.orders, input.commission_lines)
   const existing = new Map(input.payouts.map((payout) => [payout.order_id as string, payout]))
+  const shipmentsByOrder = new Map<string, CodShipmentRow[]>()
+  for (const shipment of input.cod_shipments ?? []) {
+    const rows = shipmentsByOrder.get(shipment.order_id) ?? []
+    rows.push(shipment)
+    shipmentsByOrder.set(shipment.order_id, rows)
+  }
   const plan: OrderPayoutsPlan = { create: [], update: [], counts: {} }
   const statuses: string[] = []
 
@@ -342,6 +386,7 @@ export function planOrderPayouts(input: {
       commission_total:
         MathBN.gt(absorbed, 0) && MathBN.gt(gross, 0) ? MathBN.div(MathBN.mult(commission, net), gross) : commission,
       required_fulfillment_status: input.required_fulfillment_status,
+      cod_shipments: shipmentsByOrder.get(order.id),
     })
 
     const data = {

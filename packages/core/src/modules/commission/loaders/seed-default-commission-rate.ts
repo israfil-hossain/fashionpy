@@ -25,7 +25,7 @@ export default async function seedDefaultCommissionRateLoader({
       name: "Default",
       code: "default",
       type: "percentage",
-      value: 0,
+      value: 10,
       is_enabled: true,
       is_default: true,
       include_tax: false,

@@ -57,47 +57,39 @@ export default withMercur({
     seller_registration: true
   },
   plugins: [
+    // Provider-agnostic payout loop for the local (manual) payout provider:
+    // COD capture on delivery, payout processing, reversals and seller
+    // onboarding. Mutually exclusive with @mercurjs/stripe-connector-plugin,
+    // which ships the same trigger surface for Stripe Connect (Phase 5).
     {
-      resolve: '@mercurjs/stripe-connector-plugin',
-      options: {
-        apiKey: STRIPE_SECRET_KEY,
-        webhookSecret: process.env.STRIPE_SELLERS_WEBHOOK_SECRET,
-        alerting: {
-          technicalEmail: process.env.PAYOUT_ALERT_EMAIL,
-          from: process.env.PAYOUT_ALERT_FROM,
-        },
-        notifications: {
-          url: process.env.STRIPE_NOTIFICATIONS_URL,
-          secret: process.env.STRIPE_NOTIFICATIONS_SECRET,
-        },
-      },
+      resolve: '@mercurjs/payout-local',
+      options: {},
     },
   ],
   modules: [
-    ...(STRIPE_SECRET_KEY
-      ? [
+    // Payouts go through the local manual provider: no money moves over an
+    // API — the operator exports the batch, transfers from the platform
+    // account, and marks rows paid in the admin panel. The Stripe Connect
+    // provider returns with multi-provider routing in Phase 5 (the module
+    // accepts exactly one provider today).
+    {
+      resolve: '@mercurjs/core/modules/payout',
+      options: {
+        providers: [
           {
-            resolve: '@mercurjs/core/modules/payout',
+            resolve: '@mercurjs/payout-local/providers/local',
+            id: 'local',
             options: {
-              providers: [
-                {
-                  resolve: '@mercurjs/stripe-connector-plugin/providers/payout-stripe-connect',
-                  id: 'stripe',
-                  options: {
-                    apiKey: STRIPE_SECRET_KEY,
-                    webhookSecret: process.env.STRIPE_SELLERS_WEBHOOK_SECRET,
-                    manualPayouts: true,
-                  },
-                },
-              ],
-              onboarding: {
-                returnUrl: `${process.env.VENDOR_URL || 'http://localhost:7001'}/stripe`,
-                refreshBaseUrl: process.env.BACKEND_URL || 'http://localhost:9000',
-              },
+              vendorUrl: process.env.VENDOR_URL || 'http://localhost:7001',
             },
           },
-        ]
-      : []),
+        ],
+        onboarding: {
+          returnUrl: `${process.env.VENDOR_URL || 'http://localhost:7001'}/settings/store/payment-details`,
+          refreshBaseUrl: process.env.BACKEND_URL || 'http://localhost:9000',
+        },
+      },
+    },
     {
       resolve: '@medusajs/medusa/auth',
       options: {
@@ -187,7 +179,10 @@ export default withMercur({
     // ── Payments ──────────────────────────────────────────────────────────────
     // The built-in system/manual provider always registers alongside these
     // entries; pp_cod adds a distinct id so checkout can offer Cash on Delivery
-    // and courier booking can collect COD cash through the platform.
+    // and courier booking can collect COD cash through the platform. Adding
+    // STRIPE_SECRET_KEY later enables card checkout here only — payouts stay
+    // on the local provider until Phase 5 (Stripe capture jobs ship with the
+    // stripe-connector plugin, which is not installed).
     {
       resolve: "@medusajs/medusa/payment",
       options: {

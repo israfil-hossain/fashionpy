@@ -3149,6 +3149,7 @@
       "payment_failed": "The order's payment failed.",
       "payment_canceled": "The order's payment was canceled.",
       "payment_refunded": "The order's payment was refunded in full.",
+      "cod_not_remitted": "The COD cash for this order has not been remitted by the courier yet.",
       "payout_not_ready": "The payout for this order has not been sent yet.",
       "refund_aborted": "The refund was canceled.",
       "refund_absorbed": "The refund was deducted before the payout was sent.",
@@ -3431,7 +3432,14 @@
         "swiftBic": "SWIFT / BIC",
         "routingNumber": "Routing number",
         "achRoutingNumber": "ACH routing number",
-        "accountNumber": "Account number"
+        "accountNumber": "Account number",
+        "payoutMethod": "Payout method",
+        "walletNumber": "Wallet number"
+      },
+      "payoutMethods": {
+        "bank": "Bank account",
+        "bkash": "bKash",
+        "nagad": "Nagad"
       },
       "validation": {
         "countryRequired": "Please select a country",

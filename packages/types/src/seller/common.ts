@@ -49,6 +49,9 @@ export interface PaymentDetailsDTO {
   bic: string | null
   routing_number: string | null
   account_number: string | null
+  /** `bank` | `bkash` | `nagad` — constrained by the API validators. */
+  payout_method: string | null
+  wallet_number: string | null
   created_at: Date
   updated_at: Date
 }
@@ -61,6 +64,8 @@ export interface CreatePaymentDetailsDTO {
   bic?: string | null
   routing_number?: string | null
   account_number?: string | null
+  payout_method?: string | null
+  wallet_number?: string | null
 }
 
 export interface UpdatePaymentDetailsDTO {
@@ -71,6 +76,8 @@ export interface UpdatePaymentDetailsDTO {
   bic?: string | null
   routing_number?: string | null
   account_number?: string | null
+  payout_method?: string | null
+  wallet_number?: string | null
 }
 
 export interface SellerAddressDTO {

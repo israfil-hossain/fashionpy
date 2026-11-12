@@ -43,6 +43,7 @@
     "@mercurjs/courier-pathao": "*",
     "@mercurjs/courier-steadfast": "*",
     "@mercurjs/payment-cod": "*",
+    "@mercurjs/payout-local": "*",
     "@mercurjs/stripe-connector-plugin": "*",
     "@mercurjs/types": "*",
     "http-proxy-middleware": "^3.0.3",

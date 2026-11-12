@@ -1,21 +1,22 @@
 import { Children, ReactNode, useMemo } from "react"
-import { ArrowPath } from "@medusajs/icons"
-import { Container, Heading } from "@medusajs/ui"
+import { ArrowDownTray, ArrowPath, CheckCircleSolid } from "@medusajs/icons"
+import { Button, Container, Heading, toast } from "@medusajs/ui"
 import { keepPreviousData } from "@tanstack/react-query"
 import { createColumnHelper } from "@tanstack/react-table"
 import { useTranslation } from "react-i18next"
 
-import { WidgetZone } from "@mercurjs/dashboard-shared"
+import { PermissionAction, WidgetZone } from "@mercurjs/dashboard-shared"
 
 import { ActionMenu } from "../../../components/common/action-menu"
 import { SingleColumnPage } from "../../../components/layout/pages"
 import { _DataTable } from "../../../components/table/data-table"
-import { usePayouts } from "../../../hooks/api/payouts"
+import { useExportPayouts, usePayouts } from "../../../hooks/api/payouts"
 import { AdminPayout } from "../../../lib/payouts"
 import { usePayoutTableColumns } from "../../../hooks/table/columns/use-payout-table-columns"
 import { usePayoutTableFilters } from "../../../hooks/table/filters/use-payout-table-filters"
 import { usePayoutTableQuery } from "../../../hooks/table/query/use-payout-table-query"
 import { useDataTable } from "../../../hooks/use-data-table"
+import { useMarkPaidPayoutAction } from "../common/hooks/use-mark-paid-action"
 import { useRetryPayoutAction } from "../common/hooks/use-retry-payout-action"
 
 const PAGE_SIZE = 20
@@ -23,6 +24,7 @@ const PAGE_SIZE = 20
 const PayoutRowActions = ({ payout }: { payout: AdminPayout }) => {
   const { t } = useTranslation()
   const { handleRetry, canRetry } = useRetryPayoutAction(payout)
+  const { handleMarkPaid, canMarkPaid } = useMarkPaidPayoutAction(payout)
 
   return (
     <ActionMenu
@@ -30,6 +32,14 @@ const PayoutRowActions = ({ payout }: { payout: AdminPayout }) => {
       groups={[
         {
           actions: [
+            {
+              icon: <CheckCircleSolid />,
+              label: t("payouts.actions.markPaid"),
+              onClick: handleMarkPaid,
+              permission: "payouts:edit",
+              disabled: !canMarkPaid,
+              disabledTooltip: t("payouts.markPaid.disabledTooltip"),
+            },
             {
               icon: <ArrowPath />,
               label: t("payouts.actions.retry"),
@@ -73,9 +83,30 @@ export const PayoutListTitle = () => {
 }
 
 export const PayoutListActions = ({ children }: { children?: ReactNode }) => {
+  const { t } = useTranslation()
+  const { mutate, isPending } = useExportPayouts({
+    onSuccess: () => toast.success(t("payouts.export.successToast")),
+    onError: (error) => toast.error(error.message),
+  })
+
   return (
     <div className="flex items-center gap-x-2">
-      {Children.count(children) > 0 ? children : null}
+      {Children.count(children) > 0 ? (
+        children
+      ) : (
+        <PermissionAction permission="payouts:view">
+          <Button
+            variant="secondary"
+            size="small"
+            isLoading={isPending}
+            onClick={() => mutate({ status: "processing" })}
+            data-testid="payout-export-button"
+          >
+            <ArrowDownTray />
+            {t("payouts.actions.export")}
+          </Button>
+        </PermissionAction>
+      )}
     </div>
   )
 }

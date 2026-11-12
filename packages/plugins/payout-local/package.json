@@ -1,0 +1,59 @@
+{
+  "name": "@mercurjs/payout-local",
+  "version": "2.4.0",
+  "description": "Mercur plugin that runs the marketplace payout loop without an external provider: COD capture on delivery, the payout orchestration jobs and subscribers, and a manual local payout provider that pays sellers by bank transfer or bKash/Nagad in batches.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mercurjs/mercur",
+    "directory": "packages/plugins/payout-local"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "author": "Medusa",
+  "license": "MIT",
+  "files": [
+    ".medusa/server"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    "./*": "./.medusa/server/src/*.js",
+    "./providers/*": {
+      "types": "./.medusa/server/src/providers/*/index.d.ts",
+      "default": "./.medusa/server/src/providers/*/index.js"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf .medusa && tsc --declaration --outDir .medusa/server",
+    "test": "jest --passWithNoTests",
+    "dev": "medusa plugin:develop",
+    "prepublishOnly": "tsc --declaration --outDir .medusa/server"
+  },
+  "peerDependencies": {
+    "@medusajs/core-flows": ">=2.22.0",
+    "@medusajs/framework": ">=2.22.0",
+    "@medusajs/medusa": ">=2.22.0",
+    "@mercurjs/core": "*",
+    "@mercurjs/types": "*"
+  },
+  "devDependencies": {
+    "@medusajs/core-flows": "2.22.0",
+    "@medusajs/framework": "2.22.0",
+    "@medusajs/medusa": "2.22.0",
+    "@mercurjs/core": "2.4.0",
+    "@mercurjs/types": "2.4.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^26.1.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "5.9.3"
+  },
+  "keywords": [
+    "medusa-plugin",
+    "medusa-v2",
+    "mercur",
+    "payout",
+    "cash-on-delivery",
+    "manual-payouts"
+  ]
+}

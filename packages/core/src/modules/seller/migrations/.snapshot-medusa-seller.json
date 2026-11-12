@@ -684,6 +684,24 @@
           "nullable": true,
           "mappedType": "text"
         },
+        "payout_method": {
+          "name": "payout_method",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "text"
+        },
+        "wallet_number": {
+          "name": "wallet_number",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "text"
+        },
         "seller_id": {
           "name": "seller_id",
           "type": "text",

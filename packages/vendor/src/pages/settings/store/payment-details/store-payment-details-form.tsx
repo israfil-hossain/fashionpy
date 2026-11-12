@@ -1,5 +1,5 @@
 import i18n from "i18next";
-import { Button, Input, toast } from "@medusajs/ui";
+import { Button, Input, Select, toast } from "@medusajs/ui";
 import { useTranslation } from "react-i18next";
 import * as zod from "zod";
 
@@ -27,6 +27,8 @@ const StorePaymentDetailsSchema = zod.object({
     .min(1, {
       message: i18n.t("store.paymentDetails.validation.accountNameRequired"),
     }),
+  payout_method: zod.enum(["bank", "bkash", "nagad"]),
+  wallet_number: zod.string().optional().or(zod.literal("")),
   iban: zod.string().optional().or(zod.literal("")),
   bic: zod.string().optional().or(zod.literal("")),
   routing_number: zod.string().optional().or(zod.literal("")),
@@ -48,6 +50,8 @@ export const StorePaymentDetailsForm = ({
     defaultValues: {
       country_code: details?.country_code ?? "",
       holder_name: details?.holder_name ?? "",
+      payout_method: (details?.payout_method as "bank" | "bkash" | "nagad") ?? "bank",
+      wallet_number: details?.wallet_number ?? "",
       iban: details?.iban ?? "",
       bic: details?.bic ?? "",
       routing_number: details?.routing_number ?? "",
@@ -56,6 +60,8 @@ export const StorePaymentDetailsForm = ({
   });
 
   const selectedCountry = form.watch("country_code");
+  const payoutMethod = form.watch("payout_method");
+  const isWallet = payoutMethod === "bkash" || payoutMethod === "nagad";
 
   const { mutateAsync, isPending } = useUpdateSellerPaymentDetails(seller.id);
 
@@ -65,10 +71,12 @@ export const StorePaymentDetailsForm = ({
       {
         country_code: values.country_code,
         holder_name: values.holder_name,
-        iban: isABA ? null : values.iban || null,
-        bic: isABA ? null : values.bic || null,
-        routing_number: isABA ? values.routing_number || null : null,
-        account_number: values.account_number || null,
+        payout_method: values.payout_method,
+        wallet_number: isWallet ? values.wallet_number || null : null,
+        iban: !isWallet && !isABA ? values.iban || null : null,
+        bic: !isWallet && !isABA ? values.bic || null : null,
+        routing_number: !isWallet && isABA ? values.routing_number || null : null,
+        account_number: !isWallet ? values.account_number || null : null,
         additional_data: values.additional_data,
       },
       {
@@ -122,7 +130,53 @@ export const StorePaymentDetailsForm = ({
               </Form.Item>
             )}
           />
-          {selectedCountry === "us" ? (
+          <Form.Field
+            control={form.control}
+            name="payout_method"
+            render={({ field: { onChange, ref: _ref, ...field } }) => (
+              <Form.Item>
+                <Form.Label>
+                  {t("store.paymentDetails.fields.payoutMethod")}
+                </Form.Label>
+                <Form.Control>
+                  <Select onValueChange={onChange} {...field}>
+                    <Select.Trigger ref={_ref}>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content>
+                      <Select.Item value="bank">
+                        {t("store.paymentDetails.payoutMethods.bank")}
+                      </Select.Item>
+                      <Select.Item value="bkash">
+                        {t("store.paymentDetails.payoutMethods.bkash")}
+                      </Select.Item>
+                      <Select.Item value="nagad">
+                        {t("store.paymentDetails.payoutMethods.nagad")}
+                      </Select.Item>
+                    </Select.Content>
+                  </Select>
+                </Form.Control>
+                <Form.ErrorMessage />
+              </Form.Item>
+            )}
+          />
+          {isWallet ? (
+            <Form.Field
+              control={form.control}
+              name="wallet_number"
+              render={({ field }) => (
+                <Form.Item>
+                  <Form.Label>
+                    {t("store.paymentDetails.fields.walletNumber")}
+                  </Form.Label>
+                  <Form.Control>
+                    <Input size="small" inputMode="numeric" {...field} />
+                  </Form.Control>
+                  <Form.ErrorMessage />
+                </Form.Item>
+              )}
+            />
+          ) : selectedCountry === "us" ? (
             <>
               <Form.Field
                 control={form.control}

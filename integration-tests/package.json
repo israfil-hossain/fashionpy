@@ -13,6 +13,7 @@
     "@medusajs/auth-google": "2.22.0",
     "@mercurjs/core": "*",
     "@mercurjs/magento2-connector-plugin": "*",
+    "@mercurjs/payment-cod": "*",
     "jsonwebtoken": "^9.0.3",
     "scrypt-kdf": "^2.0.1",
     "@medusajs/draft-order": "2.22.0",

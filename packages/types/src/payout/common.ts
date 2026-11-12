@@ -176,6 +176,7 @@ export const PayoutStatusReason = {
   PAYMENT_FAILED: "payment_failed",
   PAYMENT_CANCELED: "payment_canceled",
   PAYMENT_REFUNDED: "payment_refunded",
+  COD_NOT_REMITTED: "cod_not_remitted",
   PAYOUT_NOT_READY: "payout_not_ready",
   REFUND_ABORTED: "refund_aborted",
   REFUND_ABSORBED: "refund_absorbed",

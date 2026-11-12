@@ -1,7 +1,7 @@
 import { PayoutStatus, PayoutStatusReason } from "@mercurjs/types"
 
 import { fulfillmentReached } from "../fulfillment-status"
-import { decideOrderPayout, decideReversal } from "../payout-amounts"
+import { codShipmentsAwaitingRemittance, decideOrderPayout, decideReversal } from "../payout-amounts"
 import { sentToProvider } from "../sent-to-provider"
 
 const order = (overrides: Partial<Parameters<typeof decideOrderPayout>[0]["order"]> = {}) => ({
@@ -13,6 +13,17 @@ const order = (overrides: Partial<Parameters<typeof decideOrderPayout>[0]["order
   total: 180,
   currency_code: "eur",
   created_at: new Date("2026-10-21T14:12:00Z"),
+  ...overrides,
+})
+
+const codShipment = (
+  overrides: Partial<Parameters<typeof codShipmentsAwaitingRemittance>[0][number]> = {}
+) => ({
+  id: "cshp_1",
+  order_id: "order_1",
+  cod_amount: 180,
+  status: "delivered",
+  cod_remitted_at: null,
   ...overrides,
 })
 
@@ -105,6 +116,61 @@ describe("decideOrderPayout", () => {
     expect(Number(decision.amount)).toBe(162)
   })
 
+  it("holds until the courier remitted the COD cash", () => {
+    const decision = decideOrderPayout({ ...base, cod_shipments: [codShipment()] })
+    expect(decision.status).toBe(PayoutStatus.ON_HOLD)
+    expect(decision.status_reason).toBe(PayoutStatusReason.COD_NOT_REMITTED)
+    expect(decision.status_detail).toBe(
+      "COD cash for shipment cshp_1 has not been remitted yet"
+    )
+    expect(Number(decision.amount)).toBe(0)
+  })
+
+  it("pays once the COD shipment is marked remitted", () => {
+    const decision = decideOrderPayout({
+      ...base,
+      cod_shipments: [codShipment({ cod_remitted_at: new Date("2026-11-01T10:00:00Z") })],
+    })
+    expect(decision.status).toBe(PayoutStatus.PENDING)
+    expect(Number(decision.amount)).toBe(162)
+  })
+
+  it("ignores shipments the courier collected nothing for", () => {
+    for (const status of ["canceled", "failed", "returned"]) {
+      const decision = decideOrderPayout({ ...base, cod_shipments: [codShipment({ status })] })
+      expect(decision.status).toBe(PayoutStatus.PENDING)
+    }
+    expect(
+      decideOrderPayout({ ...base, cod_shipments: [codShipment({ cod_amount: 0 })] }).status
+    ).toBe(PayoutStatus.PENDING)
+  })
+
+  it("keeps the payment check ahead of the remittance check", () => {
+    const decision = decideOrderPayout({
+      ...base,
+      payment: { ...payment, captured: false },
+      cod_shipments: [codShipment()],
+    })
+    expect(decision.status_reason).toBe(PayoutStatusReason.PAYMENT_NOT_READY)
+  })
+})
+
+describe("codShipmentsAwaitingRemittance", () => {
+  it("lists unremitted COD shipments with cash to collect", () => {
+    const awaiting = codShipmentsAwaitingRemittance([
+      codShipment(),
+      codShipment({ id: "cshp_2", cod_remitted_at: new Date() }),
+      codShipment({ id: "cshp_3", status: "in_transit" }),
+      codShipment({ id: "cshp_4", status: "returned" }),
+      codShipment({ id: "cshp_5", cod_amount: null }),
+    ])
+    expect(awaiting.map((shipment) => shipment.id)).toEqual(["cshp_1", "cshp_3"])
+  })
+
+  it("is empty without shipments", () => {
+    expect(codShipmentsAwaitingRemittance(undefined)).toEqual([])
+    expect(codShipmentsAwaitingRemittance([])).toEqual([])
+  })
 })
 
 describe("fulfillmentReached", () => {

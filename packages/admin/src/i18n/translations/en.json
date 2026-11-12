@@ -1883,13 +1883,24 @@
       "payoutAccount": "Payout account"
     },
     "actions": {
-      "retry": "Retry payout"
+      "retry": "Retry payout",
+      "markPaid": "Mark as paid",
+      "export": "Export CSV"
     },
     "retry": {
       "title": "Retry payout",
       "description": "The payout is evaluated again and sent to the payout provider once the order is ready.",
       "successToast": "Payout retried.",
       "disabledTooltip": "Only pending, failed or on-hold payouts can be retried."
+    },
+    "markPaid": {
+      "title": "Mark payout as paid",
+      "description": "Confirm that the payout amount was transferred from the platform account to the store. This does not move money itself.",
+      "successToast": "Payout marked as paid.",
+      "disabledTooltip": "Only processing payouts can be marked paid."
+    },
+    "export": {
+      "successToast": "Payout batch exported."
     },
     "reversals": {
       "header": "Reversals",
@@ -1910,6 +1921,7 @@
       "payment_failed": "The order's payment failed.",
       "payment_canceled": "The order's payment was canceled.",
       "payment_refunded": "The order's payment was refunded in full.",
+      "cod_not_remitted": "The COD cash for this order has not been remitted by the courier yet.",
       "payout_not_ready": "The payout for this order has not been sent yet.",
       "refund_aborted": "The refund was canceled.",
       "refund_absorbed": "The refund was deducted before the payout was sent.",
@@ -3251,7 +3263,14 @@
         "swiftBic": "SWIFT / BIC",
         "routingNumber": "Routing number",
         "achRoutingNumber": "ACH routing number",
-        "accountNumber": "Account number"
+        "accountNumber": "Account number",
+        "payoutMethod": "Payout method",
+        "walletNumber": "Wallet number"
+      },
+      "payoutMethods": {
+        "bank": "Bank account",
+        "bkash": "bKash",
+        "nagad": "Nagad"
       },
       "validation": {
         "countryRequired": "Please select a country",
@@ -4810,7 +4829,22 @@
     "secretKey": "Secret key",
     "empty": "No courier accounts connected yet.",
     "toastPlatformConnected": "Platform {{provider}} account saved",
-    "toastConnectFailed": "Could not save the courier credentials"
+    "toastConnectFailed": "Could not save the courier credentials",
+    "shipments": {
+      "header": "Courier & COD",
+      "consignment": "Consignment",
+      "codAmount": "COD amount",
+      "remitted": "Remitted",
+      "awaitingRemittance": "COD cash awaiting remittance — seller payouts for this order stay on hold until it is recorded.",
+      "notRemitted": "Not remitted",
+      "noShipments": "No courier shipments for this order.",
+      "markRemitted": "Mark remitted",
+      "markRemittedTitle": "Record COD remittance",
+      "markRemittedDescription": "Confirm that the courier has transferred this shipment's COD cash to the platform account. The order's payout is released right after.",
+      "markRemittedToast": "COD remittance recorded; payout re-evaluated.",
+      "markRemittedDisabled": "Only COD shipments that have not been remitted yet can be recorded.",
+      "remittedAt": "Remitted {{date}}"
+    }
   },
   "notifications": {
     "title": "Notifications",

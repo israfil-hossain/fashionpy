@@ -14,6 +14,7 @@ import { MercurModules, PayoutDTO, PayoutModuleEvents, PayoutStatus } from "@mer
 
 import { createPayoutsStep, processPayoutsStep, updatePayoutsStep } from "../steps"
 import {
+  CodShipmentRow,
   CommissionLine,
   PAYOUT_ORDER_FIELDS,
   PayoutOrder,
@@ -62,9 +63,17 @@ export const createOrderPayoutsWorkflow: ReturnWorkflow<
       filters: { order_id: input.order_ids },
     }).config({ name: "existing-payouts-query" })
 
-    return transform({ orders, payouts }, ({ orders, payouts }) => ({
+    // COD shipments gate the payout until the courier remitted their cash.
+    const { data: codShipments } = useQueryGraphStep({
+      entity: "courier_shipment",
+      fields: ["id", "order_id", "cod_amount", "status", "cod_remitted_at"],
+      filters: { order_id: input.order_ids },
+    }).config({ name: "payout-cod-shipments-query" })
+
+    return transform({ orders, payouts, codShipments }, ({ orders, payouts, codShipments }) => ({
       orders: orders as unknown as PayoutOrder[],
       payouts: payouts as unknown as PayoutDTO[],
+      cod_shipments: codShipments as unknown as CodShipmentRow[],
     }))
   })
 
@@ -88,6 +97,7 @@ export const createOrderPayoutsWorkflow: ReturnWorkflow<
     planOrderPayouts({
       orders: loaded?.orders ?? [],
       payouts: loaded?.payouts ?? [],
+      cod_shipments: loaded?.cod_shipments ?? [],
       commission_lines: (commissionLines ?? []) as unknown as CommissionLine[],
       required_fulfillment_status: input.required_fulfillment_status ?? "fulfilled",
     })

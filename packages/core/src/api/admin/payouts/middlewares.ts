@@ -1,9 +1,15 @@
 import { requirePermission } from "../../utils"
 import { MiddlewareRoute, maybeApplyLinkFilter } from "@medusajs/framework/http"
-import { validateAndTransformQuery } from "@medusajs/framework"
+import { validateAndTransformBody, validateAndTransformQuery } from "@medusajs/framework"
 
 import { adminPayoutQueryConfig } from "./query-config"
-import { AdminGetPayoutParams, AdminGetPayoutsParams } from "./validators"
+import {
+  AdminBulkMarkPayoutPaid,
+  AdminExportPayouts,
+  AdminGetPayoutParams,
+  AdminGetPayoutsParams,
+  AdminMarkPayoutPaid,
+} from "./validators"
 
 export const adminPayoutsMiddlewares: MiddlewareRoute[] = [
   {
@@ -12,6 +18,31 @@ export const adminPayoutsMiddlewares: MiddlewareRoute[] = [
     middlewares: [
       requirePermission("payouts", "edit"),
       validateAndTransformQuery(AdminGetPayoutParams, adminPayoutQueryConfig.retrieve),
+    ],
+  },
+  {
+    method: ["POST"],
+    matcher: "/admin/payouts/:id/mark-paid",
+    middlewares: [
+      requirePermission("payouts", "edit"),
+      validateAndTransformBody(AdminMarkPayoutPaid),
+      validateAndTransformQuery(AdminGetPayoutParams, adminPayoutQueryConfig.retrieve),
+    ],
+  },
+  {
+    method: ["POST"],
+    matcher: "/admin/payouts/mark-paid",
+    middlewares: [
+      requirePermission("payouts", "edit"),
+      validateAndTransformBody(AdminBulkMarkPayoutPaid),
+    ],
+  },
+  {
+    method: ["POST"],
+    matcher: "/admin/payouts/export",
+    middlewares: [
+      requirePermission("payouts", "view"),
+      validateAndTransformBody(AdminExportPayouts),
     ],
   },
   {

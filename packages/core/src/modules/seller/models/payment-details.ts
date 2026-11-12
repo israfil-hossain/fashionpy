@@ -10,6 +10,9 @@ const PaymentDetails = model.define("PaymentDetails", {
   bic: model.text().nullable(),
   routing_number: model.text().nullable(),
   account_number: model.text().nullable(),
+  /** bank | bkash | nagad — where payouts are sent. */
+  payout_method: model.text().nullable(),
+  wallet_number: model.text().nullable(),
   seller: model.belongsTo(() => Seller, {
     mappedBy: "payment_details",
   }),

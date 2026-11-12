@@ -13,6 +13,143 @@ session detail aggressively. The per-spec source of truth lives in
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
   `bun run test:integration:http -- <pattern>`
 - **Current blocker**: none
+- **Known baseline noise**: 10 unit failures in 2 pre-existing environmental
+  suites (`codegen-module-service` macOS `/private/var` realpath,
+  `jest-transformer` dist fixture) — unrelated to feature work; integration
+  suites must be run per-suite on this 8 GB box (multi-suite batches exceed
+  the specs' hook timeouts under load).
+
+## Session — COD production flow: capture on delivery, remittance gate, local payouts (2026-11-12), branch `main`
+
+SCOPE-003 (`docs/specs/SPEC-003-cod-payments.md`, status `passing`) — COD-only
+launch after the Bangladesh-gateway review (SSLCommerz ৳25k rejected; Bangla QR /
+BRAC Bank gateway deferred to a payment-gateway spec; Stripe deferred to Phase 5).
+
+- **Money flow.** New `captureCodPaymentWorkflow` (core, payment workflows) +
+  `decideCodCapture` util: captures an authorized `pp_cod` cart payment once every
+  order of the cart is delivered/canceled (amount = auth − canceled totals; all
+  canceled → cancel). Driven by the `payout-local-cod-capture` job (5 min).
+  Courier webhook / vendor mark-as-delivered already sets `delivered_at`.
+- **Remittance gate.** `courier_shipment` gains `cod_remitted_at` +
+  `cod_remittance_reference` (migration `20261111120000`); `decideOrderPayout`
+  holds with new `PayoutStatusReason.COD_NOT_REMITTED` until every non-exempt
+  COD shipment is remitted (`payout-amounts.ts` + `create-order-payouts` query).
+  Admin `POST /admin/courier-shipments/:id/remittance` stamps and immediately
+  re-decides the payout; new admin order-detail **Courier & COD** section shows
+  shipments + Mark remitted (`orders:view` to list, `payouts:edit` to remit).
+- **Manual disbursement.** `POST /admin/payouts/:id/mark-paid` (409 unless
+  `processing`, records reference/marked_paid_by), bulk
+  `POST /admin/payouts/mark-paid` (≤200, lenient report), `POST /admin/payouts/export`
+  (CSV of the batch with seller + destination). Admin payouts list: Mark as paid
+  row action + Export CSV header button (+ i18n).
+- **Local payout provider.** New `packages/plugins/payout-local` (tsc →
+  `.medusa/server`, jobs/subscribers auto-discovered): `pop_local_local`
+  (`providers/local`) — pending until `data.payout_details` is complete
+  (`holder_name` + `account_number`/`wallet_number`), onboarding/login links →
+  vendor payment-details page (kills the `system://` bug), `createPayout` →
+  `processing` manual instruction, `reversePayout` → manual clawback, webhook
+  `not_supported`. Also jobs: transfers backstop (payout requires `delivered`),
+  reversals, onboarding (creates accounts for open sellers); subscribers:
+  `payment.captured`, fulfillment/canceled, `payout_account.updated`.
+  Unit spec 10/10.
+- **Seller details.** `payment_details` + `payout_method`/`wallet_number`
+  (migration `20261111120001`, snapshot patched), validators (vendor+admin),
+  both payment-details forms get a Payout method select + wallet field;
+  `updateSellerPaymentDetailsWorkflow` now syncs the destination onto the
+  payout account (`set-payoutAccountDetailsStep`) and runs
+  `syncPayoutAccountWorkflow` when an account exists.
+- **Config.** `apps/api/medusa-config.ts`: plugins swap stripe-connector →
+  `@mercurjs/payout-local`; payout module always registers the local provider
+  (`vendorUrl` → details form); payment module keeps its Stripe branch so
+  adding `STRIPE_SECRET_KEY` later only enables card checkout (Stripe Connect
+  payouts = Phase 5, single-provider constraint noted). Test config registers
+  `pp_cod`; checkout helper gained `paymentProviderId`.
+- **Commission.** Global default seeds at 10% (loader) + guarded migration
+  bumps only still-0 rows (`20261111120002`).
+
+**Verified** (per-suite; the 8 GB box times out multi-suite batches):
+lint clean; `turbo build --no-daemon` 19/19; unit 355 pass (same 10
+pre-existing env failures as baseline); integration — new
+`payouts/admin/cod-payout-flow` 7/7, `payouts/admin` 14/14, `payouts/vendor`
+24/24, `commission-rates` 41/41, `courier` 18/18, `seller/vendor` 76/76,
+`seller/admin` 89/91 (2 × 50 s setup timeouts under load, unrelated tests).
+Gotchas learned: integration tests run against **built** packages (rebuild
+core after source edits); `useQueryGraphStep({isList:false})` returns `data`
+as an **object**, not an array; `MedusaError.Types.CONFLICT` → 409 (not
+`UNEXPECTED_STATE`); the test `api` is axios (CSV lives in `response.data`).
+Manual QA owed: remittance → payout release loop, details form → account
+activation, export → transfer → mark-paid loop.
+
+## Session — Share preview showed Mercur's promo art (2026-11-11), branch `main`
+
+Sharing `fashionpy.com` rendered Mercur's `B2C_Storefront_Open_Graph.png` because
+the homepage hard-coded it and no other page declared `og:image` at all (page-level
+`openGraph` replaces the root's, so scrapers fell back to whatever image they found).
+
+- **Landed.** New `apps/storefront/public/og-image.png` (1200×630, FashionPy
+  wordmark on the brand gradient, generated from `fashionpy.svg` + brand colors in
+  `colors.css`). `lib/helpers/og-image.ts` exposes `DEFAULT_OG_IMAGE` /
+  `defaultOgImage(baseUrl)`; root `app/layout.tsx` now sets default `openGraph` +
+  `twitter` images, and home, blog index/detail, categories, category, collection
+  and seller pages pass it explicitly (blog falls back to it when a post has no
+  cover). Product SEO keeps the product thumbnail and falls back to the branded
+  card instead of `placeholder.svg`. Mercur's PNG deleted — no other references.
+- **Verified.** `bun run lint` clean, `bun run build` 18/18, tsc adds no errors in
+  touched files. Live `next dev` + API: `/bd`, `/bd/categories`,
+  `/bd/categories/sneakers`, `/bd/collections/sneaker-station`, `/bd/blog` and a
+  404 all emit `og:image`/`twitter:image` → `/og-image.png` (serves 200, 92 KB);
+  product page keeps its own thumbnail when present.
+- **Owed / next.** Deploy, then re-scrape in the Facebook Sharing Debugger /
+  WhatsApp preview — both cache previews per URL. Local `NEXT_PUBLIC_BASE_URL` is
+  `http://localhost:3000`, so production URLs come from that env var. Nothing
+  committed.
+
+## Session — Storefront catalog cache + category sidebar + collection-driven banner section (2026-11-10), branch `main`
+
+Categories/collections created in admin never showed up in the nav, category strip
+or collection sections until a redeploy: catalog fetches used `revalidate: false`
+and the API revalidation subscriber only listened to product/offer/store/hero-banner
+events. Production `Gift` is a live top-level category (its page renders — dynamic
+routes aren't cached) but the cached homepage/header predated it.
+
+- **Cache.** `apps/api/src/subscribers/storefront-cache-revalidate.ts` (and the
+  `templates/basic` copy) now subscribes to `product-category.*` /
+  `product-collection.*` → tags `categories` / `collections`; product and offer
+  events also tag the base `products` tag so listings refresh, not just PDPs.
+  `apps/storefront/src/lib/data/cache-tags.ts` swaps indefinite caching for
+  webhook + 5-minute TTL (`getCatalogFetchOptions`: `no-store` in development,
+  `force-cache` + tags + 300s in production); every catalog data module uses it.
+  Local `apps/api/.env` gained `STOREFRONT_REVALIDATE_URL`/`_SECRET` (gitignored).
+- **Collection banner section.** `ShopCollectionBanners` reads `listCollections()`
+  (banner → thumbnail → any image, `/collections/{handle}`, "Shop Now", gradient
+  when artwork is missing) instead of the `shop_collection` hero-banner slot;
+  `CollectionSliderSection` keeps thumbnail preference through the shared
+  `pickCollectionImage`. Admin `shop_collection` slot kept, no longer rendered.
+- **Category media.** Store category query config exposes `media_images.*` for the
+  category and its children; `lib/helpers/category-image.ts` picks icon (strip) /
+  thumbnail (cards) / banner with the shipped `/images/categories/{handle}.png`
+  fallback, and the new `CategoryImage` atom swaps to `placeholder.svg` on load
+  error — categories without a static file (`fashion`, `gift` in production) no
+  longer show a broken image.
+- **Category sidebar.** `listCategoryTree` + `buildCategoryTree`/
+  `findCategoryTrail` feed a new `CategoryTree` organism rendered by
+  `ProductSearchSidebar` on `/categories` and `/categories/[handle]` only
+  (desktop left panel and the mobile filter modal): nested, active branch
+  auto-expanded and highlighted, "All Products" link, locale-aware. Collection
+  pages keep the attribute-only panel.
+- **Verified.** `bun run lint` clean; `bun run build` 18/18 (full turbo);
+  `test:integration:http -- 'product-categories|collections'` 34/34 including new
+  store specs for category media (gallery, icon, nested children) and collection
+  banner flags. Local stack: emitted `product-category.created` /
+  `product-collection.updated` → subscriber POSTed `{"tags":["categories"]}` and
+  `{"tags":["collections"]}` to the revalidate endpoint (wrong secret 401, empty
+  tags 400); Playwright 9/9 — image fallback, tree render, expand/collapse, active
+  highlight, tree inside the mobile filter modal, no tree on collection pages.
+- **Owed / next.** Production still serves the pre-deploy cached homepage; after
+  deploy it self-heals within the 5-minute TTL, or POST
+  `{"tags":["categories","collections"]}` to `/api/revalidate` immediately.
+  Production `Gift` has no media/icon yet and will show the placeholder until one
+  is uploaded. Nothing committed — no commit was requested.
 
 ## Session — Injected `init` payloads broke the Dokploy build; host malware cleaned (2026-11-09), branch `main`
 

@@ -55,6 +55,12 @@ module.exports = withMercur({
             resolve: '@mercurjs/magento2-connector-plugin/providers/payment-external',
             id: 'external',
           },
+          // Cash-on-delivery so the COD capture / remittance specs can run
+          // against the real provider id the marketplace ships with.
+          {
+            resolve: '@mercurjs/payment-cod',
+            options: {},
+          },
         ],
       },
     },

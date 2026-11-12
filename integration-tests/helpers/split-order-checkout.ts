@@ -155,6 +155,8 @@ type SplitOrderCheckoutOptions = {
      * guest customer — and the resulting orders stop belonging to the buyer.
      */
     email: string
+    /** Payment provider the checkout authorizes with; defaults to the system one. */
+    paymentProviderId?: string
 }
 
 export const completeSplitOrderCheckout = async (
@@ -260,7 +262,7 @@ export const completeSplitOrderGroupCheckout = async (
         ).data.payment_collection
         await api.post(
             `/store/payment-collections/${paymentCollection.id}/payment-sessions`,
-            { provider_id: "pp_system_default" },
+            { provider_id: opts.paymentProviderId ?? "pp_system_default" },
             storeHeaders
         )
     }

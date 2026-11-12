@@ -234,8 +234,11 @@ export type Routes = {
         };
         payouts: typeof import("../src/api/admin/payouts/route") & {
             $id: typeof import("../src/api/admin/payouts/[id]/route") & {
+                markPaid: typeof import("../src/api/admin/payouts/[id]/mark-paid/route");
                 retry: typeof import("../src/api/admin/payouts/[id]/retry/route");
             };
+            export: typeof import("../src/api/admin/payouts/export/route");
+            markPaid: typeof import("../src/api/admin/payouts/mark-paid/route");
         };
         plugins: typeof import("@medusajs/medusa/api/admin/plugins/route");
         priceLists: typeof import("@medusajs/medusa/api/admin/price-lists/route") & {
@@ -528,6 +531,11 @@ export type Routes = {
             $id: typeof import("../src/api/admin/blog-posts/[id]/route");
         };
         courierAccounts: typeof import("../src/api/admin/courier-accounts/route");
+        courierShipments: typeof import("../src/api/admin/courier-shipments/route") & {
+            $id: {
+                remittance: typeof import("../src/api/admin/courier-shipments/[id]/remittance/route");
+            };
+        };
         fp: {
             analytics: typeof import("../src/api/admin/fp/analytics/route");
             bundles: typeof import("../src/api/admin/fp/bundles/route") & {
