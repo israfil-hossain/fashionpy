@@ -19,8 +19,8 @@
     "./package.json": "./package.json",
     "./*": "./.medusa/server/src/*.js",
     "./providers/*": {
-      "types": "./.medusa/server/src/providers/*/index.d.ts",
-      "default": "./.medusa/server/src/providers/*/index.js"
+      "types": "./.medusa/server/src/providers/*.d.ts",
+      "default": "./.medusa/server/src/providers/*.js"
     }
   },
   "scripts": {
