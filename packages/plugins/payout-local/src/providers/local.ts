@@ -1,5 +1,6 @@
 import crypto from "crypto"
 
+import { ModuleProvider } from "@medusajs/framework/utils"
 import {
   AccountOutput,
   CreateAccountInput,
@@ -9,6 +10,7 @@ import {
   DeleteAccountInput,
   IPayoutProvider,
   LinkOutput,
+  MercurModules,
   PayoutAccountStatus,
   PayoutOutput,
   PayoutProviderError,
@@ -172,3 +174,11 @@ export class LocalPayoutProvider implements IPayoutProvider {
     return { action: "not_supported" }
   }
 }
+
+// The package maps `./providers/local` to this file, so Medusa's provider
+// loader reads the ModuleProvider definition from here — not from index.ts.
+// Without this default export the loader iterates the module namespace and
+// dies with `{} is not iterable` at boot.
+export default ModuleProvider(MercurModules.PAYOUT, {
+  services: [LocalPayoutProvider],
+})

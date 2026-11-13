@@ -1,6 +1,6 @@
-import { PayoutAccountStatus, PayoutStatus } from "@mercurjs/types"
+import { MercurModules, PayoutAccountStatus, PayoutStatus } from "@mercurjs/types"
 
-import { LocalPayoutProvider, isCompletePayoutDetails } from "../providers/local"
+import providerModule, { LocalPayoutProvider, isCompletePayoutDetails } from "../providers/local"
 
 const provider = (options: Record<string, unknown> = {}) =>
   new LocalPayoutProvider({}, options)
@@ -160,5 +160,16 @@ describe("LocalPayoutProvider", () => {
         })
       ).toBe(true)
     })
+  })
+})
+
+// The config resolves `@mercurjs/payout-local/providers/local`, and Medusa's
+// provider loader iterates `.services` on whatever that file default-exports.
+// A plain namespace object instead throws `{} is not iterable` and the API
+// crash-loops, so the export shape is the contract that keeps boot alive.
+describe("provider module export", () => {
+  it("default-exports the ModuleProvider definition Medusa iterates at boot", () => {
+    expect(providerModule.module).toBe(MercurModules.PAYOUT)
+    expect(providerModule.services).toEqual([LocalPayoutProvider])
   })
 })
