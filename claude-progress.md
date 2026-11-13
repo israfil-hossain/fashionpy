@@ -848,22 +848,57 @@ how it was verified, what's owed/next. Move durable facts into
   has a pre-existing `jiti` version failure unrelated to these changes.
 - **Owed / next.** None — GA loads by default even without env var configured.
 
-### Session: 2026-11-13 -- Fix Docker `medusa build` TS18046 errors
+### Session: 2026-11-13 -- Production deploy green (build TS18046 + boot `{} is not iterable`)
 
-- **Goal.** Unblock the API image build (`apps/api/Dockerfile` → `bunx medusa build`)
-  which failed with `TS18046: 'connector' is of type 'unknown'`.
+Deployment target: Dokploy compose `fashionpy` on `5.189.148.53` / `vmi3604607`
+(autoDeploy on push to `main`, serialized `build api && build storefront && up`).
+Four deploys on Nov 12 died at the image build; the build fix then exposed a
+second, runtime failure. Both are landed and prod is verified healthy.
+
+**1. Build — `bunx medusa build` → `TS18046: 'connector' is of type 'unknown'`**
 - **Cause.** `apps/api/src/scripts/{check-stripe-webhooks,simulate-stripe-payouts}.ts`
   resolved the connector with `container.resolve(STRIPE_CONNECTOR_MODULE)` — a plain
   string key, so `resolve` returns `unknown`.
-- **Landed.** Both scripts now use `resolveConnector(container)` from
+- **Landed** (`fe5f37a89`). Both scripts now use `resolveConnector(container)` from
   `@mercurjs/stripe-connector-plugin/utils/payout-module` (the helper
   `stripe-scenarios.ts` already used), typed as `StripeConnectorModuleService`.
   Dropped the now-unused `STRIPE_CONNECTOR_MODULE` imports.
-- **Verified.** `bunx tsc --declaration --outDir .medusa/server` in
-  `packages/plugins/stripe-connector` (mirrors the Docker plugin build), then
-  `bunx tsc --noEmit -p apps/api/tsconfig.json` → exit 0; `bun run lint` → exit 0;
-  `bun run build` → 19/19 tasks pass.
-- **Owed / next.** None.
+
+**2. Boot — `TypeError: {} is not iterable` in `@medusajs/modules-sdk` `load-internal.js:231`**
+- **Cause.** `medusa-config.ts` resolves `@mercurjs/payout-local/providers/local`, and
+  the package exports map `./providers/* → .medusa/server/src/providers/*.js` points
+  that specifier at `providers/local.js` — which only exported the class. The
+  `ModuleProvider(...)` definition (the `{ module, services, loaders }` object Medusa
+  iterates) lived solely in `providers/index.ts`, so the loader fell through to
+  `loadedProvider_.services ?? loadedProvider_`, got the bare namespace object and
+  threw while iterating. The API crash-looped right after `Running migrations...`.
+- **Landed** (`3f1d54fba`). `providers/local.ts` now default-exports
+  `ModuleProvider(MercurModules.PAYOUT, { services: [LocalPayoutProvider] })`;
+  `providers/index.ts` re-exports it. New unit test in
+  `local-provider.unit.spec.ts` pins the export shape (`module`, `services`).
+
+**Verified**
+- Local: `packages/plugins/payout-local` jest 11/11 (new case included);
+  `bun run lint` → exit 0; `bun run build` → 19/19.
+  A resolve probe of every configured provider now yields `{module, services,
+  loaders}` with `services: 1` — before the fix `providers/local` yielded the bare
+  namespace (`isIterable: false`), which is the exact crash.
+- Deploy `8MMGk3UgzGBOfN_DcijXE` → `done`, `Docker Compose Deployed: ✅`.
+  `fashionpy-…-api-1` and `…-storefront-1` **Up … (healthy)** (they were
+  crash-looping before); `/health` → `OK` on `:9001`; **0** `level=error` log lines
+  in the first 15 min of boot (previously one `{} is not iterable` every ~20s).
+- Public: `https://fashionpy.com` → 200, `https://admin.fashionpy.com` → 200,
+  `https://partner.fashionpy.com` → 200, `/dashboard/` → 200, `/seller/` → 200.
+  `GET /store/products?limit=2` with the publishable key returns real product rows.
+  (Without the key it 400s with the expected `Publishable API key required` guard.)
+
+- **Owed / next.** `claude-progress.md` is committed but **not pushed** — a push
+  triggers another full Dokploy rebuild for a docs-only change. Push it whenever a
+  real code change next goes out. `scripts/deploy.sh` targets a different host
+  (`root@167.233.17.178`, instances new.mercur.dev / platform.mercurjs.com); the
+  available keys (`carezii_deploy`) only authenticate the Dokploy host, so that
+  path was not exercised today.
+
 
 ## Definition Of Done
 
