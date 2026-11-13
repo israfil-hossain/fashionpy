@@ -2,7 +2,7 @@ import { ExecArgs } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { MercurModules, PayoutStatus } from "@mercurjs/types"
 import { getStripeClient } from "@mercurjs/stripe-connector-plugin/lib/stripe-client"
-import { STRIPE_CONNECTOR_MODULE } from "@mercurjs/stripe-connector-plugin/types"
+import { resolveConnector } from "@mercurjs/stripe-connector-plugin/utils/payout-module"
 
 import { requireStripeTestKey } from "./utils/stripe-test-key"
 
@@ -37,7 +37,7 @@ export default async function checkStripeWebhooks({ container }: ExecArgs) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
   const query = container.resolve(ContainerRegistrationKeys.QUERY)
   const payoutService = container.resolve(MercurModules.PAYOUT)
-  const connector = container.resolve(STRIPE_CONNECTOR_MODULE)
+  const connector = resolveConnector(container)
 
   const stripe = getStripeClient(requireStripeTestKey())
 

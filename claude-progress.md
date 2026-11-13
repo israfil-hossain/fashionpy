@@ -848,6 +848,23 @@ how it was verified, what's owed/next. Move durable facts into
   has a pre-existing `jiti` version failure unrelated to these changes.
 - **Owed / next.** None — GA loads by default even without env var configured.
 
+### Session: 2026-11-13 -- Fix Docker `medusa build` TS18046 errors
+
+- **Goal.** Unblock the API image build (`apps/api/Dockerfile` → `bunx medusa build`)
+  which failed with `TS18046: 'connector' is of type 'unknown'`.
+- **Cause.** `apps/api/src/scripts/{check-stripe-webhooks,simulate-stripe-payouts}.ts`
+  resolved the connector with `container.resolve(STRIPE_CONNECTOR_MODULE)` — a plain
+  string key, so `resolve` returns `unknown`.
+- **Landed.** Both scripts now use `resolveConnector(container)` from
+  `@mercurjs/stripe-connector-plugin/utils/payout-module` (the helper
+  `stripe-scenarios.ts` already used), typed as `StripeConnectorModuleService`.
+  Dropped the now-unused `STRIPE_CONNECTOR_MODULE` imports.
+- **Verified.** `bunx tsc --declaration --outDir .medusa/server` in
+  `packages/plugins/stripe-connector` (mirrors the Docker plugin build), then
+  `bunx tsc --noEmit -p apps/api/tsconfig.json` → exit 0; `bun run lint` → exit 0;
+  `bun run build` → 19/19 tasks pass.
+- **Owed / next.** None.
+
 ## Definition Of Done
 
 A change is done only when:

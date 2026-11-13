@@ -19,7 +19,8 @@ import {
 } from "@mercurjs/core/workflows"
 import { MercurModules } from "@mercurjs/types"
 import { getStripeClient } from "@mercurjs/stripe-connector-plugin/lib/stripe-client"
-import { AdjustmentType, JobTrigger, STRIPE_CONNECTOR_MODULE } from "@mercurjs/stripe-connector-plugin/types"
+import { AdjustmentType, JobTrigger } from "@mercurjs/stripe-connector-plugin/types"
+import { resolveConnector } from "@mercurjs/stripe-connector-plugin/utils/payout-module"
 import { runJob } from "@mercurjs/stripe-connector-plugin/utils/run-job"
 import { jobWorkflow } from "@mercurjs/stripe-connector-plugin/workflows/jobs"
 
@@ -306,7 +307,7 @@ export default async function simulateStripePayouts({ container }: ExecArgs) {
   await run("payout-process-reversals", { order_id: order.id })
 
   // 9. operator adjustments, netted by the settlement
-  const connector = container.resolve(STRIPE_CONNECTOR_MODULE)
+  const connector = resolveConnector(container)
   if (!SKIP_ADJUSTMENTS) {
     await connector.createAdjustments([
       { account_id: seller.payout_account.id, type: AdjustmentType.EXTRA_CREDIT, amount: 15, currency_code: region.currency_code, reason: "Simulated goodwill credit" },
