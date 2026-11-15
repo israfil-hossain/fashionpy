@@ -1,5 +1,11 @@
 import { ProductListingSkeleton } from "@/components/organisms/ProductListingSkeleton/ProductListingSkeleton"
-import { getCategoryByHandle, collectCategorySubtreeIds } from "@/lib/data/categories"
+import {
+  getCategoryByHandle,
+  collectCategorySubtreeIds,
+  listAllCategories,
+} from "@/lib/data/categories"
+import { getStudioRailKey } from "@/const/studio-rail"
+import { StudioRail } from "@/components/sections/StudioRail/StudioRail"
 import { Suspense } from "react"
 
 import type { Metadata } from "next"
@@ -103,6 +109,15 @@ async function Category({
   // product in its sub-categories, not just products attached to the parent.
   const categoryIds = await collectCategorySubtreeIds(category)
 
+  // Clothing categories (Men/Women/Baby, incl. descendants) also get the
+  // Studio Rail showcase above the listing; everything else renders nothing.
+  let studioRailKey: string | null = null
+  try {
+    studioRailKey = getStudioRailKey(category, await listAllCategories())
+  } catch {
+    studioRailKey = null
+  }
+
   const breadcrumbsItems = [
     {
       path: categoryHandle,
@@ -160,6 +175,12 @@ async function Category({
       </div>
 
       <h1 className="heading-xl uppercase">{category.name}</h1>
+
+      {studioRailKey && (
+        <div className="my-6">
+          <StudioRail locale={locale} activeKey={studioRailKey} />
+        </div>
+      )}
 
       <SearchProductsListing
         category_id={categoryIds}

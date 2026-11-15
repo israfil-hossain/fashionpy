@@ -86,6 +86,19 @@ export const listCategoryTree = async (): Promise<CategoryTreeNode[]> => {
   return buildCategoryTree(all);
 };
 
+/**
+ * Flat list of every category (id, handle, name, ancestry) used by the Studio
+ * Rail to resolve its Men/Women/Baby tabs and to gate category pages.
+ */
+export const listAllCategories = async (): Promise<
+  HttpTypes.StoreProductCategory[]
+> => {
+  const flatten = (nodes: CategoryTreeNode[]): HttpTypes.StoreProductCategory[] =>
+    nodes.flatMap((node) => [node, ...flatten(node.category_children)]);
+
+  return flatten(await listCategoryTree());
+};
+
 export const getCategoryByHandle = async (categoryHandle: string) => {
   return (sdk.store.productCategories
     .query({

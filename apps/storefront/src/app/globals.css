@@ -213,3 +213,347 @@ button:disabled svg path {
 .nav-brand nav > div > a.border-b {
   border-color: #ffffff;
 }
+
+/* Studio Rail — clothing rack showcase */
+.studio-rail {
+  --rail-y: 12px;
+  --track-pad: 34px;
+  --garment-w: 210px;
+  --rail-tilt: 0deg;
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f2eee6;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.studio-rail__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 26px 26px 6px;
+}
+
+.studio-rail__subline {
+  @apply text-md text-secondary;
+  margin-top: 4px;
+}
+
+.studio-rail__tabs {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.studio-rail__tab {
+  @apply label-lg;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0 0 6px;
+  cursor: pointer;
+  color: rgba(var(--content-secondary));
+  white-space: nowrap;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.studio-rail__tab:hover {
+  color: rgba(var(--content-primary));
+}
+
+.studio-rail__tab[data-active="true"] {
+  color: rgba(var(--content-primary));
+  border-bottom-color: rgb(var(--brand-500));
+}
+
+.studio-rail__stage {
+  position: relative;
+  padding-bottom: 22px;
+}
+
+.studio-rail__stage::before,
+.studio-rail__stage::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 72px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.studio-rail__stage::before {
+  left: 0;
+  background: linear-gradient(90deg, #f2eee6 12%, rgba(242, 238, 230, 0));
+}
+
+.studio-rail__stage::after {
+  right: 0;
+  background: linear-gradient(270deg, #f2eee6 12%, rgba(242, 238, 230, 0));
+}
+
+.studio-rail__bar {
+  position: absolute;
+  top: calc(var(--rail-y) - 3px);
+  left: 0;
+  right: 0;
+  height: 6px;
+  z-index: 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    #fbfbf9 0%,
+    #c3c3bb 40%,
+    #77776f 56%,
+    #dcdcd5 100%
+  );
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.studio-rail__viewport {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.studio-rail__viewport:focus-visible {
+  outline: 2px solid rgb(var(--brand-500));
+  outline-offset: -2px;
+}
+
+.studio-rail__track {
+  display: flex;
+  align-items: flex-start;
+  margin: 0;
+  padding-top: var(--track-pad);
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  list-style: none;
+}
+
+.studio-rail__slide {
+  flex: 0 0 auto;
+  padding: 0 11px;
+}
+
+.studio-rail__slide[data-selected="true"] {
+  --rail-scale: 1.12;
+}
+
+.studio-rail__link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.studio-rail__tilt {
+  transform: rotate(var(--rail-tilt)) scale(var(--rail-scale, 1));
+  transform-origin: 50% calc(var(--rail-y) - var(--track-pad));
+  transition: transform 0.45s cubic-bezier(0.22, 0.8, 0.24, 1);
+  will-change: transform;
+}
+
+.studio-rail__sway {
+  position: relative;
+  padding-top: calc(20px + var(--hang-step, 0px));
+  transform-origin: 50% calc(var(--rail-y) - var(--track-pad));
+  animation: studio-rail-sway 6.5s ease-in-out infinite;
+  animation-delay: var(--sway-delay, 0s);
+  will-change: transform;
+}
+
+.studio-rail__hanger {
+  position: absolute;
+  top: calc(var(--rail-y) - var(--track-pad) - 11px);
+  left: 0;
+  width: var(--garment-w);
+  height: auto;
+  z-index: 2;
+}
+
+.studio-rail__garment {
+  position: relative;
+  z-index: 1;
+  width: var(--garment-w);
+  height: var(--garment-w);
+  margin: 0 auto;
+  background-color: #f2eee6;
+}
+
+.studio-rail__image {
+  object-fit: contain;
+  object-position: center;
+  filter: contrast(1.25) brightness(1.1);
+  mix-blend-mode: multiply;
+}
+
+.studio-rail__shadow {
+  width: 70%;
+  height: 18px;
+  margin: 12px auto 0;
+  background: radial-gradient(
+    closest-side,
+    rgba(35, 28, 18, 0.36),
+    rgba(35, 28, 18, 0) 75%
+  );
+  filter: blur(4px);
+}
+
+.studio-rail__caption {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  height: 84px;
+  margin-top: 4px;
+  padding: 0 4px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.studio-rail__slide[data-selected="true"] .studio-rail__caption,
+.studio-rail__slide:hover .studio-rail__caption,
+.studio-rail__slide:focus-within .studio-rail__caption {
+  opacity: 1;
+}
+
+.studio-rail__caption-title {
+  @apply text-[14px] leading-[22px] font-medium;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-rail__caption-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.studio-rail__caption-original {
+  color: rgba(var(--content-secondary));
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.studio-rail__caption-cta {
+  @apply text-[11px] uppercase tracking-[0.12em] font-medium;
+  color: rgb(var(--brand-500));
+  margin-top: 4px;
+}
+
+.studio-rail__floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 96px;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    65% 100% at 50% 100%,
+    rgba(58, 48, 32, 0.16) 0%,
+    rgba(58, 48, 32, 0) 72%
+  );
+}
+
+.studio-rail__arrow {
+  position: absolute;
+  top: 38%;
+  z-index: 3;
+  display: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.studio-rail__arrow:hover {
+  background: #ffffff;
+  transform: scale(1.06);
+}
+
+.studio-rail__arrow--prev {
+  left: 14px;
+}
+
+.studio-rail__arrow--next {
+  right: 14px;
+}
+
+@media (min-width: 768px) {
+  .studio-rail__arrow {
+    display: grid;
+  }
+}
+
+@media (max-width: 767px) {
+  .studio-rail {
+    --garment-w: 158px;
+    --track-pad: 26px;
+    --rail-y: 10px;
+  }
+
+  .studio-rail__header {
+    padding: 20px 16px 4px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .studio-rail__sway {
+    padding-top: calc(16px + var(--hang-step, 0px));
+  }
+
+  .studio-rail__caption {
+    height: 76px;
+  }
+
+  .studio-rail__stage {
+    padding-bottom: 14px;
+  }
+
+  .studio-rail__stage::before,
+  .studio-rail__stage::after {
+    width: 36px;
+  }
+}
+
+@keyframes studio-rail-sway {
+  0%,
+  100% {
+    transform: rotate(-1.3deg);
+  }
+  50% {
+    transform: rotate(1.3deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-rail__sway {
+    animation: none;
+  }
+
+  .studio-rail__tilt {
+    transition: none;
+  }
+}

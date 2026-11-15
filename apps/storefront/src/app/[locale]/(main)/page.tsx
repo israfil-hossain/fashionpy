@@ -10,6 +10,7 @@ import { CollectionSliderSection } from '@/components/sections/CollectionSlider/
 import { CompanyBannerSlot } from '@/components/sections/CompanyBanner/CompanyBannerSlot'
 import { OfferPriceSection } from '@/components/sections/OfferPrice/OfferPriceSection'
 import { ShopCollectionBanners } from '@/components/sections/ShopCollectionBanners/ShopCollectionBanners'
+import { StudioRail } from '@/components/sections/StudioRail/StudioRail'
 
 import type { Metadata } from "next"
 import { getBaseUrl } from "@/lib/helpers/base-url"
@@ -146,6 +147,9 @@ export default async function Home({
       </div>
       <div className="px-4 pt-5 lg:px-16">
         <ShopCollectionBanners />
+      </div>
+      <div className="px-4 pt-5 lg:px-16">
+        <StudioRail locale={locale} />
       </div>
       <div className="space-y-5 px-4 pt-5 lg:px-16">
         <CompanyBannerSlot slot="company_1" />
