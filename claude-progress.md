@@ -23,8 +23,9 @@ session detail aggressively. The per-spec source of truth lives in
   `packages/core/src/api/store/products/validators.ts` accepts `country_code`
   again (it was dropped vs vanilla Medusa 2.22, breaking every storefront
   product fetch). Package rebuilt with `bun run build` in `packages/core`.
-  (Both that fix and the Studio Rail notes are still uncommitted working-tree
-  changes carried from the 2026-11-14 session.)
+  (Committed and pushed to `main` on 2026-11-15. The legacy root-src
+  `fashionpy` checkout has a disjoint history and cannot push to this remote —
+  its identical Studio Rail copy stays committed locally only.)
 
 ## Session — Home-page promo code cards (2026-11-15), branch `feat/storefront-home-promo-cards`
 
