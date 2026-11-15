@@ -7,7 +7,7 @@ session detail aggressively. The per-spec source of truth lives in
 ## Current Verified State
 
 - **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`
-- **Current branch**: `main`
+- **Current branch**: `feat/storefront-home-promo-cards`
 - **Current version**: `2.2.0-rc.1`
 - **Standard startup path**: `bun install && bun run dev`
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
@@ -18,6 +18,83 @@ session detail aggressively. The per-spec source of truth lives in
   `jest-transformer` dist fixture) — unrelated to feature work; integration
   suites must be run per-suite on this 8 GB box (multi-suite batches exceed
   the specs' hook timeouts under load).
+- **Storefront (sibling repo `../fashionpy`)**: Studio Rail section shipped for
+  clothing categories only (Men/Women/Baby gate). Supporting fix in this repo:
+  `packages/core/src/api/store/products/validators.ts` accepts `country_code`
+  again (it was dropped vs vanilla Medusa 2.22, breaking every storefront
+  product fetch). Package rebuilt with `bun run build` in `packages/core`.
+  (Both that fix and the Studio Rail notes are still uncommitted working-tree
+  changes carried from the 2026-11-14 session.)
+
+## Session — Home-page promo code cards (2026-11-15), branch `feat/storefront-home-promo-cards`
+
+SPEC-004 (`docs/specs/SPEC-004-home-promo-cards.md`, status `passing`): the
+storefront home page now renders a **Current Offers** section of copyable
+promo-code cards for platform-wide active promotions.
+
+- **New public endpoint** `GET /store/promotions`
+  (`packages/core/src/api/store/promotions/` — route, middleware, query-config,
+  validators; registered in `api/store/middlewares.ts`). Visibility: `status =
+  active`, `is_automatic = false`, non-empty `code`, campaign window valid
+  (post-filter in route — `query.graph` returns `Date` objects, not strings),
+  seller-linked promotions excluded via `$nin` over `promotion_seller` in the
+  middleware (mirrors admin `applyPromotionSellerFilter`). Response is an
+  allowlist — no budget/rules/seller/usage.
+- **Type** `StoreHomePromotion` / `StoreHomePromotionListResponse` in
+  `packages/types/src/http/promotion.ts` (named to avoid the Medusa
+  `StorePromotion` export collision).
+- **Storefront**: `lib/data/promotions.ts` (`listHomePromotions`, catalog
+  cache tag `promotions` added to `cache-tags.ts`), section
+  `components/sections/PromoCodeSection/` + client card
+  `components/organisms/PromoCodeCard/` (click-to-copy + toast, discount label
+  from `application_method` — note Medusa's fixed type is `"fixed"`, not
+  `"fixed_amount"`), wired into the home page between the company banners and
+  the product card block.
+- **Verification**: `bun run lint` exit 0; `bun run build` 19/19 EXIT 0 (had
+  to run at `--concurrency=1` — the box's other work pushed swap to ~17 GB and
+  the default concurrency-21 run stalled in admin tsup DTS for >1 h);
+  `bun run test:integration:http -- promotions/store/active-promotions` 10/10
+  (spec evidence recorded in SPEC-004). Two test-driven fixes along the way:
+  Medusa `PromotionStatus` is `draft|active|inactive` (no `disabled`), and the
+  campaign date comparison needed `Date`-instance support.
+- **Not committed yet** (per repo rule). Spec says: commit only when asked.
+
+## Session — Studio Rail clothing showcase in the fashionpy storefront (2026-11-14), branch `main`
+
+Delivered a hanger-rail showcase ("Studio Rail") in `../fashionpy` (Next.js
+storefront): server section `src/components/sections/StudioRail` preloads 12
+products for each of Men/Women/Baby (config allowlist + ancestor walk in
+`src/const/studio-rail.ts`), client rail `src/components/organisms/StudioRail`
+(embla drag + tabs + velocity tilt + sway keyframes, SVG `HangerFrame`, white-bg
+product photos cut out via `mix-blend-mode: multiply` over a flat studio
+backdrop). Rendered on the homepage and, gated, on category pages — shoes /
+skincare / accessories pages render nothing (verified: rail on `/bd`,
+`/bd/categories/men`; absent on `/bd/categories/sneakers`; 0 console errors).
+
+- **Backend fix (this repo)**: restored `country_code` to
+  `StoreGetProductsParamsFields` — the custom store products route already
+  destructures it, vanilla Medusa 2.22 declares it; only mercur's validator
+  dropped it. Rebuilt `@mercurjs/core`.
+- **Storefront baseline repairs** (pre-existing breakage, needed to verify):
+  added missing `@medusajs/types@2.21.2` dep (166 → 39 tsc errors); seller
+  filter in `src/lib/data/products.ts` no longer drops every product lacking a
+  seller; `cdn.jsdelivr.net` allowed in `next.config.ts` image hosts; Tailwind
+  restored to the working v3 wiring (`tailwindcss@3.4` + `tailwindcss: {}` in
+  `postcss.config.mjs`) — the working tree's `postcss.config.mjs` had been left
+  with `plugins: []` during the Next16/TW4 upgrade WIP, unstyled the whole site.
+- **Security**: `git show HEAD:postcss.config.mjs` (fashionpy repo) still
+  contains an appended obfuscated payload after the legit config — same family
+  as the 2026-11-09 host malware. The working tree copy is clean; needs a
+  commit to get it out of history going forward.
+- **Dev data**: seeded `Men`/`Women`/`Baby` root categories + product links in
+  the local `fashionpy_db` (and the remote dev copy) so the rail has stock;
+  `.env` now carries the publishable key + `NEXT_PUBLIC_DEFAULT_REGION=bd`.
+- **Open**: 39 tsc errors from the half-finished Next16/js-sdk upgrade
+  (`cart.ts`/`customer.ts` `revalidateTag` arity, zod v4 `z.record`, null
+  handling) — pre-existing, untouched; eslint 10 needs a flat config
+  (`yarn lint` = `next lint` is also dead in Next 16); base prices never compute
+  for variants without an offer (`wrapProductVariantsWithOfferPrice` early
+  return), so captions show no price locally.
 
 ## Session — COD production flow: capture on delivery, remittance gate, local payouts (2026-11-12), branch `main`
 
