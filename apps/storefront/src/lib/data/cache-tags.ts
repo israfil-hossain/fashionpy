@@ -21,6 +21,7 @@ export const CACHE_TAGS = {
   store: 'store',
   heroBanners: 'hero-banners',
   blogPosts: 'blog-posts',
+  promotions: 'promotions',
 } as const;
 
 /**

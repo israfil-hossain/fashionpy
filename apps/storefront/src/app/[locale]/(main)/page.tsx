@@ -9,6 +9,7 @@ import { BestDealsSection } from '@/components/sections/BestDealsSection/BestDea
 import { CollectionSliderSection } from '@/components/sections/CollectionSlider/CollectionSliderSection'
 import { CompanyBannerSlot } from '@/components/sections/CompanyBanner/CompanyBannerSlot'
 import { OfferPriceSection } from '@/components/sections/OfferPrice/OfferPriceSection'
+import { PromoCodeSection } from '@/components/sections/PromoCodeSection/PromoCodeSection'
 import { ShopCollectionBanners } from '@/components/sections/ShopCollectionBanners/ShopCollectionBanners'
 import { StudioRail } from '@/components/sections/StudioRail/StudioRail'
 
@@ -155,6 +156,7 @@ export default async function Home({
         <CompanyBannerSlot slot="company_1" />
         <OfferPriceSection />
         <CompanyBannerSlot slot="company_2" />
+        <PromoCodeSection />
       </div>
       <div className="w-full px-4 pb-10 pt-5 lg:px-16">
         <div className="space-y-10 rounded-xl bg-white px-4 py-6 shadow-sm sm:px-6 lg:px-8">
