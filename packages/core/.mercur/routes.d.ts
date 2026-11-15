@@ -756,6 +756,7 @@ export type Routes = {
             };
             readAll: typeof import("../src/api/store/notifications/read-all/route");
         };
+        promotions: typeof import("../src/api/store/promotions/route");
         reviews: typeof import("../src/api/store/reviews/route") & {
             $id: typeof import("../src/api/store/reviews/[id]/route");
         };

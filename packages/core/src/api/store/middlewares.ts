@@ -9,6 +9,7 @@ import { storeOrderGroupsMiddlewares } from "./order-groups/middlewares"
 import { storeProductAttributesMiddlewares } from "./product-attributes/middlewares"
 import { storeProductCategoriesMiddlewares } from "./product-categories/middlewares"
 import { storeProductsMiddlewares } from "./products/middlewares"
+import { storePromotionsMiddlewares } from "./promotions/middlewares"
 import { storeSellersMiddlewares } from "./sellers/middlewares"
 import { storeReviewsMiddlewares } from "./reviews/middlewares"
 import { storeStoreSettingsMiddlewares } from "./store-settings/middlewares"
@@ -26,6 +27,7 @@ export const storeMiddlewares: MiddlewareRoute[] = [
   ...storeProductAttributesMiddlewares,
   ...storeProductCategoriesMiddlewares,
   ...storeProductsMiddlewares,
+  ...storePromotionsMiddlewares,
   ...storeSellersMiddlewares,
   ...storeReviewsMiddlewares,
   ...storeStoreSettingsMiddlewares,

@@ -1,5 +1,32 @@
 import { DeleteResponse, PaginatedResponse, PromotionDTO, PromotionRuleDTO } from "@medusajs/types"
 
+/**
+ * Public home-page projection of a promotion. Intentionally narrower than
+ * `PromotionDTO` — no budget, rules, seller, or usage counters.
+ * Named `StoreHomePromotion` to avoid colliding with Medusa's `StorePromotion`.
+ */
+export type StoreHomePromotion = {
+  id: string
+  code: string
+  type: string
+  is_automatic: boolean
+  application_method?: {
+    value?: number
+    type?: string
+    currency_code?: string | null
+  } | null
+  campaign?: {
+    name?: string
+    description?: string | null
+    starts_at?: string | null
+    ends_at?: string | null
+  } | null
+}
+
+export type StoreHomePromotionListResponse = PaginatedResponse<{
+  promotions: StoreHomePromotion[]
+}>
+
 export type VendorPromotion = PromotionDTO
 
 export type VendorPromotionRule = PromotionRuleDTO
