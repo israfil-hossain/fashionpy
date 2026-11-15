@@ -8,7 +8,9 @@ import {
 } from "../../../helpers/create-admin-user"
 import { createSellerUser } from "../../../helpers/create-seller-user"
 
-jest.setTimeout(60000)
+// The test app (db create + migrations + boot) exceeds 60s on loaded dev
+// machines; other agent sessions routinely hold the load average over 15.
+jest.setTimeout(300000)
 
 const DAY = 24 * 60 * 60 * 1000
 
