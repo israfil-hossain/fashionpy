@@ -7,7 +7,9 @@ session detail aggressively. The per-spec source of truth lives in
 ## Current Verified State
 
 - **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`
-- **Current branch**: `feat/home-layout-editor`
+- **Current branch**: `main` (working tree holds SPEC-006 collection-rank work plus a
+  pre-existing, unrelated admin-storefront feature WIP — `src/api/admin/storefront/`,
+  `ScrollReveal`, `store-settings` — stage carefully before committing)
 - **Current version**: `2.2.0-rc.1`
 - **Standard startup path**: `bun install && bun run dev`
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
@@ -26,6 +28,75 @@ session detail aggressively. The per-spec source of truth lives in
   (Committed and pushed to `main` on 2026-11-15. The legacy root-src
   `fashionpy` checkout has a disjoint history and cannot push to this remote —
   its identical Studio Rail copy stays committed locally only.)
+
+## Session — P0: collection UI + rearrange reliability (2026-11-16), branch `main`
+
+SPEC-006 (`docs/specs/SPEC-006-home-collection-ui.md`, status `passing`): the
+home collection sections are compact/rounded/animated, and the homepage-layout
+"rearrange not showing" report is root-caused with the propagation gap fixed.
+
+- **Rearrange root cause (environment)**: the deployed admin writes the
+  production store row (`store_01M6EJ6…`, `home_layout` saved 2026-11-16 05:52
+  UTC with `studio_rail` moved to index 1) while a localhost storefront on the
+  local API reads a *different* store row with no `home_layout` → default order.
+  Live `fashionpy.com` still renders default order because
+  **`api.fashionpy.com` is gateway-404 on every path** (deploy window after
+  today's pushes — check Dokploy); the saved layout itself is intact and the
+  default-order symptom should clear once the API is back (tag TTL 300s).
+- **Propagation fix**: new `POST /admin/storefront/revalidate` (route +
+  `store:edit` middleware + permission map) emits `store.updated` → existing
+  `storefront-cache-revalidate` subscriber → storefront `POST /api/revalidate`
+  (tag `store`); called from `useUpdateStore.onSuccess`. E2E verified:
+  unauth 401 → admin JWT 200 `{"revalidated":true}` → api log
+  `Processing store.updated … 1 subscribers` → storefront `POST /api/revalidate 200` ×2.
+- **Visible fallback**: `retrieveHomeLayout` now `console.warn`s when
+  `store-settings` returns no `home_layout` instead of failing silently.
+- **Collection UI**: slider capped per breakpoint (desktop 248px vs ~443px
+  before), banner row `16/8 → 21/9` (188px vs ~236px), both `rounded-2xl`,
+  shared `ScrollReveal` IntersectionObserver reveal (SSR stays visible,
+  reduced-motion safe). Playwright-measured desktop + mobile (card 279×209,
+  `border-radius: 16px`). Dev DB: 3 collection images flagged `is_banner=true`
+  (Boho Vibes, Sneaker Station, Boots Edit) so the banner row renders locally.
+- **Build trap fixed**: `packages/core` build runs `copy:patches` before `tsc`
+  — a type failure elsewhere previously left `.medusa` without runtime patches
+  and the API refused to boot (hit live during this session, triggered by the
+  in-flight collections TS errors).
+- Gates: oxlint 0, `turbo build --filter=@mercurjs/storefront` 3/3, tsc 0
+  errors in touched files.
+- Open: prod API outage (Dokploy); SPEC-005 live click-through pending once
+  `api.fashionpy.com` recovers.
+
+## Session — Rank-ordered collections, admin + storefront (2026-11-16), branch `main`
+
+SPEC-006 (`docs/specs/SPEC-006-collection-rank.md`, status `passing`): collections now
+sort by a numeric rank — `0` first, `1` second — in the admin list and on the
+storefront.
+
+- **Storage**: `metadata.rank`. `product_collection` has no rank column and Medusa v2
+  won't take one, so `POST /admin/collections[/:id]` accept a top-level `rank`
+  (integer ≥ 0, `null` clears) that the routes fold into `metadata` (Medusa's
+  `mergeMetadata` keeps the rest of the keys). Reads go through
+  `getCollectionRank` (coerces numeric strings written via the metadata JSON editor).
+- **Ordering**: `listCollectionsByRank` (`packages/core/src/api/utils/collection-rank.ts`)
+  fetches every matching id + metadata, sorts in memory (ranked first ascending,
+  unranked last, stable), then loads full rows for the page so count/offset/limit stay
+  correct — `query.graph` can only `order` by root-entity columns. Store passes
+  `-created_at` as `baseOrder`, so collections without a rank keep Medusa's historical
+  store order; admin's default `order` became `rank` (`AdminCollectionsParams`).
+- **Admin UI**: Rank column, `rank` entry in the list sort dropdown, optional Rank
+  number field on the create/edit drawers (`fields.rank` + `collections.rankTooltip`
+  in `en.json`). Store `query-config` lists `rank` as allowed **only** so
+  `?order=rank` clears order validation; the route strips it from `fields` (not
+  selectable).
+- **Storefront**: `lib/data/collections.ts` `listCollections` defaults
+  `order=rank` (slider + Shop by Collection banners pick it up).
+- **Scope note**: the vendor collections list was left untouched — wiring it later is
+  a copy of the admin route's branch.
+- **Verification**: `bun run lint` exit 0; `bun run build` **19/19** (needed
+  `--concurrency=1` — the running storefront dev server held load avg > 40 and a
+  default-concurrency run stalled >15 min); `bun run test:unit collection-rank`
+  **9/9**; `bun run test:integration:http -- collections` **5 suites / 25 tests pass**
+  (317 s, new rank specs + pre-existing media/vendor suites).
 
 ## Session — Home-page promo code cards (2026-11-15), branch `feat/storefront-home-promo-cards`
 
