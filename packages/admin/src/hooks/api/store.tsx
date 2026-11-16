@@ -82,6 +82,13 @@ export const useUpdateStore = (
       });
       queryClient.invalidateQueries({ queryKey: storeQueryKeys.details() });
 
+      // Store metadata (home layout, announcement, nav) drives the storefront's
+      // `store`-tagged cache — tell the backend to emit `store.updated` so the
+      // deployed storefront revalidates within seconds instead of its TTL.
+      sdk.admin.storefront.revalidate.mutate({}).catch(() => {
+        // Best-effort: a revalidation miss only delays propagation to the TTL.
+      });
+
       options?.onSuccess?.(data, variables, context);
     },
     ...options,
