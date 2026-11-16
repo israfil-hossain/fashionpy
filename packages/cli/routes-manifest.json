@@ -318,6 +318,7 @@
   "/admin/stock-locations/:id/fulfillment-providers": "typeof import(\"@medusajs/medusa/api/admin/stock-locations/[id]/fulfillment-providers/route\")",
   "/admin/stock-locations/:id/fulfillment-sets": "typeof import(\"@medusajs/medusa/api/admin/stock-locations/[id]/fulfillment-sets/route\")",
   "/admin/stock-locations/:id/sales-channels": "typeof import(\"@medusajs/medusa/api/admin/stock-locations/[id]/sales-channels/route\")",
+  "/admin/storefront/revalidate": "typeof import(\"@mercurjs/core/api/admin/storefront/revalidate/route\")",
   "/admin/stores": "typeof import(\"@medusajs/medusa/api/admin/stores/route\")",
   "/admin/stores/:id": "typeof import(\"@medusajs/medusa/api/admin/stores/[id]/route\")",
   "/admin/tax-providers": "typeof import(\"@medusajs/medusa/api/admin/tax-providers/route\")",

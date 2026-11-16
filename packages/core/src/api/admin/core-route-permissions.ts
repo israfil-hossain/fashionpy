@@ -62,6 +62,8 @@ export const CORE_ROUTE_PERMISSIONS: CoreRoutePermission[] = [
   // The shell and most forms read the store (currencies, default region and sales channel).
   { pattern: /^\/admin\/stores(\/[^/]+)?$/, key: "store", methods: { GET: undefined } },
   { pattern: /^\/admin\/stores(\/|$)/, key: "store" },
+  // Store-level storefront cache busting (home layout, announcement, nav).
+  { pattern: /^\/admin\/storefront(\/|$)/, key: "store" },
   { pattern: /^\/admin\/invites(\/|$)/, key: "users" },
   // Reading and editing your own profile needs no users permission.
   { pattern: /^\/admin\/users\/me$/, key: "users", methods: { GET: undefined, POST: undefined } },

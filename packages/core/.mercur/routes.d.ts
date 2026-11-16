@@ -583,6 +583,9 @@ export type Routes = {
                 respond: typeof import("../src/api/admin/reviews/[id]/respond/route");
             };
         };
+        storefront: {
+            revalidate: typeof import("../src/api/admin/storefront/revalidate/route");
+        };
     };
     auth: {
         $actorType: {

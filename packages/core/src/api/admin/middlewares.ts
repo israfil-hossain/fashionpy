@@ -4,6 +4,7 @@ import { validateAndTransformQuery } from "@medusajs/framework"
 import { resolvePermissionsMiddleware } from "../utils"
 import { enforceCoreRoutePermissions } from "./core-route-permissions"
 import { adminHeroBannersMiddlewares } from "./hero-banners/middlewares"
+import { adminStorefrontMiddlewares } from "./storefront/middlewares"
 import { adminBlogPostsMiddlewares } from "./blog-posts/middlewares"
 import { adminBlogCategoriesMiddlewares } from "./blog-categories/middlewares"
 import { adminOrderGroupsMiddlewares } from "./order-groups/middlewares"
@@ -49,6 +50,7 @@ export const adminMiddlewares: MiddlewareRoute[] = [
     ],
   },
   ...adminHeroBannersMiddlewares,
+  ...adminStorefrontMiddlewares,
   ...adminBlogPostsMiddlewares,
   ...adminBlogCategoriesMiddlewares,
   ...adminOrderGroupsMiddlewares,
