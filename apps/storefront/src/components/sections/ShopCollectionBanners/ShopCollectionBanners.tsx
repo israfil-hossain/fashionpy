@@ -19,20 +19,26 @@ type CollectionBanner = {
  * Wide collection cards on the homepage, sourced from the product collections
  * themselves (title, handle, `is_banner` artwork) so no separate banner has to
  * be created in the admin banner page.
+ *
+ * Only collections with an actual `is_banner`-flagged artwork render here —
+ * the "Shop by Collection" slider already shows every collection, so
+ * unfiltered listings duplicated the same rows in two sections.
  */
 export const ShopCollectionBanners = async () => {
   const { collections } = await listCollections({
     fields: `id,title,handle,${COLLECTION_MEDIA_FIELDS}`,
   })
 
-  const banners: CollectionBanner[] = (collections as CollectionWithMedia[]).map(
-    (collection) => ({
+  const banners: CollectionBanner[] = (collections as CollectionWithMedia[])
+    .filter((collection) =>
+      (collection.media_images ?? []).some((image) => image.url && image.is_banner)
+    )
+    .map((collection) => ({
       id: collection.id,
       title: collection.title,
       href: `/collections/${collection.handle}`,
       image: pickCollectionImage(collection, "banner"),
-    })
-  )
+    }))
 
   if (!banners.length) return null
 

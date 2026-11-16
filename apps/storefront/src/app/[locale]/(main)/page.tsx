@@ -1,23 +1,9 @@
-import { BannerSection } from '@/components/sections/BannerSection/BannerSection'
-import { BlogSection } from '@/components/sections/BlogSection/BlogSection'
-import { HeroCarousel } from '@/components/sections/HeroCarousel/HeroCarousel'
-import { TrustBarSection } from '@/components/sections/TrustBar/TrustBarSection'
-import { CategoryStrip } from '@/components/sections/CategoryStrip/CategoryStrip'
-import { TabbedProductGrid } from '@/components/sections/TabbedProductGrid/TabbedProductGrid'
-import { NewArrivalsSection } from '@/components/sections/NewArrivalsSection/NewArrivalsSection'
-import { BestDealsSection } from '@/components/sections/BestDealsSection/BestDealsSection'
-import { CollectionSliderSection } from '@/components/sections/CollectionSlider/CollectionSliderSection'
-import { CompanyBannerSlot } from '@/components/sections/CompanyBanner/CompanyBannerSlot'
-import { OfferPriceSection } from '@/components/sections/OfferPrice/OfferPriceSection'
-import { PromoCodeSection } from '@/components/sections/PromoCodeSection/PromoCodeSection'
-import { ShopCollectionBanners } from '@/components/sections/ShopCollectionBanners/ShopCollectionBanners'
-import { StudioRail } from '@/components/sections/StudioRail/StudioRail'
+import { HomeSections } from '@/components/sections/HomeSections/HomeSections'
 
 import type { Metadata } from "next"
 import { getBaseUrl } from "@/lib/helpers/base-url"
 import Script from "next/script"
 import { listRegions } from "@/lib/data/regions"
-import { listHeroBanners } from "@/lib/data/hero-banners"
 import {
   buildHreflangAlternates,
   getStorefrontLocales,
@@ -105,8 +91,6 @@ export default async function Home({
     process.env.NEXT_PUBLIC_SITE_NAME ||
     "FashionPy - Marketplace Storefront"
 
-  const heroSlides = await listHeroBanners()
-
   return (
     <main className="min-h-screen bg-[#FFF5F8] text-primary">
       <Script
@@ -136,37 +120,7 @@ export default async function Home({
         }}
       />
 
-      <HeroCarousel slides={heroSlides} />
-      <div className="pt-3">
-        <CategoryStrip />
-      </div>
-      <div className="px-4 pt-3 lg:px-16">
-        <TrustBarSection />
-      </div>
-      <div className="px-4 pt-5 lg:px-16">
-        <CollectionSliderSection />
-      </div>
-      <div className="px-4 pt-5 lg:px-16">
-        <ShopCollectionBanners />
-      </div>
-      <div className="px-4 pt-5 lg:px-16">
-        <StudioRail locale={locale} />
-      </div>
-      <div className="space-y-5 px-4 pt-5 lg:px-16">
-        <CompanyBannerSlot slot="company_1" />
-        <OfferPriceSection />
-        <CompanyBannerSlot slot="company_2" />
-        <PromoCodeSection />
-      </div>
-      <div className="w-full px-4 pb-10 pt-5 lg:px-16">
-        <div className="space-y-10 rounded-xl bg-white px-4 py-6 shadow-sm sm:px-6 lg:px-8">
-          <NewArrivalsSection locale={locale} />
-          <BestDealsSection locale={locale} />
-          <TabbedProductGrid locale={locale} />
-          <BannerSection />
-          <BlogSection locale={locale} />
-        </div>
-      </div>
+      <HomeSections locale={locale} />
     </main>
   )
 }
