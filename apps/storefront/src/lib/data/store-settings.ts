@@ -32,7 +32,15 @@ export const retrieveHomeLayout = async (): Promise<HomeLayoutSection[]> => {
     const { data } = await sdk.store.storeSettings.query({
       fetchOptions: getCatalogFetchOptions(CACHE_TAGS.store),
     } as never);
-    return normalizeHomeLayout((data as { home_layout?: unknown })?.home_layout ?? null);
+    const homeLayout = (data as { home_layout?: unknown })?.home_layout ?? null;
+
+    if (!homeLayout) {
+      console.warn(
+        "[store-settings] no home_layout in store settings response — rendering the default section order (nothing saved yet, or the settings endpoint returned an empty projection)"
+      );
+    }
+
+    return normalizeHomeLayout(homeLayout);
   } catch (error) {
     console.error('[store-settings] failed to fetch home layout:', error);
     return normalizeHomeLayout(null);

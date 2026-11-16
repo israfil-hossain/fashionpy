@@ -5,6 +5,7 @@ import { useRef } from "react"
 
 import { ArrowLeftIcon, ArrowRightIcon } from "@/icons"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
+import { ScrollReveal } from "@/components/molecules/ScrollReveal/ScrollReveal"
 
 export type CollectionSlide = {
   id: string
@@ -52,36 +53,41 @@ export const CollectionSliderClient = ({ slides }: { slides: CollectionSlide[] }
         ref={trackRef}
         className="no-scrollbar flex gap-5 overflow-x-auto scroll-smooth pb-1"
       >
-        {slides.map((slide) => (
-          <LocalizedClientLink
+        {slides.map((slide, index) => (
+          <ScrollReveal
             key={slide.id}
-            href={`/collections/${slide.handle}`}
-            className="group w-[78%] shrink-0 sm:w-[60%]"
+            delay={Math.min(index, 4) * 0.08}
+            className="w-[78%] shrink-0 sm:w-[52%] lg:w-[34%] xl:w-[26%]"
           >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100 md:aspect-[16/9]">
-              {slide.image ? (
-                <Image
-                  src={slide.image}
-                  alt={slide.title}
-                  fill
-                  sizes="(min-width: 640px) 60vw, 78vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--brand-100))] to-[#ffe4f0]" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-4 md:p-6">
-                <h3 className="text-lg font-bold text-white md:text-2xl">
-                  {slide.title}
-                </h3>
-                <span className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-white/90">
-                  Shop Now
-                  <ArrowRightIcon size={14} />
-                </span>
+            <LocalizedClientLink
+              href={`/collections/${slide.handle}`}
+              className="group block"
+            >
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100 sm:aspect-[16/9]">
+                {slide.image ? (
+                  <Image
+                    src={slide.image}
+                    alt={slide.title}
+                    fill
+                    sizes="(min-width: 1024px) 34vw, (min-width: 640px) 52vw, 78vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--brand-100))] to-[#ffe4f0]" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-4 md:p-5">
+                  <h3 className="text-base font-bold text-white md:text-xl">
+                    {slide.title}
+                  </h3>
+                  <span className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-white/90">
+                    Shop Now
+                    <ArrowRightIcon size={14} />
+                  </span>
+                </div>
               </div>
-            </div>
-          </LocalizedClientLink>
+            </LocalizedClientLink>
+          </ScrollReveal>
         ))}
       </div>
     </section>

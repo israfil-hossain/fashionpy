@@ -554,6 +554,32 @@ button:disabled svg path {
   }
 }
 
+/* Scroll reveal — armed only after hydration so no-JS output stays visible */
+.studio-reveal {
+  opacity: 1;
+}
+
+html[data-reveal-ready] .studio-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.55s ease var(--reveal-delay, 0s),
+    transform 0.55s cubic-bezier(0.22, 0.8, 0.24, 1) var(--reveal-delay, 0s);
+}
+
+html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-reveal-ready] .studio-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 @keyframes studio-rail-sway {
   0%,
   100% {
