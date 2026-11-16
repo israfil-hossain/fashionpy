@@ -21,6 +21,9 @@ export * from "./courier"
 // Offer types
 export * from "./offer"
 
+// Home-page section layout contract (admin editor + storefront renderer)
+export * from "./home-layout"
+
 // Promotion cost types
 export * from "./promotion-cost"
 
