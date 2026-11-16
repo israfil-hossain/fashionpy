@@ -31,7 +31,7 @@ session detail aggressively. The per-spec source of truth lives in
 
 ## Session — P0: collection UI + rearrange reliability (2026-11-16), branch `main`
 
-SPEC-006 (`docs/specs/SPEC-006-home-collection-ui.md`, status `passing`): the
+SPEC-007 (`docs/specs/SPEC-007-home-collection-ui.md`, status `passing`): the
 home collection sections are compact/rounded/animated, and the homepage-layout
 "rearrange not showing" report is root-caused with the propagation gap fixed.
 
