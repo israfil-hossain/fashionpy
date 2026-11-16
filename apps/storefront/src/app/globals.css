@@ -219,13 +219,14 @@ button:disabled svg path {
   --rail-y: 12px;
   --track-pad: 34px;
   --garment-w: 210px;
+  --hanger-w: var(--garment-w);
   --rail-tilt: 0deg;
   position: relative;
   width: 100%;
   border-radius: 16px;
   overflow: hidden;
-  background: #f2eee6;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .studio-rail__header {
@@ -290,12 +291,12 @@ button:disabled svg path {
 
 .studio-rail__stage::before {
   left: 0;
-  background: linear-gradient(90deg, #f2eee6 12%, rgba(242, 238, 230, 0));
+  background: linear-gradient(90deg, #ffffff 12%, rgba(255, 255, 255, 0));
 }
 
 .studio-rail__stage::after {
   right: 0;
-  background: linear-gradient(270deg, #f2eee6 12%, rgba(242, 238, 230, 0));
+  background: linear-gradient(270deg, #ffffff 12%, rgba(255, 255, 255, 0));
 }
 
 .studio-rail__bar {
@@ -371,9 +372,11 @@ button:disabled svg path {
 
 .studio-rail__hanger {
   position: absolute;
-  top: calc(var(--rail-y) - var(--track-pad) - 11px);
-  left: 0;
-  width: var(--garment-w);
+  /* keep the hook loop centred on the rail at any hanger width: the loop sits
+     11px down in a 210-unit-wide viewBox, so scale that offset too */
+  top: calc(var(--rail-y) - var(--track-pad) - 11 * var(--hanger-w) / 210);
+  left: calc((var(--garment-w) - var(--hanger-w)) / 2);
+  width: var(--hanger-w);
   height: auto;
   z-index: 2;
 }
@@ -384,7 +387,7 @@ button:disabled svg path {
   width: var(--garment-w);
   height: var(--garment-w);
   margin: 0 auto;
-  background-color: #f2eee6;
+  background-color: #ffffff;
 }
 
 .studio-rail__image {
@@ -509,6 +512,9 @@ button:disabled svg path {
 @media (max-width: 767px) {
   .studio-rail {
     --garment-w: 158px;
+    /* chunkier hanger on small screens — at 0.75× scale the hook ring and
+       wire turn into an unreadable blob otherwise */
+    --hanger-w: calc(var(--garment-w) * 1.16);
     --track-pad: 26px;
     --rail-y: 10px;
   }
@@ -521,7 +527,17 @@ button:disabled svg path {
   }
 
   .studio-rail__sway {
-    padding-top: calc(16px + var(--hang-step, 0px));
+    padding-top: calc(10px + var(--hang-step, 0px));
+  }
+
+  /* cover fills the frame and trims the studio photo's side margins, so the
+     product reads larger and sits closer under the hanger on small screens */
+  .studio-rail__garment {
+    height: calc(var(--garment-w) * 1.12);
+  }
+
+  .studio-rail__image {
+    object-fit: cover;
   }
 
   .studio-rail__caption {
