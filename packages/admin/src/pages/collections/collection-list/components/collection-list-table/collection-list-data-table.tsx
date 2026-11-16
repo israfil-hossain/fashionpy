@@ -55,6 +55,8 @@ export const CollectionListDataTable = () => {
       count={count}
       filters={filters}
       orderBy={[
+        // rank lives in metadata, so the sort key is not on the entity type.
+        { key: "rank" as keyof HttpTypes.AdminCollection, label: t("fields.rank") },
         { key: "title", label: t("fields.title") },
         { key: "handle", label: t("fields.handle") },
         { key: "created_at", label: t("fields.createdAt") },

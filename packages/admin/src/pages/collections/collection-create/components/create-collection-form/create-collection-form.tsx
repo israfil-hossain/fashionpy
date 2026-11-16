@@ -38,6 +38,7 @@ const CreateCollectionSchema = zod.object({
     .string()
     .min(1, { message: i18n.t("collections.validation.titleRequired") }),
   handle: zod.string().optional(),
+  rank: zod.number().int().min(0).optional(),
   media: zod.array(CollectionMediaSchema).optional(),
   icon: CollectionIconSchema.nullable().optional(),
 })
@@ -50,6 +51,7 @@ export const CreateCollectionForm = () => {
     defaultValues: {
       title: "",
       handle: "",
+      rank: undefined,
       media: [],
       icon: null,
     },
@@ -129,6 +131,40 @@ export const CreateCollectionForm = () => {
                         <HandleInput {...field} data-testid="collection-create-form-handle-input" />
                       </Form.Control>
                       <Form.ErrorMessage data-testid="collection-create-form-handle-error" />
+                    </Form.Item>
+                  )
+                }}
+              />
+              <Form.Field
+                control={form.control}
+                name="rank"
+                render={({ field }) => {
+                  return (
+                    <Form.Item data-testid="collection-create-form-rank-item">
+                      <Form.Label
+                        optional
+                        tooltip={t("collections.rankTooltip")}
+                        data-testid="collection-create-form-rank-label"
+                      >
+                        {t("fields.rank")}
+                      </Form.Label>
+                      <Form.Control data-testid="collection-create-form-rank-control">
+                        <Input
+                          {...field}
+                          type="number"
+                          min={0}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === ""
+                                ? undefined
+                                : Number(e.target.value)
+                            )
+                          }
+                          data-testid="collection-create-form-rank-input"
+                        />
+                      </Form.Control>
+                      <Form.ErrorMessage data-testid="collection-create-form-rank-error" />
                     </Form.Item>
                   )
                 }}

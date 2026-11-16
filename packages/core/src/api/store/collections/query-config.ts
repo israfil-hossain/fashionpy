@@ -26,6 +26,9 @@ export const allowedStoreCollectionExtraFields = [
   "products",
   "metadata",
   "deleted_at",
+  // Not selectable — only exists so `?order=rank` passes the order-field
+  // validation; the route strips it from requested fields.
+  "rank",
   ...prefixAllowedFields("products", defaultStoreProductFields),
 ]
 

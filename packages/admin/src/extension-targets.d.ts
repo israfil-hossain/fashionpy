@@ -283,7 +283,7 @@ declare module "@mercurjs/dashboard-sdk" {
       displayZones: "general" | "icon" | "media" | "products"
       displayFieldIds: "handle" | "title"
       listZones: "list" | "products"
-      listColumnIds: "categories" | "collection" | "handle" | "price" | "product" | "products" | "status" | "title" | "variants"
+      listColumnIds: "categories" | "collection" | "handle" | "price" | "product" | "products" | "rank" | "status" | "title" | "variants"
     }
     "customer": {
       formZones: "edit"

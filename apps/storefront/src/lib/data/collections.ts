@@ -21,6 +21,7 @@ export const listCollections = async (
 ): Promise<{ collections: HttpTypes.StoreCollection[]; count: number }> => {
   queryParams.limit = queryParams.limit || "100"
   queryParams.offset = queryParams.offset || "0"
+  queryParams.order = queryParams.order || "rank"
 
   return (sdk.store.collections
     .query({

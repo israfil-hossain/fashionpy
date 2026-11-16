@@ -12,6 +12,7 @@ import { Form } from "../../../../../components/common/form"
 import { RouteDrawer, useRouteModal } from "../../../../../components/modals"
 import { KeyboundForm } from "../../../../../components/utilities/keybound-form"
 import { useUpdateCollection } from "../../../../../hooks/api/collections"
+import { getCollectionRank } from "../../../common/collection-rank"
 
 type EditCollectionFormProps = {
   collection: HttpTypes.AdminCollection
@@ -22,6 +23,7 @@ const EditCollectionSchema = zod.object({
     .string()
     .min(1, { message: i18n.t("collections.validation.titleRequired") }),
   handle: zod.string().min(1),
+  rank: zod.number().int().min(0).nullable().optional(),
 })
 
 export const EditCollectionForm = ({ collection }: EditCollectionFormProps) => {
@@ -36,6 +38,7 @@ export const EditCollectionForm = ({ collection }: EditCollectionFormProps) => {
     defaultValues: {
       title: collection.title,
       handle: collection.handle,
+      rank: getCollectionRank(collection.metadata),
     },
   })
 
@@ -96,6 +99,33 @@ export const EditCollectionForm = ({ collection }: EditCollectionFormProps) => {
                         </div>
                         <Input {...field} className="pl-10" />
                       </div>
+                    </Form.Control>
+                    <Form.ErrorMessage />
+                  </Form.Item>
+                )
+              }}
+            />
+            <Form.Field
+              control={form.control}
+              name="rank"
+              render={({ field }) => {
+                return (
+                  <Form.Item>
+                    <Form.Label optional tooltip={t("collections.rankTooltip")}>
+                      {t("fields.rank")}
+                    </Form.Label>
+                    <Form.Control>
+                      <Input
+                        {...field}
+                        type="number"
+                        min={0}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? null : Number(e.target.value)
+                          )
+                        }
+                      />
                     </Form.Control>
                     <Form.ErrorMessage />
                   </Form.Item>

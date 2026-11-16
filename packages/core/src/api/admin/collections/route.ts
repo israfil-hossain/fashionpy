@@ -8,19 +8,28 @@ import { HttpTypes } from "@medusajs/types"
 
 import { AdminCreateCollectionType } from "./validators"
 import { createProductCollectionWithImagesWorkflow } from "../../../workflows/media/workflows/create-product-collection-with-images"
+import { isRankOrder, listCollectionsByRank } from "../../utils/collection-rank"
 
 export const GET = async (
   req: AuthenticatedMedusaRequest,
   res: MedusaResponse<HttpTypes.AdminCollectionListResponse>
 ) => {
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+  const { skip, take, order } = req.queryConfig.pagination
 
-  const { data: collections, metadata } = await query.graph({
-    entity: "product_collection",
-    fields: req.queryConfig.fields,
-    filters: req.filterableFields,
-    pagination: req.queryConfig.pagination,
-  })
+  // `rank` lives in metadata, so it cannot be a database order field — the
+  // rank path sorts in memory before paging.
+  const { data: collections, metadata } = isRankOrder(order)
+    ? await listCollectionsByRank<HttpTypes.AdminCollection>(req.scope, {
+        fields: req.queryConfig.fields,
+        filters: req.filterableFields,
+        pagination: { skip, take, order },
+      })
+    : await req.scope.resolve(ContainerRegistrationKeys.QUERY).graph({
+        entity: "product_collection",
+        fields: req.queryConfig.fields,
+        filters: req.filterableFields,
+        pagination: req.queryConfig.pagination,
+      })
 
   res.json({
     collections,
@@ -40,12 +49,23 @@ export const POST = async (
     additional_data: _additional_data,
     media,
     icon,
+    rank,
+    metadata,
     ...payload
   } = req.validatedBody
 
+  const collectionPayload = {
+    ...payload,
+    ...(rank != null
+      ? { metadata: { ...metadata, rank } }
+      : metadata !== undefined && metadata !== null
+        ? { metadata }
+        : {}),
+  }
+
   const { result: createdId } =
     await createProductCollectionWithImagesWorkflow(req.scope).run({
-      input: { collection: payload, media, icon },
+      input: { collection: collectionPayload, media, icon },
     })
 
   const {

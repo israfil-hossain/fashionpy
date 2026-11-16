@@ -48,11 +48,22 @@ export const POST = async (
     additional_data: _additional_data,
     media,
     icon,
+    rank,
+    metadata,
     ...update
   } = req.validatedBody
 
+  const updatePayload = {
+    ...update,
+    ...(rank !== undefined
+      ? { metadata: { ...(metadata ?? {}), rank } }
+      : metadata !== undefined
+        ? { metadata }
+        : {}),
+  }
+
   await updateProductCollectionWithImagesWorkflow(req.scope).run({
-    input: { id: req.params.id, update, media, icon },
+    input: { id: req.params.id, update: updatePayload, media, icon },
   })
 
   const {

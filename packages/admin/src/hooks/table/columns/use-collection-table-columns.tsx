@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Thumbnail } from "../../../components/common/thumbnail"
 import { TextCell } from "../../../components/table/table-cells/common/text-cell"
+import { getCollectionRank } from "../../../pages/collections/common/collection-rank"
 import {
   CollectionWithImages,
   getCollectionGallery,
@@ -33,6 +34,14 @@ export const useCollectionTableColumns = () => {
               <span className="truncate">{getValue()}</span>
             </div>
           )
+        },
+      }),
+      columnHelper.accessor((row) => getCollectionRank(row.metadata), {
+        id: "rank",
+        header: t("fields.rank"),
+        cell: ({ getValue }) => {
+          const rank = getValue()
+          return <TextCell text={rank === null ? undefined : String(rank)} />
         },
       }),
       columnHelper.accessor("handle", {

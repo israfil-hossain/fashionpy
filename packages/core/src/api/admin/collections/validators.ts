@@ -24,6 +24,7 @@ export type AdminCollectionsParamsType = z.infer<typeof AdminCollectionsParams>
 export const AdminCollectionsParams = createFindParams({
   offset: 0,
   limit: 20,
+  order: "rank",
 }).merge(AdminCollectionsParamsFields)
 
 const CollectionMedia = z.object({
@@ -39,6 +40,11 @@ const CreateCollection = z.object({
   title: z.string(),
   handle: z.string().optional(),
   metadata: z.record(z.string(), z.unknown()).nullish(),
+  /**
+   * Sort position in the collections list — 0 is shown first, 1 second, and
+   * so on. Persisted as `metadata.rank`.
+   */
+  rank: z.number().int().min(0).nullish(),
   media: z.array(CollectionMedia).optional(),
   icon: z.string().nullish(),
 })
@@ -50,6 +56,11 @@ const UpdateCollection = z.object({
   title: z.string().optional(),
   handle: z.string().optional(),
   metadata: z.record(z.string(), z.unknown()).nullish(),
+  /**
+   * Sort position in the collections list — 0 is shown first, 1 second, and
+   * so on. Persisted as `metadata.rank`; `null` clears the rank.
+   */
+  rank: z.number().int().min(0).nullish(),
   media: z.array(CollectionMedia).optional(),
   icon: z.string().nullish(),
 })
