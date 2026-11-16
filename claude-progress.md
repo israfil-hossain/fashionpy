@@ -7,7 +7,7 @@ session detail aggressively. The per-spec source of truth lives in
 ## Current Verified State
 
 - **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`
-- **Current branch**: `feat/storefront-home-promo-cards`
+- **Current branch**: `feat/home-layout-editor`
 - **Current version**: `2.2.0-rc.1`
 - **Standard startup path**: `bun install && bun run dev`
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
@@ -58,7 +58,53 @@ promo-code cards for platform-wide active promotions.
   (spec evidence recorded in SPEC-004). Two test-driven fixes along the way:
   Medusa `PromotionStatus` is `draft|active|inactive` (no `disabled`), and the
   campaign date comparison needed `Date`-instance support.
-- **Not committed yet** (per repo rule). Spec says: commit only when asked.
+- **Status**: shipped — committed on `main` as `b7cdc6b91` (api) +
+  `0ed698aaf` (storefront).
+
+## Session — Admin-driven homepage layout + collection banner dedupe (2026-11-15), branch `feat/home-layout-editor`
+
+SPEC-005 (`docs/specs/SPEC-005-home-layout-editor.md`): the storefront home
+sections can be reordered/hidden from Admin → Settings → Marketplace →
+**Homepage layout**, and the "Shop by Collection" duplication is fixed.
+
+- **Contract** in `packages/types/src/home-layout.ts`: `HOME_SECTION_IDS`,
+  `DEFAULT_HOME_LAYOUT` (the original hard-coded order), and
+  `normalizeHomeLayout` (shared by admin editor + storefront; drops unknown
+  ids, first-wins de-dupe, appends newly shipped sections with defaults).
+  Unit-tested by `packages/core/src/api/store/store-settings/__tests__/home-layout.unit.spec.ts`
+  (7 cases, run via `TEST_TYPE=unit jest --rootDir .. home-layout`).
+- **Storage**: `store.metadata.home_layout` (`{ sections: [{id,enabled}] }`)
+  saved through the existing `POST /admin/stores/:id` — no new admin
+  endpoint. `GET /store/store-settings` now returns `home_layout`.
+- **Bug fixed en route**: that route read `query.graph(...).data.metadata`
+  directly, but `data` is always an **array** — every setting (announcement
+  included) had been silently null. Now `data[0].metadata` (also repairs the
+  admin-configured announcement bar).
+- **Admin UI**: `marketplace-home-layout-section` on the marketplace settings
+  page — `SortableList` drag rows + per-section `Switch` + dirty-tracked Save
+  (`store:edit` gated), i18n under `marketplace.homeLayout.*` (en.json;
+  `fallbackLng: "en"` covers other locales).
+- **Storefront**: `HomeSections` (`components/sections/HomeSections/`) reads
+  the layout (`retrieveHomeLayout`, `store` cache tag), renders sections in
+  saved order, skips disabled/empty ones without leaving blank padding
+  (renderers invoked directly; `HeroCarousel` — client — returned via JSX),
+  and groups consecutive product-card sections into one shared white card so
+  the default layout looks unchanged. `page.tsx` reduced to
+  `<HomeSections locale={locale} />`.
+- **Duplicate fix**: `ShopCollectionBanners` now only renders collections
+  with `is_banner`-flagged artwork — the wide banner row no longer repeats
+  the same collections as the "Shop by Collection" slider (which keeps
+  showing all).
+- **Verification**: `bun run lint` exit 0; admin `tsc --noEmit` has 854
+  pre-existing errors, **0** in the new/edited files; storefront raw-tsc
+  errors in touched files are the pre-existing SDK-proxy class (next.config
+  `ignoreBuildErrors: true`); unit 7/7; integration
+  `store-settings/store/home-layout` 3/3; `bun run build` 19/19 EXIT 0
+  (4 h 45 m full non-cached rebuild under load 10–30); storefront smoke
+  (`curl localhost:3000/bd`) renders `home-sections` in default order with
+  the dedupe filter live. Full evidence in SPEC-005. Gotcha for next time:
+  **never run `bun run build` concurrently with integration tests** — the
+  core task's `rm -rf .medusa` deletes migration files mid-boot.
 
 ## Session — Studio Rail clothing showcase in the fashionpy storefront (2026-11-14), branch `main`
 
