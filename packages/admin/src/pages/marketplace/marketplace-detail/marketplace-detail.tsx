@@ -8,6 +8,7 @@ import { useStore } from "../../../hooks/api/store"
 import { MarketplaceAnnouncementSection } from "./components/marketplace-announcement-section"
 import { MarketplaceCurrencySection } from "./components/marketplace-currency-section"
 import { MarketplaceGeneralSection } from "./components/marketplace-general-section"
+import { MarketplaceHomeLayoutSection } from "./components/marketplace-home-layout-section"
 import { storeLoader } from "./loader"
 
 const Root = ({ children }: { children?: ReactNode }) => {
@@ -34,6 +35,7 @@ const Root = ({ children }: { children?: ReactNode }) => {
       <WidgetZone id="marketplace.detail.main" data={store}>
         <MarketplaceGeneralSection store={store} />
         <MarketplaceAnnouncementSection store={store} />
+        <MarketplaceHomeLayoutSection store={store} />
         <MarketplaceCurrencySection store={store} />
       </WidgetZone>
     </SingleColumnPage>
@@ -43,5 +45,6 @@ const Root = ({ children }: { children?: ReactNode }) => {
 export const MarketplaceDetailPage = Object.assign(Root, {
   GeneralSection: MarketplaceGeneralSection,
   AnnouncementSection: MarketplaceAnnouncementSection,
+  HomeLayoutSection: MarketplaceHomeLayoutSection,
   CurrencySection: MarketplaceCurrencySection,
 })

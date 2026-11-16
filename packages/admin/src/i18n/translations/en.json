@@ -3131,6 +3131,28 @@
       "endsAtPlaceholder": "Select end date",
       "toast_update": "Announcement updated"
     },
+    "homeLayout": {
+      "header": "Homepage layout",
+      "subtitle": "Drag to reorder the storefront home sections. Toggle a section off to hide it.",
+      "toast_update": "Homepage layout saved",
+      "sections": {
+        "hero": "Hero carousel",
+        "categories": "Category strip",
+        "trust_bar": "Trust bar",
+        "collection_slider": "Shop by Collection",
+        "collection_banners": "Collection banners",
+        "studio_rail": "Studio rail",
+        "company_banner_1": "Company banner (top)",
+        "offer_price": "Offer price strip",
+        "company_banner_2": "Company banner (bottom)",
+        "promo_codes": "Current offers",
+        "new_arrivals": "New arrivals",
+        "best_deals": "Exclusive deals",
+        "featured_products": "Featured products",
+        "promo_banner": "Collection promo banner",
+        "blog": "Blog"
+      }
+    },
     "banners": {
       "domain": "Banners",
       "header": "Hero Banners",
