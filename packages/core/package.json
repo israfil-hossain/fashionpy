@@ -47,7 +47,7 @@
     "medusa-v2"
   ],
   "scripts": {
-    "build": "bun ./node_modules/@mercurjs/cli/dist/index.js codegen && rm -rf .medusa && tsc --declaration --outDir .medusa/server && bun run copy:patches",
+    "build": "bun ./node_modules/@mercurjs/cli/dist/index.js codegen && rm -rf .medusa && bun run copy:patches && tsc --declaration --outDir .medusa/server",
     "copy:patches": "mkdir -p .medusa/server/src/patches/patches && cp src/patches/patches/*.patch .medusa/server/src/patches/patches/",
     "dev": "medusa plugin:develop",
     "prepublishOnly": "tsc --declaration --outDir .medusa/server && bun run copy:patches"
