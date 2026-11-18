@@ -24,6 +24,7 @@ describe("storefront-cache-revalidate subscriber", () => {
     handler({
       event: { name, data: [{ id: "store_1" }] },
       container: {} as never,
+      pluginOptions: {},
     })
 
   beforeEach(() => {
