@@ -15,9 +15,11 @@ export const retrieveStoreSettings = async () => {
     revalidate: 3600,
   };
 
+  // The endpoint returns `{ announcement, home_layout }` at the top level —
+  // there is no `data` wrapper (destructuring one made every setting resolve
+  // to undefined).
   return sdk.store.storeSettings
     .query({ fetchOptions: { next, cache: 'force-cache' } })
-    .then(({ data }) => data)
     .catch(medusaError);
 };
 
@@ -29,10 +31,10 @@ export const retrieveStoreSettings = async () => {
  */
 export const retrieveHomeLayout = async (): Promise<HomeLayoutSection[]> => {
   try {
-    const { data } = await sdk.store.storeSettings.query({
+    const settings = (await sdk.store.storeSettings.query({
       fetchOptions: getCatalogFetchOptions(CACHE_TAGS.store),
-    } as never);
-    const homeLayout = (data as { home_layout?: unknown })?.home_layout ?? null;
+    } as never)) as { home_layout?: unknown } | undefined;
+    const homeLayout = settings?.home_layout ?? null;
 
     if (!homeLayout) {
       console.warn(

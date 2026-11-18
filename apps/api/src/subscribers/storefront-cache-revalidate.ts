@@ -81,6 +81,8 @@ const buildTags = async (
   return [...tags]
 }
 
+let missingEnvWarned = false
+
 export default async function storefrontCacheRevalidateHandler({
   event,
   container,
@@ -89,6 +91,14 @@ export default async function storefrontCacheRevalidateHandler({
   const secret = process.env.STOREFRONT_REVALIDATE_SECRET
 
   if (!url || !secret) {
+    if (!missingEnvWarned) {
+      missingEnvWarned = true
+      console.warn(
+        "[storefront-cache-revalidate] STOREFRONT_REVALIDATE_URL and/or " +
+          "STOREFRONT_REVALIDATE_SECRET is not set — storefront cache " +
+          "revalidation is disabled and every change waits for the cache TTL"
+      )
+    }
     return
   }
 
@@ -105,7 +115,7 @@ export default async function storefrontCacheRevalidateHandler({
   }
 
   try {
-    await fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -113,6 +123,13 @@ export default async function storefrontCacheRevalidateHandler({
       },
       body: JSON.stringify({ tags: [...tagSet] }),
     })
+
+    if (!response.ok) {
+      console.error(
+        `[storefront-cache-revalidate] POST ${url} responded ` +
+          `${response.status} for tags: ${[...tagSet].join(", ")}`
+      )
+    }
   } catch (error) {
     console.error("[storefront-cache-revalidate] revalidation failed:", error)
   }

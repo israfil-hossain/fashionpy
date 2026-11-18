@@ -3225,6 +3225,7 @@
     }
   },
   "store": {
+    "cacheRefreshFailed": "Saved — but notifying the storefront failed, so the change may take up to 5 minutes to appear.",
     "domain": "Store",
     "manageYourStoresDetails": "Manage your store's details",
     "editStore": "Edit store",

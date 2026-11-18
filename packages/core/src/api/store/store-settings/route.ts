@@ -15,9 +15,20 @@ export const GET = async (
     fields: ["id", "name", "metadata"],
   })
 
-  const metadata =
-    (data as Array<{ metadata?: Record<string, unknown> | null }>)[0]
-      ?.metadata ?? {}
+  const store = (
+    data as Array<{
+      id?: string
+      metadata?: Record<string, unknown> | null
+    }>
+  )[0]
+  const metadata = store?.metadata ?? {}
+
+  if (!metadata.home_layout) {
+    console.warn(
+      `[store-settings] store ${store?.id ?? "unknown"} has no metadata.home_layout — ` +
+        "the storefront renders the default section order"
+    )
+  }
 
   res.json({
     announcement: metadata.announcement ?? null,

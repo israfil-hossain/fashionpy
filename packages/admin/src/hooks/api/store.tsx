@@ -1,5 +1,7 @@
 import { ClientError, InferClientInput, InferClientOutput } from "@mercurjs/client";
 import type { HttpTypes } from "@medusajs/types";
+import { toast } from "@medusajs/ui";
+import i18n from "i18next";
 
 import type {
   QueryKey,
@@ -85,8 +87,9 @@ export const useUpdateStore = (
       // Store metadata (home layout, announcement, nav) drives the storefront's
       // `store`-tagged cache — tell the backend to emit `store.updated` so the
       // deployed storefront revalidates within seconds instead of its TTL.
-      sdk.admin.storefront.revalidate.mutate({}).catch(() => {
-        // Best-effort: a revalidation miss only delays propagation to the TTL.
+      sdk.admin.storefront.revalidate.mutate({}).catch((error) => {
+        console.error("[store] storefront revalidate failed:", error);
+        toast.warning(i18n.t("store.cacheRefreshFailed"));
       });
 
       options?.onSuccess?.(data, variables, context);
