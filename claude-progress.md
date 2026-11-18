@@ -7,9 +7,9 @@ session detail aggressively. The per-spec source of truth lives in
 ## Current Verified State
 
 - **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`
-- **Current branch**: `main` (working tree holds SPEC-006 collection-rank work plus a
-  pre-existing, unrelated admin-storefront feature WIP — `src/api/admin/storefront/`,
-  `ScrollReveal`, `store-settings` — stage carefully before committing)
+- **Current branch**: `main` (working tree: uncommitted 2026-11-17 root-cause
+  fix + cache-bust hardening, plus 2026-11-18 studio-rail hover/quick-view —
+  see the sessions below; everything else is pushed as of `4bedb2ce1`)
 - **Current version**: `2.2.0-rc.1`
 - **Standard startup path**: `bun install && bun run dev`
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
@@ -28,6 +28,90 @@ session detail aggressively. The per-spec source of truth lives in
   (Committed and pushed to `main` on 2026-11-15. The legacy root-src
   `fashionpy` checkout has a disjoint history and cannot push to this remote —
   its identical Studio Rail copy stays committed locally only.)
+
+## Session — Studio rail hover reveal + product quick view (2026-11-18), branch `main`
+
+SPEC-008 (`docs/specs/SPEC-008-studio-rail-quick-view.md`, status `passing`):
+the storefront Studio Rail now crossfades to the product's front photo on
+hover and opens a design-matching quick view on click.
+
+- **Hover**: `StudioRail.tsx` computes `frontImage`/`backImage` per item
+  (first image ≠ thumbnail, then next distinct; single-image → no second
+  layer) from new `*images` + `variants.options.*` fields; `RailItem` stacks
+  a second `next/image` layer that CSS crossfades on `:hover`/`:focus-within`
+  (`globals.css`, reduced-motion aware).
+- **Click → quick view** (`organisms/StudioRail/StudioRailQuickView.tsx`):
+  left-click on the slide is intercepted (modified clicks keep the native
+  link); dialog shows `NN / TT` counter, title, buybox-winner price, Front /
+  Back tabs, option pills from variant options, offer-scoped Add to cart
+  (`listOffers` server action + `getVariantOffers`/`getBuyboxWinner`, exact
+  ProductBuyBox parity: loading → NOT AVAILABLE → OUT OF STOCK → enabled),
+  footer title + View product page; closes on Escape/Close/backdrop and
+  opens the cart drawer on success. Auto-falls back to the best offered
+  variant when the default variant has no offer.
+- **Verified**: `bun run lint` 0; storefront `tsc --noEmit` 0 errors in all
+  StudioRail files (112 pre-existing elsewhere; `ignoreBuildErrors` is on);
+  `turbo build --filter=@mercurjs/storefront` 3/3; Playwright on
+  localhost:3000: hover opacity `0→1→0` with visibly different garment
+  crops, quick view opens (`05 / 12`, `BDT 2,000.00`), pills toggle, Back
+  tab present/absent as appropriate, offers settle `loaded-6` →
+  `OUT OF STOCK`, Escape/Close/product-link all work.
+- **Local caveats** (data/env, not code): only 2/51 products have offers and
+  their `inventory_quantity` is 0, so the enabled-add path can't be clicked
+  locally (shared helpers with the PDP cover it); jsDelivr-backed image
+  optimizer is slow/timing out on this box (first QV image decode ~27s);
+  seed titles are footwear while photos are the new hoodie shots; the dev
+  storefront (`localhost:3000`) was started for testing and left running.
+
+## Session — Live home-layout root cause + cache-bust hardening (2026-11-17), branch `main`
+
+User reported three live symptoms: home-layout editor invisible in admin, no
+Store Design options in the seller panel, and rearranged components not
+updating the storefront. SPEC-007 Notes updated with the corrected diagnosis.
+
+- **Symptom 1 (admin)**: false alarm — live probes proved the editor IS
+  deployed (admin bundle greps: `marketplace-home-layout-*` testids,
+  `storefront.revalidate`, `rankTooltip`). It lives at **Settings →
+  Marketplace → Homepage layout** (below Announcement). Was checked during
+  Monday's deploy outage or a stale `index.html` (served without
+  Cache-Control → hard refresh).
+- **Symptom 2 (seller panel)**: not a bug — "Store Design" never existed for
+  sellers (zero hits in repo + git history; vendor stores API is GET-only;
+  `store.metadata` writable only via admin `POST /admin/stores/:id`).
+  **Decision: admin-only stays** (user-confirmed).
+- **Symptom 3 root cause (code)**: both storefront readers in
+  `apps/storefront/src/lib/data/store-settings.ts` destructured a `{ data }`
+  wrapper that `GET /store/store-settings` never returns — the SDK resolves
+  the raw `{ announcement, home_layout }` body
+  (`packages/client/src/index.ts:168`). `retrieveStoreSettings` → always
+  `undefined` (announcement bar never rendered); `retrieveHomeLayout` → always
+  `null` (default section order forever). The `[store-settings] no
+  home_layout` warn masked it as an env/row-mismatch problem (previous
+  session's misdiagnosis). **Proof**: live curl with the publishable key
+  returned the custom layout (`studio_rail` 2nd) while `fashionpy.com/bd`
+  rendered default order + no announcement bar.
+- **Hardening (approved)**: admin `useUpdateStore` now toasts
+  `store.cacheRefreshFailed` when the revalidate call fails (was
+  `.catch(() => {})`); the `storefront-cache-revalidate` subscriber warns once
+  when `STOREFRONT_REVALIDATE_URL/_SECRET` are missing and logs non-2xx with
+  status + tags (never checked `response.ok` before); the store-settings
+  route warns with the store id when `metadata.home_layout` is absent.
+- **Tests**: new `apps/api/.../storefront-cache-revalidate.unit.spec.ts`
+  (4 cases; required a `jest.mock("@mercurjs/core/workflows")` to avoid the
+  heavy import chain + a `testMatch` entry for `apps/api` in
+  `integration-tests/jest.config.js`); new
+  `integration-tests/http/store-settings/admin/storefront-revalidate.spec.ts`
+  (401 unauth / 200 + `revalidated:true`).
+- **Verified**: `bun run lint` exit 0; `bun run test:unit
+  storefront-cache-revalidate` 4/4; `bun run test:integration:http --
+  store-settings` → 2 suites / **5/5 passed** (355 s; one earlier combined
+  attempt died to a DB-connection race with a concurrently killed run —
+  environmental, not code); full `bun run build` after the change.
+- **Still open**: post-deploy live re-check (announcement bar visible,
+  `studio_rail` 2nd, no failure toast); Dokploy `.env` still carries
+  `STOREFRONT_REVALIDATE_*` (they exist only in `.env`, not compose
+  `environment:`); `api.fashionpy.com` 404s on every path — compose comments
+  say the `api.` host is intentionally unrouted, confirm and retire.
 
 ## Session — P0: collection UI + rearrange reliability (2026-11-16), branch `main`
 

@@ -10,22 +10,29 @@ import { ArrowLeftIcon, ArrowRightIcon } from '@/icons';
 import type { StudioRailGroup, StudioRailItem } from '@/types/studio-rail';
 
 import { HangerFrame } from './HangerFrame';
+import { StudioRailQuickView } from './StudioRailQuickView';
 
 const HANG_STEPS = [0, 6, 3];
 
 const RailItem = ({
   item,
   index,
-  selected
+  selected,
+  onOpen
 }: {
   item: StudioRailItem;
   index: number;
   selected: boolean;
+  onOpen: (item: StudioRailItem, index: number) => void;
 }) => {
   const style = {
     '--sway-delay': `${(index % 5) * -1.1}s`,
     '--hang-step': `${HANG_STEPS[index % 3]}px`
   } as React.CSSProperties;
+
+  const thumbnail = decodeURIComponent(item.thumbnail as string);
+  const front = item.frontImage ? decodeURIComponent(item.frontImage) : null;
+  const showFrontOnHover = Boolean(front && front !== thumbnail);
 
   return (
     <li
@@ -37,19 +44,45 @@ const RailItem = ({
         href={`/products/${item.handle}`}
         className="studio-rail__link"
         aria-label={`View ${item.title}`}
+        onClick={event => {
+          // Left click opens the quick view; modified/middle clicks keep the
+          // native link behaviour (new tab, download, …).
+          if (
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+          ) {
+            return;
+          }
+          event.preventDefault();
+          onOpen(item, index);
+        }}
       >
         <div className="studio-rail__tilt">
           <div className="studio-rail__sway">
             <HangerFrame className="studio-rail__hanger" />
             <div className="studio-rail__garment">
               <Image
-                src={decodeURIComponent(item.thumbnail as string)}
+                src={thumbnail}
                 alt={item.title}
                 fill
                 sizes="(min-width: 768px) 240px, 46vw"
                 className="studio-rail__image"
                 priority={index < 6}
               />
+              {showFrontOnHover && (
+                <Image
+                  src={front as string}
+                  alt=""
+                  aria-hidden="true"
+                  fill
+                  sizes="(min-width: 768px) 240px, 46vw"
+                  className="studio-rail__image studio-rail__image--front"
+                />
+              )}
             </div>
           </div>
           <div
@@ -79,16 +112,21 @@ const RailItem = ({
 
 export const StudioRailClient = ({
   groups,
-  activeKey
+  activeKey,
+  locale
 }: {
   groups: StudioRailGroup[];
   activeKey?: string;
+  locale: string;
 }) => {
   const initialKey =
     activeKey && groups.some(group => group.key === activeKey) ? activeKey : groups[0].key;
 
   const [active, setActive] = useState(initialKey);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [quickView, setQuickView] = useState<{ item: StudioRailItem; index: number } | null>(
+    null
+  );
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'center',
     loop: true,
@@ -140,6 +178,7 @@ export const StudioRailClient = ({
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+  const closeQuickView = useCallback(() => setQuickView(null), []);
 
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -224,6 +263,9 @@ export const StudioRailClient = ({
                 item={item}
                 index={index}
                 selected={index === selectedIndex}
+                onOpen={(openedItem, openedIndex) =>
+                  setQuickView({ item: openedItem, index: openedIndex })
+                }
               />
             ))}
           </ul>
@@ -250,6 +292,16 @@ export const StudioRailClient = ({
           <ArrowRightIcon size={20} />
         </button>
       </div>
+
+      {quickView && (
+        <StudioRailQuickView
+          item={quickView.item}
+          index={quickView.index}
+          total={group.items.length}
+          locale={locale}
+          onClose={closeQuickView}
+        />
+      )}
     </section>
   );
 };

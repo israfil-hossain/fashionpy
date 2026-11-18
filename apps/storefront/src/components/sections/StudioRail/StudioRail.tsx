@@ -7,16 +7,55 @@ import { listProducts } from '@/lib/data/products';
 import { getProductPrice } from '@/lib/helpers/get-product-price';
 import type { StudioRailGroup, StudioRailItem } from '@/types/studio-rail';
 
+const distinctImages = (product: HttpTypes.StoreProduct): string[] => {
+  const seen = new Set<string>();
+  const urls: string[] = [];
+
+  for (const image of product.images ?? []) {
+    if (image.url && !seen.has(image.url)) {
+      seen.add(image.url);
+      urls.push(image.url);
+    }
+  }
+
+  if (product.thumbnail && !seen.has(product.thumbnail)) {
+    urls.push(product.thumbnail);
+  }
+
+  return urls;
+};
+
 const toRailItem = (product: HttpTypes.StoreProduct): StudioRailItem | null => {
   if (!product.thumbnail) return null;
 
   const { cheapestPrice } = getProductPrice({ product });
+  const images = distinctImages(product);
+  const thumbnail = product.thumbnail;
+
+  // The rail hangs the thumbnail (the side/on-hanger shot); the quick view and
+  // the hover reveal use the remaining shots — first differing image = front,
+  // the one after it = back, falling back to the thumbnail so two-image
+  // products still offer both views. Single-image products keep the thumbnail.
+  const frontImage = images.find(url => url !== thumbnail) ?? thumbnail;
+  const backImage =
+    images.find(url => url !== frontImage && url !== thumbnail) ??
+    images.find(url => url !== frontImage);
 
   return {
     id: product.id,
     handle: product.handle,
     title: product.title,
-    thumbnail: product.thumbnail,
+    thumbnail,
+    frontImage,
+    backImage,
+    variants: (product.variants ?? []).map(variant => ({
+      id: variant.id,
+      title: variant.title,
+      options: (variant.options ?? []).map(option => ({
+        value: option.value,
+        option: { title: option.option?.title }
+      }))
+    })),
     price: cheapestPrice?.calculated_price,
     originalPrice:
       cheapestPrice && cheapestPrice.calculated_price !== cheapestPrice.original_price
@@ -52,7 +91,8 @@ export const StudioRail = async ({
               queryParams: {
                 limit: 12,
                 order: '-created_at',
-                fields: 'id,title,handle,thumbnail,*variants,variants.calculated_price'
+                fields:
+                  'id,title,handle,thumbnail,*images,*variants,variants.options.value,variants.options.option.title,variants.calculated_price'
               }
             });
 
@@ -76,6 +116,7 @@ export const StudioRail = async ({
       <StudioRailClient
         groups={groups}
         activeKey={activeKey}
+        locale={locale}
       />
     );
   } catch {
