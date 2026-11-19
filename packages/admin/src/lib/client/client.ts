@@ -33,7 +33,7 @@ export const fetchQuery = async (
     query,
     headers,
   }: {
-    method: 'GET' | 'POST' | 'DELETE'
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE'
     body?: object
     query?: Record<string, string | number | object>
     headers?: { [key: string]: string }
@@ -78,7 +78,20 @@ export const fetchQuery = async (
   )
 
   if (!response.ok) {
-    const errorData = await response.json()
+    let errorData: { message?: string; type?: string; code?: string } = {}
+    try {
+      const text = await response.text()
+      if (text) {
+        try {
+          errorData = JSON.parse(text)
+        } catch {
+          // HTML/plain error pages (Express 500) — keep defaults
+          errorData = { message: text.slice(0, 300) }
+        }
+      }
+    } catch {
+      // ignore body read failures
+    }
 
     if (response.status === 401) {
       clearAuthToken()
@@ -86,8 +99,11 @@ export const fetchQuery = async (
       return
     }
 
-    const error = new Error(errorData.message || 'Server error')
-      ; (error as Error & { status: number }).status = response.status
+    const error = new Error(
+      errorData.message ||
+        `Request failed with status ${response.status}`
+    )
+    ;(error as Error & { status: number }).status = response.status
     throw error
   }
 

@@ -29,9 +29,11 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[]> = {
   "/payouts": "payouts:view",
   "/banners": "store:view",
   "/blog": "blog:view",
+  "/policies": "policy:view",
 
   "/settings/regions": "regions:view",
   "/settings/marketplace": "store:view",
+  "/settings/chatbot": "chatbot:view",
   "/settings/courier": "courier_accounts:view",
   "/settings/commissions": "commission_rates:view",
   "/settings/users": "users:view",

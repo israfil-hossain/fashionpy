@@ -39,6 +39,9 @@ export * from "./hero-banner"
 // Blog types
 export * from "./blog"
 
+// Storefront legal/policy page types
+export * from "./policy-page"
+
 // Product types — explicit re-export overrides Medusa's product surface.
 // Mercur's runtime enums and Mercur-extended DTOs (Omit + intersection over
 // upstream) win over the wholesale `export * from "@medusajs/types"` above.

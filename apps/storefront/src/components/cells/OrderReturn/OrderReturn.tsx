@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/atoms/Button/Button';
 import Link from "next/link"
+import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 
 export const OrderReturn = ({ order }: { order: any }) => {
   return (
@@ -9,11 +10,11 @@ export const OrderReturn = ({ order }: { order: any }) => {
       <div className="mb-4 md:mb-0">
         <h2 className="text-primary label-lg uppercase">Return Order</h2>
         <p className="text-secondary label-md max-w-sm">
-          Once you receive your order, you will have [14] days to return items.
+          Once you receive your order, you will have 30 days to return items.
           Find out more about{" "}
-          <Link href="/returns" className="underline">
+          <LocalizedClientLink href="/policies/return-refund" className="underline">
             returns and refunds
-          </Link>
+          </LocalizedClientLink>
           .
         </p>
       </div>

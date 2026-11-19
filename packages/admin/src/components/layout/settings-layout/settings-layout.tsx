@@ -82,6 +82,10 @@ const useSettingRoutes = (): INavItem[] => {
         to: "/settings/marketplace",
       },
       {
+        label: t("chatbot.domain", "AI Chatbot"),
+        to: "/settings/chatbot",
+      },
+      {
         label: t("courier.domain"),
         to: "/settings/courier",
       },

@@ -7,9 +7,9 @@ session detail aggressively. The per-spec source of truth lives in
 ## Current Verified State
 
 - **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`
-- **Current branch**: `main` (working tree: uncommitted 2026-11-17 root-cause
-  fix + cache-bust hardening, plus 2026-11-18 studio-rail hover/quick-view —
-  see the sessions below; everything else is pushed as of `4bedb2ce1`)
+- **Current branch**: `main` (working tree: uncommitted 2026-11-18/19
+  SPEC-009 chatbot + 2026-11-19 SPEC-010 policy pages & Google callback fix —
+  see the sessions below; last push `58b50c468`)
 - **Current version**: `2.2.0-rc.1`
 - **Standard startup path**: `bun install && bun run dev`
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
@@ -28,6 +28,200 @@ session detail aggressively. The per-spec source of truth lives in
   (Committed and pushed to `main` on 2026-11-15. The legacy root-src
   `fashionpy` checkout has a disjoint history and cannot push to this remote —
   its identical Studio Rail copy stays committed locally only.)
+
+## Session — Real bilingual policy content + production-ready seed (2026-11-19)
+
+Replaced the9 placeholder policy pages with real **English + বাংলা** content
+grounded in the platform's actual rules (mined from the repo: 30-day
+return/exchange/claim window in `RETURN_POLICY_DAYS`, COD + Stripe card
+payments, Pathao/Steadfast couriers, the seeded ৳6,500 free-delivery offer,
+10% default commission, bank/bKash/Nagad seller payouts, buyer return/cancel
+flows, Consumer Rights Protection Act 2009 reference):
+
+- `apps/api/src/scripts/lib/policy-content.ts` (new) — the9 canonical slugs
+  (return-refund, exchange, shipping, cancellation, privacy, terms,
+  seller-policy, product-policy, pickup-delivery) with bilingual HTML limited
+  to the storefront sanitizer's allowlist.
+- `seed.ts` — `seedPolicyPages` is now an **upsert**: inserts missing slugs,
+  refreshes rows still holding the old "coming soon" placeholder, and never
+  touches admin-edited content. Idempotent (2nd run logs "already up to
+  date").
+- Verified locally: seed run → "9 placeholder(s) refreshed" → store API
+  returns full bilingual content for all9 (2.0–4.8k chars each) → storefront
+  `/bd/policies/*` renders with h2/li intact and no placeholder text →
+  re-seed no-op → `oxlint` 0, `apps/api tsc --noEmit` 0.
+- **Production**: the Dockerfile CMD (`db:migrate && bun run seed && start`)
+  runs the seed on every boot, so the next Dokploy deploy/restart writes this
+  content into production (placeholder rows refreshed; admin edits kept).
+- **Follow-up — storefront copy aligned with the policies** (same day): the
+  live product Delivery tab claimed **"14 days"** + "contact the seller"
+  (real rule: 30 days, platform-arranged pickup) and branded "Mercur";
+  `OrderReturn` had a `[14]` placeholder + dead `/returns` link; the exported
+  `ProductDetailsShipping` cell still had US-template copy ("continental
+  U.S.", "return the chair"); `MeetYourSeller` said "On Mercur since".
+  Fixed all four → 30-day copy, Your-Orders return flow, FashionPy brand,
+  links to `/policies/*` (delivery panel now links Return/Shipping policies
+  + "View all store policies"). Verified live: product page HTML serves the
+  new copy (turbopack's watcher had gone stale on a 10:16 `next dev` —
+  recovered via Next's own config-restart trigger, `next.config.ts` probe
+  reverted). `oxlint` 0, storefront `tsc` 140 baseline (0 in changed files).
+
+## Session — Chatbot "function.arguments must be valid JSON" 400 fix (2026-11-19)
+
+**Symptom**: `Chat provider 400: Upstream error from Ant Digital: Assistant
+tool call function.arguments must be valid JSON` (model
+`inclusionai/ling-3.2-flash:free` via OpenRouter) — every tool-using reply in
+that conversation 400'd.
+
+**Root cause**: the OpenAI-compatible adapter passed `tool_calls` through
+**verbatim** on both receive and send. Non-standard OpenAI-compatible
+upstreams return `function.arguments` as a parsed **object**; the agent loop
+replays the previous completion's assistant `tool_calls` in the next request,
+so the object went back on the wire and the upstream's
+`JSON.parse(arguments)` failed → 400.
+
+**Fix** (`packages/core/src/chatbot/providers/`):
+- `normalize.ts` (new) — `normalizeToolCalls` / `normalizeOutgoingMessages`:
+  coerce `function.arguments` to a JSON string (object → stringify,
+  unparseable string → `"{}"`, null → `"{}"`), synthesize missing `id`.
+- `openai-compatible.ts` — normalize on **receive** (so `dispatchTool` and
+  the replay loop only ever see clean calls) and on **send** (covers every
+  outgoing assistant message, including future history replay).
+- `gemini.ts` — `safeJson` now accepts non-string input (an object argument
+  used to be silently dropped to `{}`).
+- `dispatchTool` already tolerated bad args (JSON.parse → `{}`); only the
+  wire format was fatal.
+
+**Tests**: new `packages/core/src/chatbot/__tests__/tool-call-normalize.unit.spec.ts`
+(7 cases: object/string/garbage/null args, outgoing-only scope, mocked-fetch
+send + receive wire assertions) — **7/7**; new integration case in
+`integration-tests/http/chatbot/store/agent.spec.ts` ("replays tool_calls
+with JSON-string arguments even when the model returned objects" — captures
+the 2nd request body, asserts stringified args) — suite **3/3**.
+`bun run lint` 0. `packages/core` rebuilt (`tsc` exit 0, `normalize.js`
+emitted) and the running `medusa develop` reloaded via an `apps/api` file
+touch (its watcher ignores `node_modules`/`.medusa`, so a rebuild alone
+doesn't hot-reload).
+
+## Session — Free Google voice-to-text for the chatbot mic (2026-11-19)
+
+The widget's mic previously recorded audio and needed a paid/keyed backend STT
+(OpenAI Whisper or Gemini; default `none` → dead). Now uses the **browser Web
+Speech API** as the primary path — Google's own engine in Chrome/Edge, free,
+no API key, no quota, no server round-trip:
+
+- `apps/storefront/src/lib/speech.ts` — minimal SpeechRecognition types +
+  `getSpeechRecognitionCtor()` + `speechLangFor("bn"|"en")` → `bn-BD`/`en-US`.
+- `ChatbotWidget.tsx` — hold the mic → live transcript streams into the input
+  (base text + final + interim); release → auto-sends via the existing
+  `sendMessage` SSE flow (language auto-switch via `detectLocale` still
+  applies). Mic-permission denial surfaces a bilingual error. Browsers
+  without SpeechRecognition (e.g. Firefox) keep the old MediaRecorder →
+  backend-STT fallback unchanged.
+- Verified: root `oxlint` 0; `apps/api tsc --noEmit` 0 errors; storefront
+  `tsc` has no errors in the new/changed files (baseline 140 elsewhere);
+  Playwright smoke on `localhost:3000/bd`: `webkitSpeechRecognition`
+  available, widget opens, mic hold/release runs with no error bubble and no
+  new console errors (the page's 500s are pre-existing missing
+  `/images/categories/*.png` assets). No storefront unit-test runner exists
+  (SPEC-009's widget shipped the same way).
+- **Follow-up fix (same day, "voice not working" report)** — three defects
+  found via instrumented Playwright runs (wrapper logging via
+  `addEventListener`, not property shadowing — shadowing
+  `onresult/onend` own-props **breaks** Chrome's Web Speech event delivery):
+  1. **All STT errors except permission were swallowed** (`network`,
+     `language-not-supported`, `audio-capture`, …) → silent nothing.
+     Now every error surfaces a bilingual message; empty transcripts show a
+     "hold the mic and speak" hint; a **4 s stop-watchdog** force-finishes if
+     Chrome never fires `end`, so the mic can't get stuck (stuck `recording`
+     made every later press a no-op — the likely "dead mic" symptom).
+  2. **Chat replies were broken for typed AND voice messages**: both Next
+     proxies injected `stream: true` into the request **body**, but the
+     backend reads the flag from the **query** and the strict zod validator
+     rejected the body → `400 Unrecognized fields: 'stream'`. Removed from
+     `apps/storefront/src/app/api/chatbot/conversations/[id]/{messages,voice}/route.ts`
+     (backend streams by default). Verified: typed message → real product
+     cards streamed; mocked-speech hold → interim text in input → auto-send
+     → user bubble → SSE reply; empty run → Bangla hint; `oxlint` 0.
+  3. Transient during testing: OpenRouter free tier returned `429
+     (inclusionai/ling-3.2-flash:rate-limited)` — surfaced as a visible
+     error bubble; add a personal OpenRouter key in Settings → AI Chatbot if
+     it persists.
+
+## Session — SPEC-010 admin policy pages + Google redirect_uri fix (2026-11-19)
+
+**Google login `redirect_uri_mismatch` (Part B).** Root cause: the app sends
+`redirect_uri=https://fashionpy.com/api/auth/google/callback` (from
+`GOOGLE_CALLBACK_URL` in the root `.env`) but the Google Cloud Console had the
+stale Medusa-native path `/auth/customer/google/callback` registered (copied
+from `apps/storefront/.env:14`). Fix: console entries corrected (redirect URIs
+`https://fashionpy.com/api/auth/google/callback` + `http://localhost:3000/api/
+auth/google/callback`; JS origins apex/www/localhost:3000; stale entries
+removed) and the unused `GOOGLE_*` trio deleted from `apps/storefront/.env` +
+`.env.template`. `google-auth` integration spec still 3/3.
+
+**SPEC-010 policy pages (`docs/specs/SPEC-010-admin-policies-pages.md`,
+status `in_progress` — automated gates green, browser E2E pending).** The
+storefront footer linked 10 `/policies/*` URLs that never had a route (root
+not-found 404). Shipped:
+
+- **Module** `packages/core/src/modules/policy-page` — `policy_page` table
+  (slug unique, status/publish window, country_codes), migration
+  `Migration20261119000000`, auto-registered like every other core plugin
+  module; `MercurModules.POLICY_PAGE` + DTO/HTTP types in `@mercurjs/types`.
+- **Permissions** — `policy` key (view/edit/manage, admin surface) in
+  `permissions/definitions/policies.ts` + `PermissionKeys` in dashboard-sdk.
+- **APIs** — admin CRUD `/admin/policies[/:id]` (`requirePermission` +
+  `core-route-permissions` pattern, blog validators/query-config shape); store
+  `GET /store/policies[/:slug]` with blog's published/window/country
+  visibility middleware.
+- **Admin UI** — sidebar **Policies** (`ShieldCheck`), route
+  `/policies` (+create/+edit) gated `policy:view|edit`, `pages/policies/*`
+  (list/create/edit + `policy-form` with Tiptap `RichTextEditor`),
+  `hooks/api/policies.tsx`, `marketplace.policies.*` i18n (en + $schema,
+  parity test).
+- **Storefront** — `[locale]/(main)/policies/[slug]` (metadata/hreflang,
+  sanitized rich text, `notFound()`), `/policies` index,
+  `lib/data/policies.ts` (`no-store`), footer copyright link converged on
+  `/policies/privacy`.
+- **Seed** — 9 canonical footer slugs inserted as published placeholders,
+  slug-missing-only guard, runs before the demo-sellers early return.
+- **Tests** — `integration-tests/http/policies/{admin,store}` — **5/5 + 3/3**.
+- **Verification**: `bun run lint` 0; `bun run build` 19/19 (route codegen +
+  routes-manifest include the 4 new routes; `generate:targets` picked up the
+  nav item); admin vitest route-parity passes; storefront `tsc` shows only
+  baseline errors (the translation-schema `sellers.*` failure reproduces on a
+  clean checkout — pre-existing).
+
+## Session — SPEC-009 agentic ecommerce chatbot (2026-11-18), branch `main`
+
+SPEC-009 (`docs/specs/SPEC-009-ecommerce-chatbot.md`, status `passing`) ships
+the full chatbot vertical:
+
+- **Module** `packages/core/src/modules/chatbot` — conversations, messages,
+  settings (AES-encrypted provider/STT secrets), checkout state JSON,
+  migration `Migration20261118000000`.
+- **Agent runtime** `packages/core/src/chatbot` — OpenRouter / Gemini /
+  OpenAI-compatible providers (raw HTTPS, no SDK), 14-tool allowlist
+  (search → cart → address → shipping → COD/payment → review → place_order →
+  order/delivery status), checkout state machine with confirmation gate on
+  `place_order`, STT (Whisper/Gemini), Resend order-confirmation email
+  (`order_group.created` subscriber; falls back to local notification when
+  `RESEND_API_KEY` unset).
+- **APIs** — admin `GET/PUT /admin/chatbot/settings`, `POST
+  /admin/chatbot/test` (`chatbot:view|edit`); store
+  `/store/chatbot/config`, conversations, SSE message stream, voice.
+- **Admin UI** — Settings → AI Chatbot (`/settings/chatbot`), provider/model/
+  key/STT/prompt form + Test connection.
+- **Storefront** — floating `ChatbotWidget` on `(main)` layout (bn/en),
+  product + order cards, mic voice, Next.js API proxies under `/api/chatbot/*`.
+- **Verification**: `bun run lint` 0; package builds green; unit `chatbot`
+  16/16; integration `-- chatbot` **4 suites / 18/18** (settings secrets,
+  conversations/shipments ownership, **full tool checkout path without LLM**,
+  **mocked-LLM agent message flow**). Shipping-options record flatten + cart
+  `sales_channel_id` fixed during that pass. Rate-limit + shipments endpoint
+  also landed.
+- **Open**: live key E2E (real OpenRouter/Gemini + Resend) — operator env.
 
 ## Session — Studio rail hover reveal + product quick view (2026-11-18), branch `main`
 
@@ -977,8 +1171,9 @@ environmental (unbuilt core route-map → `CampaignDTO` vs `AdminCampaign`,
 `@custom-types` alias, `DEFAULT_CAMPAIGN_VALUES` enum). `oxlint` on changed files: no
 new warnings. Full `bun run lint` + `bun run build` still owed in a fully-installed
 checkout / CI (fresh worktree has no install).
-- **Active spec**: _(none in progress — pick the highest-priority unfinished
-  `docs/specs/SPEC-*.md`)_
+- **Active spec**: `SPEC-010-admin-policies-pages` (in_progress, 2026-11-19) —
+  admin-managed policy pages behind the footer's `/policies/*` links (module +
+  admin/store APIs + admin Policies page + storefront route + seed + tests).
 
 ## Session Log
 
@@ -1009,6 +1204,22 @@ checkout / CI (fresh worktree has no install).
   `http://localhost:3000/api/auth/google/callback` +
   `https://fashionpy.com/api/auth/google/callback`. Manual E2E through real Google
   consent not yet run. Full `bun run build` still owed at session end.
+- **2026-11-19 `redirect_uri_mismatch` root cause + fix.** Live probes showed the
+  app sends `redirect_uri=https://fashionpy.com/api/auth/google/callback`
+  (from `GOOGLE_CALLBACK_URL`) while the console had the stale Medusa-native path
+  `/auth/customer/google/callback` registered (copied from the then-current
+  `apps/storefront/.env:14`). The real callback is the Next.js route
+  `apps/storefront/src/app/api/auth/google/callback/route.ts`. Fix:
+  (1) **Google Cloud Console** → OAuth client → **Authorized redirect URIs**: add
+  `https://fashionpy.com/api/auth/google/callback` +
+  `http://localhost:3000/api/auth/google/callback` (optionally
+  `https://www.fashionpy.com/...`; www 307s to apex anyway) and remove the two
+  stale `/auth/customer/google/callback` entries; **Authorized JS origins**: add
+  `https://fashionpy.com`, `https://www.fashionpy.com`, `http://localhost:3000`.
+  (2) **Repo:** deleted the unused `GOOGLE_*` trio from `apps/storefront/.env`
+  and `.env.template` (no storefront code reads them; the stale URL is what
+  misdirected the console setup). Root `.env` / `apps/api/.env.prod` already
+  interpolate to the correct `/api/auth/google/callback` — unchanged.
 
 ### Session: 2026-07-29 -- Admin Reviews (MER-152, SPEC-2)
 

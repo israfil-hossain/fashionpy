@@ -1,5 +1,6 @@
 import { Divider } from "@/components/atoms/Divider/Divider"
 import { TruckIcon, ReturnIcon, LocationIcon, TimeIcon } from "@/icons"
+import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import { SellerDTO } from "@mercurjs/types"
 
 const rowClass = "flex gap-3 py-3"
@@ -65,8 +66,26 @@ export const ProductDeliveryPanel = ({
           <div>
             <p className="label-md text-primary">Returns</p>
             <p className="label-sm text-secondary">
-              Accepted within 14 days of delivery if the item is unused and in
-              original packaging. Contact the seller to arrange a return.
+              Accepted within 30 days of delivery if the item is unused and in
+              original packaging. Request a return from Your Orders — we
+              arrange the pickup.
+            </p>
+            <p className="label-sm text-secondary mt-1">
+              <LocalizedClientLink
+                href="/policies/return-refund"
+                className="underline"
+                data-testid="policy-link-return-refund"
+              >
+                Return &amp; Refund Policy
+              </LocalizedClientLink>
+              {" · "}
+              <LocalizedClientLink
+                href="/policies/shipping"
+                className="underline"
+                data-testid="policy-link-shipping"
+              >
+                Shipping Policy
+              </LocalizedClientLink>
             </p>
           </div>
         </div>
@@ -80,14 +99,19 @@ export const ProductDeliveryPanel = ({
         <ul className="flex flex-col gap-3">
           <li className="label-sm text-secondary">
             {seller?.is_premium
-              ? "Premium seller on Mercur"
-              : "Established Mercur marketplace seller"}
+              ? "Premium seller on FashionPy"
+              : "Established FashionPy marketplace seller"}
           </li>
           <li className="label-sm text-secondary">
             Payment is held securely until you confirm delivery
           </li>
           <li className="label-sm text-secondary">
             Message the seller before and after you order
+          </li>
+          <li className="label-sm text-secondary">
+            <LocalizedClientLink href="/policies" className="underline">
+              View all store policies
+            </LocalizedClientLink>
           </li>
         </ul>
       </aside>

@@ -1,4 +1,4 @@
-import { ExecArgs } from "@medusajs/framework/types";
+import { ExecArgs, Logger } from "@medusajs/framework/types";
 import {
   ContainerRegistrationKeys,
   Modules,
@@ -13,6 +13,7 @@ import {
 } from "@mercurjs/types";
 import { seedCatalog } from "./seed-catalog";
 import { buildProductDescription } from "./seed-descriptions";
+import { POLICY_PAGES } from "./lib/policy-content";
 import {
   approveSellerWorkflow,
   createOffersWorkflow,
@@ -632,6 +633,10 @@ export default async function seedDemoData({ container }: ExecArgs) {
     filters: { email: PRIMARY_SELLER_EMAIL },
   });
 
+  // The footer links to a fixed set of policy slugs; seed them before the
+  // early return below so a re-boot of a demo database still gets them.
+  await seedPolicyPages({ container, logger });
+
   if (existingSellers[0]) {
     logger.info(
       "Demo sellers already exist, skipping seller, product and offer seeding."
@@ -1056,4 +1061,103 @@ export default async function seedDemoData({ container }: ExecArgs) {
   );
 
   logger.info("Finished seeding.");
+}
+
+/**
+ * The storefront footer links to a fixed set of policy slugs; seed them as
+ * published placeholders so the links resolve from the first boot. Each row is
+ * only inserted when its slug is missing — admin edits survive re-seeding.
+ */
+type PolicyPageModuleService = {
+  listPolicyPages(
+    filters: Record<string, never>,
+    config: { select: string[]; take: number }
+  ): Promise<{ id: string; slug: string; content: string | null }[]>;
+  createPolicyPages(data: {
+    slug: string;
+    title: string;
+    excerpt: string;
+    content: string;
+    status: "draft" | "published";
+    published_at: Date;
+    country_codes: string[] | null;
+  }): Promise<{ id: string }>;
+  updatePolicyPages(data: {
+    id: string;
+    title: string;
+    excerpt: string;
+    content: string;
+  }): Promise<unknown>;
+};
+
+/** Only rows still carrying the old "coming soon" text are refreshed —
+ * admin-edited content always wins. */
+const isPlaceholderContent = (content: string | null): boolean =>
+  !content || content.includes("details will be added soon");
+
+async function seedPolicyPages({
+  container,
+  logger,
+}: {
+  container: ExecArgs["container"];
+  logger: Logger;
+}) {
+  logger.info("Seeding policy pages...");
+
+  const policyService = container.resolve<PolicyPageModuleService>(
+    MercurModules.POLICY_PAGE
+  );
+
+  let existing: { id: string; slug: string; content: string | null }[] = [];
+  try {
+    existing = await policyService.listPolicyPages(
+      {},
+      { select: ["id", "slug", "content"], take: 100 }
+    );
+  } catch (error) {
+    // Fresh database before the module's migration ran — skip quietly.
+    logger.warn(
+      `Policy page table not available yet, skipping policy seed (${
+        (error as Error).message
+      }).`
+    );
+    return;
+  }
+
+  const bySlug = new Map(existing.map((row) => [row.slug, row]));
+  const now = new Date();
+  let created = 0;
+  let refreshed = 0;
+
+  for (const page of POLICY_PAGES) {
+    const row = bySlug.get(page.slug);
+    if (!row) {
+      await policyService.createPolicyPages({
+        slug: page.slug,
+        title: page.title,
+        excerpt: page.excerpt,
+        content: page.content,
+        status: "published",
+        published_at: now,
+        country_codes: null,
+      });
+      created += 1;
+    } else if (isPlaceholderContent(row.content)) {
+      await policyService.updatePolicyPages({
+        id: row.id,
+        title: page.title,
+        excerpt: page.excerpt,
+        content: page.content,
+      });
+      refreshed += 1;
+    }
+  }
+
+  if (!created && !refreshed) {
+    logger.info("Policy pages already up to date, skipping.");
+    return;
+  }
+  logger.info(
+    `Policy pages: ${created} created, ${refreshed} placeholder(s) refreshed.`
+  );
 }

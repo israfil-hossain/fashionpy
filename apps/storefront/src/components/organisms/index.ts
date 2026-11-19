@@ -25,6 +25,8 @@ import { ProductDetails } from "./ProductDetails/ProductDetails"
 import { CompareOffersModal } from "./CompareOffersModal/CompareOffersModal"
 import { Addresses } from "./Addressess/Addresses"
 import { CartEmpty } from "./CartEmpty/CartEmpty"
+import { ChatbotWidget } from "./ChatbotWidget/ChatbotWidget"
+import { FoxAssistantIcon } from "./ChatbotWidget/FoxAssistantIcon"
 
 export {
   ProductCard,
@@ -54,4 +56,6 @@ export {
   Addresses,
   CartEmpty,
   OfferCard,
+  ChatbotWidget,
+  FoxAssistantIcon,
 }

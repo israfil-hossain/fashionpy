@@ -12,6 +12,7 @@ import {
   Newspaper,
   OpenRectArrowOut,
   ReceiptPercent,
+  ShieldCheck,
   ShoppingCart,
   Tag,
   Users,
@@ -530,6 +531,11 @@ const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
       icon: <Newspaper />,
       label: t("marketplace.blog.domain"),
       to: "/blog",
+    },
+    {
+      icon: <ShieldCheck />,
+      label: t("marketplace.policies.domain"),
+      to: "/policies",
     },
     {
       icon: <ChatBubbleLeftRight />,

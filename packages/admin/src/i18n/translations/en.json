@@ -3110,6 +3110,30 @@
   "roles": {
     "domain": "Roles"
   },
+  "chatbot": {
+    "domain": "AI Chatbot",
+    "subtitle": "Configure the storefront assistant: provider, model, voice, and system prompt.",
+    "enabled": "Enable assistant",
+    "enabled_hint": "Show the floating chat widget on the storefront",
+    "provider": "Provider",
+    "model": "Model",
+    "base_url": "Base URL",
+    "api_key": "API key",
+    "api_key_set": "API key",
+    "api_key_saved": "Saved (leave blank to keep)",
+    "api_key_missing": "Not set yet",
+    "temperature": "Temperature",
+    "max_tokens": "Max tokens",
+    "stt_provider": "Voice (STT) provider",
+    "stt_model": "STT model",
+    "stt_api_key": "STT API key",
+    "system_prompt": "System prompt",
+    "system_prompt_placeholder": "Leave blank to use the default Bangla+English shopping assistant prompt.",
+    "test": "Test connection",
+    "toast_saved": "Chatbot settings saved",
+    "toast_test_ok": "Connection OK ({{ms}}ms)",
+    "load_failed": "Could not load chatbot settings. Check that the API is running, then retry."
+  },
   "marketplace": {
     "domain": "Marketplace",
     "manageMarketplaceDetails": "Manage your marketplace's details",
@@ -3222,6 +3246,30 @@
       "toast_create": "Blog post created",
       "toast_update": "Blog post updated",
       "toast_delete": "Blog post deleted"
+    },
+    "policies": {
+      "domain": "Policies",
+      "header": "Policy pages",
+      "empty": "No policy pages yet",
+      "create": "Create policy",
+      "save": "Save policy",
+      "edit": "Edit policy",
+      "title": "Title",
+      "slug": "Slug",
+      "excerpt": "Excerpt",
+      "content": "Content",
+      "status": "Status",
+      "statusAll": "All statuses",
+      "statusDraft": "Draft",
+      "statusPublished": "Published",
+      "publishedAt": "Publish at",
+      "unpublishedAt": "Unpublish at",
+      "countries": "Countries",
+      "countriesAll": "All countries",
+      "countriesHint": "Leave all unchecked to show this page in every country. Otherwise it only appears in the selected countries.",
+      "toast_create": "Policy page created",
+      "toast_update": "Policy page updated",
+      "toast_delete": "Policy page deleted"
     }
   },
   "store": {

@@ -23,7 +23,9 @@
 @tailwind utilities;
 
 body {
-  font-family: "Funnel Display", sans-serif;
+  /* Funnel Display covers Latin only — Bengali falls back to Noto Sans Bengali
+     (loaded in [locale]/layout) then system UI, so বাংলা stays readable. */
+  font-family: "Funnel Display", "Noto Sans Bengali", "Hind Siliguri", sans-serif;
 }
 
 /* Typography */

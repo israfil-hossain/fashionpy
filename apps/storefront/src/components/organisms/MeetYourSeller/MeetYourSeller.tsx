@@ -46,7 +46,7 @@ export const MeetYourSeller = ({
             </div>
             {joined && (
               <p className="label-sm text-secondary mt-1" data-testid="meet-your-seller-joined">
-                On Mercur since {joined}
+                On FashionPy since {joined}
               </p>
             )}
             {seller.description && (

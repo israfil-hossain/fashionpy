@@ -7,6 +7,7 @@ import { adminHeroBannersMiddlewares } from "./hero-banners/middlewares"
 import { adminStorefrontMiddlewares } from "./storefront/middlewares"
 import { adminBlogPostsMiddlewares } from "./blog-posts/middlewares"
 import { adminBlogCategoriesMiddlewares } from "./blog-categories/middlewares"
+import { adminPoliciesMiddlewares } from "./policies/middlewares"
 import { adminOrderGroupsMiddlewares } from "./order-groups/middlewares"
 import { adminOrderGroupQueryConfig } from "./order-groups/query-config"
 import { AdminGetOrderGroupParams } from "./order-groups/validators"
@@ -40,6 +41,7 @@ import { adminReviewsMiddlewares } from "./reviews/middlewares"
 import { adminUsersMiddlewares } from "./users/middlewares"
 import { adminNotificationFeedMiddlewares } from "./notifications/middlewares"
 import { adminMessagingMiddlewares } from "./messages/middlewares"
+import { adminChatbotMiddlewares } from "./chatbot/middlewares"
 
 export const adminMiddlewares: MiddlewareRoute[] = [
   {
@@ -53,6 +55,7 @@ export const adminMiddlewares: MiddlewareRoute[] = [
   ...adminStorefrontMiddlewares,
   ...adminBlogPostsMiddlewares,
   ...adminBlogCategoriesMiddlewares,
+  ...adminPoliciesMiddlewares,
   ...adminOrderGroupsMiddlewares,
   {
     method: ["GET"],
@@ -93,4 +96,5 @@ export const adminMiddlewares: MiddlewareRoute[] = [
   ...adminUsersMiddlewares,
   ...adminNotificationFeedMiddlewares,
   ...adminMessagingMiddlewares,
+  ...adminChatbotMiddlewares,
 ]

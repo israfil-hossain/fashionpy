@@ -76,6 +76,7 @@ export const CORE_ROUTE_PERMISSIONS: CoreRoutePermission[] = [
   { pattern: /^\/admin\/(search|search-indexes|index|views|property-labels|plugins|layouts)(\/|$)/, key: "store" },
   { pattern: /^\/admin\/hero-banners(\/|$)/, key: "store" },
   { pattern: /^\/admin\/blog-(posts|categories)(\/|$)/, key: "blog" },
+  { pattern: /^\/admin\/policies(\/|$)/, key: "policy" },
 ]
 
 export function matchCoreRoutePermission(

@@ -127,7 +127,7 @@ export function Footer() {
             data-testid="footer-copyright"
           >
             <LocalizedClientLink
-              href="/privacy-policy"
+              href="/policies/privacy"
               className="text-gray-600 hover:text-[rgb(var(--brand-500))] transition-colors duration-200 text-sm"
             >
               Privacy Policy

@@ -18,4 +18,6 @@ export enum MercurModules {
     NOTIFICATION_FEED = "notification_feed",
     TELEMETRY = "telemetry",
     BLOG = "blog",
+    POLICY_PAGE = "policy_page",
+    CHATBOT = "chatbot",
 }

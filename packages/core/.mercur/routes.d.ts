@@ -530,6 +530,10 @@ export type Routes = {
         blogPosts: typeof import("../src/api/admin/blog-posts/route") & {
             $id: typeof import("../src/api/admin/blog-posts/[id]/route");
         };
+        chatbot: {
+            settings: typeof import("../src/api/admin/chatbot/settings/route");
+            test: typeof import("../src/api/admin/chatbot/test/route");
+        };
         courierAccounts: typeof import("../src/api/admin/courier-accounts/route");
         courierShipments: typeof import("../src/api/admin/courier-shipments/route") & {
             $id: {
@@ -577,6 +581,9 @@ export type Routes = {
                 refreshLink: typeof import("../src/api/admin/payout-accounts/[id]/refresh-link/route");
                 sync: typeof import("../src/api/admin/payout-accounts/[id]/sync/route");
             };
+        };
+        policies: typeof import("../src/api/admin/policies/route") & {
+            $id: typeof import("../src/api/admin/policies/[id]/route");
         };
         reviews: typeof import("../src/api/admin/reviews/route") & {
             $id: typeof import("../src/api/admin/reviews/[id]/route") & {
@@ -723,6 +730,16 @@ export type Routes = {
         blogPosts: typeof import("../src/api/store/blog-posts/route") & {
             $slug: typeof import("../src/api/store/blog-posts/[slug]/route");
         };
+        chatbot: {
+            config: typeof import("../src/api/store/chatbot/config/route");
+            conversations: typeof import("../src/api/store/chatbot/conversations/route") & {
+                $id: typeof import("../src/api/store/chatbot/conversations/[id]/route") & {
+                    messages: typeof import("../src/api/store/chatbot/conversations/[id]/messages/route");
+                    shipments: typeof import("../src/api/store/chatbot/conversations/[id]/shipments/route");
+                    voice: typeof import("../src/api/store/chatbot/conversations/[id]/voice/route");
+                };
+            };
+        };
         fp: {
             bundles: typeof import("../src/api/store/fp/bundles/route") & {
                 $id: typeof import("../src/api/store/fp/bundles/[id]/route");
@@ -758,6 +775,9 @@ export type Routes = {
                 read: typeof import("../src/api/store/notifications/[id]/read/route");
             };
             readAll: typeof import("../src/api/store/notifications/read-all/route");
+        };
+        policies: typeof import("../src/api/store/policies/route") & {
+            $slug: typeof import("../src/api/store/policies/[slug]/route");
         };
         promotions: typeof import("../src/api/store/promotions/route");
         reviews: typeof import("../src/api/store/reviews/route") & {

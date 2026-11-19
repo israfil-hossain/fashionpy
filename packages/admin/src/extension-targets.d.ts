@@ -202,12 +202,14 @@ declare module "@mercurjs/dashboard-sdk" {
     "orders": true
     "payout-accounts": true
     "payouts": true
+    "policies": true
     "price-lists": true
     "products": true
     "promotions": true
     "reservations": true
     "reviews": true
     "settings/attributes": true
+    "settings/chatbot": true
     "settings/commissions": true
     "settings/courier": true
     "settings/locations": true
@@ -236,6 +238,7 @@ declare module "@mercurjs/dashboard-sdk" {
     "messages": true
     "orders": true
     "payouts": true
+    "policies": true
     "price-lists": true
     "products": true
     "promotions": true

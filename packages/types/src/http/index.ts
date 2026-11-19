@@ -32,6 +32,7 @@ export * from "./offer"
 export * from "./commission"
 export * from "./hero-banner"
 export * from "./blog"
+export * from "./policy-page"
 
 // Explicit re-exports to resolve ambiguity with @medusajs/types (Mercur overrides)
 export {

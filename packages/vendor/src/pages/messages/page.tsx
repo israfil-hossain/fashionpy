@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Badge, Container, Heading, Text, clx } from "@medusajs/ui";
+import { Badge, Button, Container, Heading, Text, clx } from "@medusajs/ui";
+import { ChatBubbleLeftRight } from "@medusajs/icons";
 
 import {
   useVendorConversations,
@@ -136,11 +137,35 @@ export const VendorMessagesPage = () => {
 
   if (isError) throw error;
 
+  const existingSupport = conversations?.find(
+    (c) => (c.type ?? "marketplace") === "support_vendor"
+  );
+
+  const openSupport = () => {
+    if (existingSupport) {
+      navigate(`/messages/${existingSupport.id}`);
+      return;
+    }
+    navigate("/messages?support=1");
+  };
+
   return (
     <div className="flex h-full flex-col">
       <Container className="flex h-full flex-col divide-y p-0">
-        <div className="flex shrink-0 items-center justify-between px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-6 py-4">
           <Heading>Messages</Heading>
+          <Button
+            variant="secondary"
+            size="small"
+            onClick={openSupport}
+            isLoading={wantsSupport && createSupport.isPending}
+            data-testid="contact-admin-button"
+          >
+            <span className="flex items-center gap-x-1.5">
+              <ChatBubbleLeftRight />
+              Contact admin
+            </span>
+          </Button>
         </div>
         {isLoading || (wantsSupport && createSupport.isPending) ? (
           <div className="flex flex-1 items-center justify-center px-6 py-12">
@@ -151,8 +176,20 @@ export const VendorMessagesPage = () => {
             </Text>
           </div>
         ) : !conversations?.length ? (
-          <div className="flex flex-1 items-center justify-center px-6 py-12">
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12">
             <Text className="text-ui-fg-muted">No conversations yet</Text>
+            <Button
+              variant="primary"
+              size="small"
+              onClick={openSupport}
+              isLoading={wantsSupport && createSupport.isPending}
+              data-testid="contact-admin-empty-button"
+            >
+              <span className="flex items-center gap-x-1.5">
+                <ChatBubbleLeftRight />
+                Contact admin
+              </span>
+            </Button>
           </div>
         ) : (
           <div className="flex-1 divide-y overflow-y-auto">

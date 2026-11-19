@@ -4,6 +4,7 @@ import { storeCartsMiddlewares } from "./carts/middlewares"
 import { storeCollectionsMiddlewares } from "./collections/middlewares"
 import { storeHeroBannersMiddlewares } from "./hero-banners/middlewares"
 import { storeBlogPostsMiddlewares } from "./blog-posts/middlewares"
+import { storePoliciesMiddlewares } from "./policies/middlewares"
 import { storeOffersMiddlewares } from "./offers/middlewares"
 import { storeOrderGroupsMiddlewares } from "./order-groups/middlewares"
 import { storeProductAttributesMiddlewares } from "./product-attributes/middlewares"
@@ -15,12 +16,14 @@ import { storeReviewsMiddlewares } from "./reviews/middlewares"
 import { storeStoreSettingsMiddlewares } from "./store-settings/middlewares"
 import { storeNotificationFeedMiddlewares } from "./notifications/middlewares"
 import { storeMessagingMiddlewares } from "./messages/middlewares"
+import { storeChatbotMiddlewares } from "./chatbot/middlewares"
 
 export const storeMiddlewares: MiddlewareRoute[] = [
   ...storeCartsMiddlewares,
   ...storeCollectionsMiddlewares,
   ...storeHeroBannersMiddlewares,
   ...storeBlogPostsMiddlewares,
+  ...storePoliciesMiddlewares,
   ...storeMessagingMiddlewares,
   ...storeOffersMiddlewares,
   ...storeOrderGroupsMiddlewares,
@@ -32,4 +35,5 @@ export const storeMiddlewares: MiddlewareRoute[] = [
   ...storeReviewsMiddlewares,
   ...storeStoreSettingsMiddlewares,
   ...storeNotificationFeedMiddlewares,
+  ...storeChatbotMiddlewares,
 ]

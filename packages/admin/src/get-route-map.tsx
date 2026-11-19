@@ -1087,6 +1087,32 @@ export function getRouteMap({
                 ],
               },
               {
+                path: "/policies",
+                errorElement: <ErrorBoundary />,
+                handle: {
+                  breadcrumb: () => t("marketplace.policies.domain"),
+                  permissions: "policy:view",
+                },
+                children: [
+                  {
+                    path: "",
+                    lazy: () => import("./pages/policies/policy-list/policy-list"),
+                  },
+                  {
+                    path: "create",
+                    handle: { permissions: "policy:edit" },
+                    lazy: () =>
+                      import("./pages/policies/policy-create/policy-create"),
+                  },
+                  {
+                    path: ":id/edit",
+                    handle: { permissions: "policy:edit" },
+                    lazy: () =>
+                      import("./pages/policies/policy-edit/policy-edit"),
+                  },
+                ],
+              },
+              {
                 path: "/messages",
                 errorElement: <ErrorBoundary />,
                 handle: {
@@ -1574,6 +1600,15 @@ export function getRouteMap({
                     ],
                   },
                 ],
+              },
+              {
+                path: "chatbot",
+                errorElement: <ErrorBoundary />,
+                handle: {
+                  breadcrumb: () => t("chatbot.domain", "AI Chatbot"),
+                  permissions: "chatbot:view",
+                },
+                lazy: () => import("./pages/settings/chatbot"),
               },
               {
                 path: "commissions",
