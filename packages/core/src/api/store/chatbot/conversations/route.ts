@@ -2,7 +2,6 @@ import type {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework/http"
-import { randomUUID } from "crypto"
 
 import { CHATBOT_MODULE } from "../../../../modules/chatbot"
 import type ChatbotModuleService from "../../../../modules/chatbot/service"
@@ -13,24 +12,18 @@ export const POST = async (
   res: MedusaResponse
 ) => {
   const service = req.scope.resolve<ChatbotModuleService>(CHATBOT_MODULE)
-  const customerId = req.auth_context?.actor_id ?? null
+  // Strict gate (SPEC-011): middleware guarantees an authenticated customer;
+  // conversations are always customer-bound (no guest rows from this route).
+  const customerId = req.auth_context!.actor_id
   const body = req.validatedBody
-
-  const guestToken =
-    customerId != null
-      ? null
-      : (body.guest_token ?? (req.headers["x-chatbot-guest"] as string | undefined) ?? randomUUID())
 
   const conversation = await service.findOrCreateConversation({
     customer_id: customerId,
-    guest_token: guestToken,
+    guest_token: null,
     locale: body.locale,
   })
 
-  res.json({
-    conversation,
-    ...(guestToken && !customerId ? { guest_token: guestToken } : {}),
-  })
+  res.json({ conversation })
 }
 
 export const GET = async (

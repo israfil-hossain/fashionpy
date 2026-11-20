@@ -30,6 +30,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[]> = {
   "/banners": "store:view",
   "/blog": "blog:view",
   "/policies": "policy:view",
+  "/chatbot": "chatbot:view",
 
   "/settings/regions": "regions:view",
   "/settings/marketplace": "store:view",

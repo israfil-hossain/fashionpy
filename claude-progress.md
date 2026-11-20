@@ -7,9 +7,9 @@ session detail aggressively. The per-spec source of truth lives in
 ## Current Verified State
 
 - **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`
-- **Current branch**: `main` (working tree: uncommitted 2026-11-18/19
-  SPEC-009 chatbot + 2026-11-19 SPEC-010 policy pages & Google callback fix —
-  see the sessions below; last push `58b50c468`)
+- **Current branch**: `feat/chatbot-login-gate-admin-inbox` (SPEC-011 work;
+  base `main` at `8265204ac` = SPEC-009 chatbot + SPEC-010 policy pages,
+  already on main; last push `58b50c468`)
 - **Current version**: `2.2.0-rc.1`
 - **Standard startup path**: `bun install && bun run dev`
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
@@ -28,6 +28,34 @@ session detail aggressively. The per-spec source of truth lives in
   (Committed and pushed to `main` on 2026-11-15. The legacy root-src
   `fashionpy` checkout has a disjoint history and cannot push to this remote —
   its identical Studio Rail copy stays committed locally only.)
+
+## Session — SPEC-011 chatbot login gate + admin inbox (2026-11-20), branch `feat/chatbot-login-gate-admin-inbox`
+
+Shipped the full SPEC-011: strict customer-auth gate on the storefront
+chatbot (widget gate + login return `?chat=1` + WhatsApp deep link sharing
+`SUPPORT_WHATSAPP` with the footer; backend 401s on guest conversation
+create/messages/voice with ownership-checked history), admin **Chat Inbox**
+(`/chatbot` list + transcript detail; admin follow-up send persists
+`sender:"admin"` and fans out a `chatbot.followup` customer notification
+linked to `/?chat=1`; AI-draft button fills the composer from the
+transcript), and widget history-on-open so follow-ups are visible when the
+customer returns.
+
+- Verification: `bun run lint` 0; `bun run build` **19/19**; integration
+  `-- chatbot` **5 suites / 26** (new `admin/conversations.spec.ts`, guest
+  401 expectations updated, agent/checkout-tools unchanged); `--
+  notifications` **20/20**; storefront tsc 140 baseline / **0** in changed
+  files; admin tsc **0** in spec files; `route-parity` passes with
+  `/chatbot`; browser smoke **13/13** (gate → login return → conversation →
+  admin inbox → follow-up → customer notification → widget history).
+- Fixes surfaced by the smoke: `SingleColumnPage` now forwards unknown
+  props (8 pages declared `data-testid`; it was silently dropped);
+  `LoginForm` does a full navigation after login (the client-router layout
+  cache kept serving the logged-out prop); the widget re-checks the session
+  via `retrieveCustomer()` on open so a stale layout can't wedge the gate.
+- Known baseline: i18n parity still fails only on pre-existing `sellers.*`
+  keys (unrelated); temp smoke scripts + temp DB users removed after the
+  run.
 
 ## Session — Real bilingual policy content + production-ready seed (2026-11-19)
 
@@ -1171,9 +1199,11 @@ environmental (unbuilt core route-map → `CampaignDTO` vs `AdminCampaign`,
 `@custom-types` alias, `DEFAULT_CAMPAIGN_VALUES` enum). `oxlint` on changed files: no
 new warnings. Full `bun run lint` + `bun run build` still owed in a fully-installed
 checkout / CI (fresh worktree has no install).
-- **Active spec**: `SPEC-010-admin-policies-pages` (in_progress, 2026-11-19) —
-  admin-managed policy pages behind the footer's `/policies/*` links (module +
-  admin/store APIs + admin Policies page + storefront route + seed + tests).
+- **Active spec**: `SPEC-011-chatbot-login-gate-admin-inbox` (in_progress,
+  2026-11-19) — chatbot login gate + WhatsApp option + admin Chat Inbox +
+  AI-draft follow-ups with customer notifications. SPEC-010 closed `passing`
+  the same day (policies pages: module, admin/store APIs, admin page,
+  storefront routes, bilingual seed, tests, browser E2E).
 
 ## Session Log
 

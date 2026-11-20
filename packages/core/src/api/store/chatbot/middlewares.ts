@@ -10,16 +10,14 @@ import {
   StoreSendChatbotMessage,
 } from "./validators"
 
-// Guests may open a conversation (search-only); checkout tools still require
-// a logged-in customer checked inside the agent.
+// Strict gate (SPEC-011): the assistant is for logged-in customers only —
+// every conversation, message and voice route requires a customer session.
 export const storeChatbotMiddlewares: MiddlewareRoute[] = [
   {
     method: ["POST"],
     matcher: "/store/chatbot/conversations",
     middlewares: [
-      authenticate("customer", ["session", "bearer"], {
-        allowUnauthenticated: true,
-      }),
+      authenticate("customer", ["session", "bearer"]),
       validateAndTransformBody(StoreCreateChatbotConversation),
     ],
   },
@@ -34,18 +32,14 @@ export const storeChatbotMiddlewares: MiddlewareRoute[] = [
     method: ["GET"],
     matcher: "/store/chatbot/conversations/:id",
     middlewares: [
-      authenticate("customer", ["session", "bearer"], {
-        allowUnauthenticated: true,
-      }),
+      authenticate("customer", ["session", "bearer"]),
     ],
   },
   {
     method: ["POST"],
     matcher: "/store/chatbot/conversations/:id/messages",
     middlewares: [
-      authenticate("customer", ["session", "bearer"], {
-        allowUnauthenticated: true,
-      }),
+      authenticate("customer", ["session", "bearer"]),
       validateAndTransformBody(StoreSendChatbotMessage),
     ],
   },
@@ -53,9 +47,7 @@ export const storeChatbotMiddlewares: MiddlewareRoute[] = [
     method: ["POST"],
     matcher: "/store/chatbot/conversations/:id/voice",
     middlewares: [
-      authenticate("customer", ["session", "bearer"], {
-        allowUnauthenticated: true,
-      }),
+      authenticate("customer", ["session", "bearer"]),
       validateAndTransformBody(StoreChatbotVoice),
     ],
   },
@@ -63,9 +55,7 @@ export const storeChatbotMiddlewares: MiddlewareRoute[] = [
     method: ["GET"],
     matcher: "/store/chatbot/conversations/:id/shipments",
     middlewares: [
-      authenticate("customer", ["session", "bearer"], {
-        allowUnauthenticated: true,
-      }),
+      authenticate("customer", ["session", "bearer"]),
     ],
   },
 ]

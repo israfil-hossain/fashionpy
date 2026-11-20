@@ -95,17 +95,17 @@ medusaIntegrationTestRunner({
         expect(response.data).not.toHaveProperty("api_key")
       })
 
-      it("creates a guest conversation", async () => {
-        const response = await api.post(
-          "/store/chatbot/conversations",
-          { locale: "bn", guest_token: "guest_token_abc123" },
-          storeHeaders
-        )
+      it("rejects guest conversation creation (strict login gate)", async () => {
+        const response = await api
+          .post(
+            "/store/chatbot/conversations",
+            { locale: "bn", guest_token: "guest_token_abc123" },
+            storeHeaders
+          )
+          .catch((e) => e.response)
 
-        expect(response.status).toEqual(200)
-        expect(response.data.conversation.id).toMatch(/^bconv_/)
-        expect(response.data.conversation.locale).toBe("bn")
-        expect(response.data.conversation.customer_id).toBeNull()
+        // SPEC-011: the assistant is for logged-in customers only.
+        expect(response.status).toEqual(401)
       })
 
       it("creates a customer conversation bound to the actor", async () => {

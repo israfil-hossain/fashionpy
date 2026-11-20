@@ -531,6 +531,12 @@ export type Routes = {
             $id: typeof import("../src/api/admin/blog-posts/[id]/route");
         };
         chatbot: {
+            conversations: typeof import("../src/api/admin/chatbot/conversations/route") & {
+                $id: typeof import("../src/api/admin/chatbot/conversations/[id]/route") & {
+                    followup: typeof import("../src/api/admin/chatbot/conversations/[id]/followup/route");
+                    messages: typeof import("../src/api/admin/chatbot/conversations/[id]/messages/route");
+                };
+            };
             settings: typeof import("../src/api/admin/chatbot/settings/route");
             test: typeof import("../src/api/admin/chatbot/test/route");
         };
