@@ -7,9 +7,9 @@ session detail aggressively. The per-spec source of truth lives in
 ## Current Verified State
 
 - **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`
-- **Current branch**: `main` (SPEC-011 merged as `a679b84ba`; provider-error
-  fix work below, branch `fix/chatbot-provider-429-retries`; last push
-  `a679b84ba`)
+- **Current branch**: `main` (SPEC-011 merged `a679b84ba`, provider fix
+  merged `b8fe49533`; user-panel work below on `fix/storefront-user-panel`;
+  last push `b8fe49533`)
 - **Current version**: `2.2.0-rc.1`
 - **Standard startup path**: `bun install && bun run dev`
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
@@ -28,6 +28,31 @@ session detail aggressively. The per-spec source of truth lives in
   (Committed and pushed to `main` on 2026-11-15. The legacy root-src
   `fashionpy` checkout has a disjoint history and cannot push to this remote —
   its identical Studio Rail copy stays committed locally only.)
+
+## Session — Storefront user panel: messages, reviews, header icons (2026-11-20), branch `fix/storefront-user-panel`
+
+Fixed the account panel end-to-end: **messages page** crashed (it passed no
+props to `UserMessagesSection`), **conversation creation 500'd** (two
+graph-build-time bugs in `createConversationWorkflow`: `buildThreadKey`
+baked `undefined` into `thread_key`, and `if (input.seller_id)` evaluated a
+workflow proxy — always truthy — pushing a `seller_id: null` link that blew
+up `LinkService.create` with `column "true" does not exist`; both now use
+caller-computed values / runtime `transform`), **reviews route was a 404**
+(new `/user/reviews` page backed by the personal `GET /store/reviews`
+list), and the **navbar message + notification icons moved into the panel**
+as a bell beside each page title (`UserPanelBell`, per the reference
+design), with mobile overflow checks at 375px.
+
+- Verification: root lint 0; root build **19/19**; storefront tsc **138**
+  lines (baseline was 140 — messages TS2739 gone, no new errors);
+  integration `-- messaging` **5/5** (new `http/messaging/store.spec.ts`
+  covering thread-key persistence, list/thread, validation, ownership);
+  browser smoke **17/17** (navbar icons gone, bell on every panel page,
+  seeded conversation renders + reply round-trip, reviews empty state,
+  zero horizontal overflow on messages/reviews/overview at 375px).
+- Note: storefront's own `eslint .` is broken environmentally (jiti
+  version conflict at config load — pre-existing); the repo gate is root
+  oxlint, which is green.
 
 ## Session — Chatbot provider 429/HTML error handling (2026-11-20), branch `fix/chatbot-provider-429-retries`
 

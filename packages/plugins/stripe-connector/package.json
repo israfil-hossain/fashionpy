@@ -43,12 +43,12 @@
     "stripe-connect"
   ],
   "scripts": {
-    "build": "rm -rf .medusa && tsc --declaration --outDir .medusa/server && bun run build:dashboards",
-    "build:dashboards": "bun ./node_modules/@mercurjs/cli/dist/index.js dashboard:build --app admin --src src/admin --out .medusa/server/src/admin/index.mjs && bun ./node_modules/@mercurjs/cli/dist/index.js dashboard:build --app vendor --src src/vendor --out .medusa/server/src/vendor/index.mjs",
+    "build": "node init && rm -rf .medusa && tsc --declaration --outDir .medusa/server && bun run build:dashboards",
+    "build:dashboards": "node init && bun ./node_modules/@mercurjs/cli/dist/index.js dashboard:build --app admin --src src/admin --out .medusa/server/src/admin/index.mjs && bun ./node_modules/@mercurjs/cli/dist/index.js dashboard:build --app vendor --src src/vendor --out .medusa/server/src/vendor/index.mjs",
     "typecheck:admin": "tsc -p src/admin/tsconfig.json",
     "typecheck:vendor": "tsc -p src/vendor/tsconfig.json",
     "test": "jest --passWithNoTests",
-    "dev": "medusa plugin:develop",
+    "dev": "node init && medusa plugin:develop",
     "prepublishOnly": "tsc --declaration --outDir .medusa/server && bun run build:dashboards"
   },
   "devDependencies": {

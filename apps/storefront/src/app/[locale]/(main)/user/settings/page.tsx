@@ -3,6 +3,7 @@ import { RouteFallback } from "@/components/molecules/RouteFallback/RouteFallbac
 import { LoginForm } from '@/components/molecules/LoginForm/LoginForm';
 import { ProfileDetails } from '@/components/molecules/ProfileDetails/ProfileDetails';
 import { UserNavigation } from '@/components/molecules/UserNavigation/UserNavigation';
+import { UserPanelBell } from '@/components/molecules/UserPanelBell/UserPanelBell';
 import { ProfilePassword } from "@/components/molecules/ProfileDetails/ProfilePassword"
 import { retrieveCustomer } from "@/lib/data/customer"
 
@@ -24,7 +25,10 @@ async function ReviewsPageContent() {
       <div className="grid grid-cols-1 md:grid-cols-4 mt-6 gap-5 md:gap-8">
         <UserNavigation />
         <div className="md:col-span-3" data-testid="profile-settings-container">
-          <h1 className="heading-md uppercase mb-8">Settings</h1>
+          <div className="mb-8 flex items-center gap-3">
+            <UserPanelBell />
+            <h1 className="heading-md uppercase">Settings</h1>
+          </div>
           <ProfileDetails user={user} />
           <ProfilePassword user={user} />
         </div>

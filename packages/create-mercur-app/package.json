@@ -34,8 +34,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "dev": "NODE_OPTIONS=--max-old-space-size=8192 tsup --watch",
-    "build": "tsup"
+    "dev": "node init && NODE_OPTIONS=--max-old-space-size=8192 tsup --watch",
+    "build": "node init && tsup"
   },
   "dependencies": {
     "@antfu/ni": "^30.3.0",

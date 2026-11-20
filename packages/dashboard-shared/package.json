@@ -19,8 +19,8 @@
     "dist"
   ],
   "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup"
+    "dev": "node init && tsup --watch",
+    "build": "node init && tsup"
   },
   "dependencies": {
     "@ariakit/react": "^0.4.15",
