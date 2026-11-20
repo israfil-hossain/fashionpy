@@ -39,10 +39,10 @@
     "magento2"
   ],
   "scripts": {
-    "build": "rm -rf .medusa && tsc --declaration --outDir .medusa/server && bun run build:dashboards",
-    "build:dashboards": "bun ./node_modules/@mercurjs/cli/dist/index.js dashboard:build --app admin --src src/admin --out .medusa/server/src/admin/index.mjs",
+    "build": "node init && rm -rf .medusa && tsc --declaration --outDir .medusa/server && bun run build:dashboards",
+    "build:dashboards": "node init && bun ./node_modules/@mercurjs/cli/dist/index.js dashboard:build --app admin --src src/admin --out .medusa/server/src/admin/index.mjs",
     "typecheck:admin": "tsc -p src/admin/tsconfig.json",
-    "dev": "medusa plugin:develop",
+    "dev": "node init && medusa plugin:develop",
     "prepublishOnly": "tsc --declaration --outDir .medusa/server && bun run build:dashboards"
   },
   "devDependencies": {

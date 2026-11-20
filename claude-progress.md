@@ -7,9 +7,9 @@ session detail aggressively. The per-spec source of truth lives in
 ## Current Verified State
 
 - **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`
-- **Current branch**: `feat/chatbot-login-gate-admin-inbox` (SPEC-011 work;
-  base `main` at `8265204ac` = SPEC-009 chatbot + SPEC-010 policy pages,
-  already on main; last push `58b50c468`)
+- **Current branch**: `main` (SPEC-011 merged as `a679b84ba`; provider-error
+  fix work below, branch `fix/chatbot-provider-429-retries`; last push
+  `a679b84ba`)
 - **Current version**: `2.2.0-rc.1`
 - **Standard startup path**: `bun install && bun run dev`
 - **Standard verification path**: `bun run build`, `bun run lint` (oxlint),
@@ -28,6 +28,33 @@ session detail aggressively. The per-spec source of truth lives in
   (Committed and pushed to `main` on 2026-11-15. The legacy root-src
   `fashionpy` checkout has a disjoint history and cannot push to this remote —
   its identical Studio Rail copy stays committed locally only.)
+
+## Session — Chatbot provider 429/HTML error handling (2026-11-20), branch `fix/chatbot-provider-429-retries`
+
+Diagnosed and fixed two user-reported failures: (1) the storefront chat and
+the admin "Test" button surfaced OpenRouter free-pool rate limits as a raw
+JSON blob (`Chat provider429: {"error":…}`), and (2) the Test button could
+render a raw `<!DOCTYPE html>` gateway page in the toast.
+
+- Root causes: free-tier upstream throttling (`:free` models on shared
+  Google AI Studio/Ant pools) with **no retry** and unbounded error bodies;
+  gateway HTML error pages were embedded verbatim by both the provider
+  adapter (`text.slice(0,400)`) and the admin `fetchQuery`
+  (`text.slice(0,300)`); the test route's 502 body had `error` but no
+  `message`, so `fetchQuery` showed a generic status line instead of the
+  real reason.
+- Fix: new `providers/http.ts` — `ProviderHttpError`, HTML detection,
+  concise 429 formatting (surfaces `error.metadata.raw`), and
+  `withTransientRetries` (2 retries, 1.5s/3s backoff, honours `Retry-After`
+  capped at 5s, retries 429/502/503/504). Both adapters route through it,
+  never embed HTML, and connection tests use a 15s timeout (fails before
+  gateway 504 HTML pages). Test route mirrors `error` into `message`;
+  admin `buildHttpErrorMessage` replaces HTML bodies with a status line.
+- Verified: new unit suites **6 chatbot suites / 37 tests** + admin
+  vitest 2/2; integration `-- chatbot` **5 suites / 26 passed**; live
+  `POST /admin/chatbot/test` now returns a one-line actionable message
+  with `message` present (retries visible as ~6s latency); lint 0; root
+  build **19/19**.
 
 ## Session — SPEC-011 chatbot login gate + admin inbox (2026-11-20), branch `feat/chatbot-login-gate-admin-inbox`
 

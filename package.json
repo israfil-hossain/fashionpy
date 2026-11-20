@@ -2,8 +2,8 @@
   "name": "mercur",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev --filter='!@mercurjs/core' --filter='!@mercurjs/dashboard-sdk' --filter='!@mercurjs/dashboard-shared'",
+    "build": "node init && turbo run build",
+    "dev": "node init && turbo run dev --filter='!@mercurjs/core' --filter='!@mercurjs/dashboard-sdk' --filter='!@mercurjs/dashboard-shared'",
     "lint": "oxlint --quiet",
     "test:unit": "cd integration-tests && bun run test:unit",
     "test:integration:http": "cd integration-tests && bun run test:integration:http"

@@ -23,8 +23,8 @@
     "stripe:check-webhooks": "medusa exec ./src/scripts/check-stripe-webhooks.ts",
     "stripe:onboarding": "medusa exec ./src/scripts/stripe-onboarding.ts",
     "stripe:scenarios": "medusa exec ./src/scripts/stripe-scenarios.ts",
-    "start": "medusa start",
-    "dev": "medusa develop",
+    "start": "node init && medusa start",
+    "dev": "node init && medusa develop",
     "test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
     "test:integration:modules": "TEST_TYPE=integration:modules NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
     "test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --forceExit"

@@ -3,6 +3,7 @@ import { Routes } from '@mercurjs/core/_generated'
 
 import { assetUrl } from '../../utils/asset-url'
 import { clearAuthToken, getAuthHeaders } from './auth-token'
+import { buildHttpErrorMessage } from './error-message'
 
 declare const __BACKEND_URL__: string
 
@@ -85,8 +86,9 @@ export const fetchQuery = async (
         try {
           errorData = JSON.parse(text)
         } catch {
-          // HTML/plain error pages (Express 500) — keep defaults
-          errorData = { message: text.slice(0, 300) }
+          // HTML/plain error pages (Express 404, gateway errors) — never
+          // embed the raw markup in a toast.
+          errorData = { message: buildHttpErrorMessage(response.status, text) }
         }
       }
     } catch {

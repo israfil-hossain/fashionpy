@@ -38,6 +38,8 @@ export interface ChatProviderConfig {
   model: string
   temperature?: number
   max_tokens?: number
+  /** Per-request timeout; defaults to 60s (connection tests use a shorter one). */
+  timeout_ms?: number
 }
 
 export interface ChatProvider {

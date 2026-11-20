@@ -24,9 +24,9 @@
     }
   },
   "scripts": {
-    "build": "rm -rf .medusa && tsc --declaration --outDir .medusa/server",
+    "build": "node init && rm -rf .medusa && tsc --declaration --outDir .medusa/server",
     "test": "jest --passWithNoTests",
-    "dev": "medusa plugin:develop",
+    "dev": "node init && medusa plugin:develop",
     "prepublishOnly": "tsc --declaration --outDir .medusa/server"
   },
   "peerDependencies": {
