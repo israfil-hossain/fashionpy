@@ -223,6 +223,64 @@ class ChatbotModuleService extends MedusaService({
       .limit(Math.min(filter.limit ?? 20, 50))) as ChatbotConversationDTO[]
   }
 
+  /**
+   * Admin inbox listing (SPEC-011): every conversation, newest activity
+   * first, filterable by status and by either side of `q` — the caller
+   * resolves `q` against customer names into `customer_ids` and also searches
+   * the last-message preview (guests have no customer row to match).
+   */
+  @InjectManager()
+  async listConversationsForAdmin(
+    filter: {
+      status?: "open" | "closed"
+      customer_ids?: string[]
+      preview_like?: string
+      skip?: number
+      take?: number
+    },
+    @MedusaContext() sharedContext?: Context<EntityManager>
+  ): Promise<{ conversations: ChatbotConversationDTO[]; count: number }> {
+    const knex = sharedContext!.manager!.getKnex()
+
+    const applyFilters = () => {
+      const query = knex("chatbot_conversation").whereNull("deleted_at")
+      if (filter.status) {
+        query.where("status", filter.status)
+      }
+      const hasCustomerFilter = filter.customer_ids !== undefined
+      const hasPreviewFilter = !!filter.preview_like
+      if (hasCustomerFilter || hasPreviewFilter) {
+        query.andWhere(function (this: any) {
+          if (hasCustomerFilter) {
+            this.whereIn("customer_id", filter.customer_ids ?? [])
+          }
+          if (hasPreviewFilter) {
+            this.orWhere(
+              "last_message_preview",
+              "ilike",
+              `%${filter.preview_like}%`
+            )
+          }
+        })
+      }
+      return query
+    }
+
+    const countRow = await applyFilters().count("* as c").first()
+    const conversations = (await applyFilters()
+      .orderBy("last_message_at", "desc")
+      .orderBy("created_at", "desc")
+      .offset(Math.max(filter.skip ?? 0, 0))
+      .limit(Math.min(filter.take ?? 20, 100))) as ChatbotConversationDTO[]
+
+    return {
+      conversations,
+      count: Number(
+        (countRow as { c?: string | number } | undefined)?.c ?? 0
+      ),
+    }
+  }
+
   @InjectManager()
   async getConversation(
     id: string,
@@ -273,6 +331,7 @@ class ChatbotModuleService extends MedusaService({
       tool_name?: string | null
       locale?: ChatbotLocale | null
       preview?: string | null
+      sender?: "ai" | "admin" | null
     },
     @MedusaContext() sharedContext?: Context<EntityManager>
   ): Promise<ChatbotMessageDTO> {
@@ -287,6 +346,7 @@ class ChatbotModuleService extends MedusaService({
       cards: (input.cards as never) ?? null,
       tool_name: input.tool_name ?? null,
       locale: input.locale ?? null,
+      sender: input.sender ?? null,
       created_at: now,
       updated_at: now,
       deleted_at: null,

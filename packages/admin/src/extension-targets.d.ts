@@ -193,6 +193,7 @@ declare module "@mercurjs/dashboard-sdk" {
     "blog": true
     "campaigns": true
     "categories": true
+    "chatbot": true
     "collections": true
     "customer-groups": true
     "customers": true
@@ -233,6 +234,7 @@ declare module "@mercurjs/dashboard-sdk" {
     "analytics": true
     "banners": true
     "blog": true
+    "chatbot": true
     "customers": true
     "inventory": true
     "messages": true

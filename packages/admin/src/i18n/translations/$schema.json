@@ -17718,6 +17718,106 @@
         "policies"
       ],
       "additionalProperties": false
+    },
+    "chatbot": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "inbox": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "string"
+        },
+        "enabled_hint": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "base_url": {
+          "type": "string"
+        },
+        "api_key": {
+          "type": "string"
+        },
+        "api_key_set": {
+          "type": "string"
+        },
+        "api_key_saved": {
+          "type": "string"
+        },
+        "api_key_missing": {
+          "type": "string"
+        },
+        "temperature": {
+          "type": "string"
+        },
+        "max_tokens": {
+          "type": "string"
+        },
+        "stt_provider": {
+          "type": "string"
+        },
+        "stt_model": {
+          "type": "string"
+        },
+        "stt_api_key": {
+          "type": "string"
+        },
+        "system_prompt": {
+          "type": "string"
+        },
+        "system_prompt_placeholder": {
+          "type": "string"
+        },
+        "test": {
+          "type": "string"
+        },
+        "toast_saved": {
+          "type": "string"
+        },
+        "toast_test_ok": {
+          "type": "string"
+        },
+        "load_failed": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain",
+        "inbox",
+        "subtitle",
+        "enabled",
+        "enabled_hint",
+        "provider",
+        "model",
+        "base_url",
+        "api_key",
+        "api_key_set",
+        "api_key_saved",
+        "api_key_missing",
+        "temperature",
+        "max_tokens",
+        "stt_provider",
+        "stt_model",
+        "stt_api_key",
+        "system_prompt",
+        "system_prompt_placeholder",
+        "test",
+        "toast_saved",
+        "toast_test_ok",
+        "load_failed"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
@@ -17793,7 +17893,8 @@
     "permissions",
     "richTextEditor",
     "stores",
-    "marketplace"
+    "marketplace",
+    "chatbot"
   ],
   "additionalProperties": false
 }

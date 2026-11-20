@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useLocale } from "@/components/providers/Locale/LocaleProvider"
-import { CloseIcon, TickHeavyIcon } from "@/icons"
+import { retrieveCustomer } from "@/lib/data/customer"
+import { CloseIcon, MessageIcon, TickHeavyIcon, WhatsAppIcon } from "@/icons"
 import {
   getSpeechRecognitionCtor,
   speechLangFor,
   type SpeechRecognitionLike,
 } from "@/lib/speech"
+import { whatsappHref } from "@/data/support"
 import { FoxAssistantIcon } from "./FoxAssistantIcon"
 
 type Card =
@@ -47,7 +49,6 @@ type UiMessage = {
 
 type UiLang = "en" | "bn"
 
-const GUEST_KEY = "mercur_chatbot_guest"
 const CONV_KEY = "mercur_chatbot_conv"
 const LANG_KEY = "mercur_chatbot_lang"
 
@@ -74,6 +75,12 @@ const UI: Record<UiLang, Record<string, string>> = {
     emptyOrders: "No orders yet",
     errorRetry: "Something went wrong. Try again.",
     micRecording: "Recording… release to send",
+    gateTitle: "Login Required",
+    gateBody:
+      "You must be logged in to access live chat and communicate with our support team.",
+    gateLogin: "Login to Account",
+    gateOr: "OR",
+    gateWhatsapp: "Chat via WhatsApp",
   },
   bn: {
     title: "শপিং সহায়ক",
@@ -93,17 +100,13 @@ const UI: Record<UiLang, Record<string, string>> = {
     emptyOrders: "এখনো কোনো অর্ডার নেই",
     errorRetry: "কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।",
     micRecording: "রেকর্ড হচ্ছে… ছাড়লে পাঠাবে",
+    gateTitle: "লগইন প্রয়োজন",
+    gateBody:
+      "লাইভ চ্যাট ব্যবহার করতে এবং সাপোর্ট টিমের সাথে কথা বলতে আপনাকে অবশ্যই লগইন করতে হবে।",
+    gateLogin: "অ্যাকাউন্টে লগইন করুন",
+    gateOr: "অথবা",
+    gateWhatsapp: "WhatsApp-এ চ্যাট করুন",
   },
-}
-
-function getGuestToken(): string {
-  if (typeof window === "undefined") return ""
-  let token = localStorage.getItem(GUEST_KEY)
-  if (!token) {
-    token = `g_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`
-    localStorage.setItem(GUEST_KEY, token)
-  }
-  return token
 }
 
 function localeFor(region: string): UiLang {
@@ -120,7 +123,11 @@ function readStoredLang(region: string): UiLang {
   return stored === "en" || stored === "bn" ? stored : localeFor(region)
 }
 
-export const ChatbotWidget = () => {
+export const ChatbotWidget = ({
+  isLoggedIn = false,
+}: {
+  isLoggedIn?: boolean
+}) => {
   const region = useLocale()
   const [enabled, setEnabled] = useState(false)
   const [open, setOpen] = useState(false)
@@ -131,6 +138,9 @@ export const ChatbotWidget = () => {
   const [error, setError] = useState<string | null>(null)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [recording, setRecording] = useState(false)
+  // Live session check — the layout prop can be stale when Next serves a
+  // cached layout segment after login (SPEC-011).
+  const [authed, setAuthed] = useState(isLoggedIn)
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -159,6 +169,96 @@ export const ChatbotWidget = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, open])
 
+  // SPEC-011: notification deep link `?chat=1` opens the panel and strips
+  // the param (shallow history update — no navigation).
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("chat") !== "1") return
+    setOpen(true)
+    params.delete("chat")
+    const qs = params.toString()
+    window.history.replaceState(
+      {},
+      "",
+      window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash
+    )
+  }, [])
+
+  // SPEC-011: load server history when the panel opens (shows admin
+  // follow-ups sent while the customer was away). A 404 means the stored id
+  // is a stale guest-era conversation — drop it and start fresh on next send.
+  const fetchHistory = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/chatbot/conversations/${id}`)
+      if (res.status === 404) {
+        sessionStorage.removeItem(CONV_KEY)
+        setConversationId(null)
+        return
+      }
+      if (!res.ok) return
+      const data = await res.json()
+      const rows = (data?.messages ?? []) as Array<{
+        id: string
+        role: string
+        content: string | null
+        cards?: Card[] | null
+      }>
+      setMessages(
+        rows
+          .filter((m) => m.role === "user" || m.role === "assistant")
+          .map((m) => ({
+            id: m.id,
+            role: m.role === "user" ? ("user" as const) : ("assistant" as const),
+            content: m.content ?? "",
+            cards: m.cards ?? [],
+          }))
+      )
+    } catch {
+      // History is a nicety — the chat still works without it.
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!open || !authed || busy) return
+    const stored = sessionStorage.getItem(CONV_KEY)
+    if (!stored) return
+    setConversationId((current) => current ?? stored)
+    void fetchHistory(stored)
+  }, [open, authed, busy, fetchHistory])
+
+  // Refresh when the customer returns to the tab (an admin follow-up may
+  // have landed while they were away).
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") return
+      if (!open || !authed || busy) return
+      const stored = sessionStorage.getItem(CONV_KEY)
+      if (stored) void fetchHistory(stored)
+    }
+    document.addEventListener("visibilitychange", onVisibility)
+    return () => document.removeEventListener("visibilitychange", onVisibility)
+  }, [open, authed, busy, fetchHistory])
+
+  // SPEC-011: keep the live session in sync — the layout prop can be stale
+  // when Next reuses a cached layout segment, and sessions can expire.
+  useEffect(() => {
+    setAuthed(isLoggedIn)
+  }, [isLoggedIn])
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    retrieveCustomer()
+      .then((u) => {
+        if (!cancelled) setAuthed(!!u)
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [open])
+
   const switchLang = (next: UiLang) => {
     setLang(next)
     try {
@@ -167,6 +267,17 @@ export const ChatbotWidget = () => {
       /* ignore */
     }
   }
+
+  // Full navigation (not router) so the server layout re-renders with the
+  // fresh session; `?chat=1` brings the customer straight back to this chat.
+  const handleLogin = () => {
+    const redirect = encodeURIComponent(`/${region}/?chat=1`)
+    window.location.href = `/${region}/login?redirect=${redirect}`
+  }
+
+  const whatsappMessage = bn
+    ? "হাই! FashionPy সাপোর্টে সাহায্য দরকার।"
+    : "Hi! I need help from FashionPy support."
 
   const ensureConversation = useCallback(async () => {
     if (conversationId) return conversationId
@@ -180,7 +291,6 @@ export const ChatbotWidget = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-chatbot-guest": getGuestToken(),
       },
       body: JSON.stringify({ locale: lang }),
     })
@@ -276,7 +386,6 @@ export const ChatbotWidget = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-chatbot-guest": getGuestToken(),
       },
       body: JSON.stringify(body),
     })
@@ -666,7 +775,50 @@ export const ChatbotWidget = () => {
             </button>
           </div>
 
+          {/* Login gate (SPEC-011) — shown instead of messages/composer
+              until the customer signs in. */}
+          {!authed && (
+            <div
+              className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-8 text-center"
+              data-testid="chatbot-gate"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f8e4ed]">
+                <MessageIcon size={30} color="#d84077" />
+              </div>
+              <div className="text-[19px] font-semibold leading-tight text-[#2a1520]">
+                {t.gateTitle}
+              </div>
+              <p className="max-w-[300px] text-[14px] leading-relaxed text-[#6b4555]">
+                {t.gateBody}
+              </p>
+              <button
+                type="button"
+                onClick={handleLogin}
+                className="h-12 w-full max-w-[300px] rounded-full bg-[#d84077] text-[15px] font-semibold text-white transition hover:bg-[#c42b6e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#e2578c]"
+                data-testid="chatbot-gate-login"
+              >
+                {t.gateLogin}
+              </button>
+              <div className="flex w-full max-w-[300px] items-center gap-3 text-[13px] font-medium text-[#b07a92]">
+                <span className="h-px flex-1 bg-[#f3d0de]" />
+                {t.gateOr}
+                <span className="h-px flex-1 bg-[#f3d0de]" />
+              </div>
+              <a
+                href={whatsappHref(whatsappMessage)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-12 w-full max-w-[300px] items-center justify-center gap-2 rounded-full border border-[#25d366]/50 bg-[#f0fdf4] text-[15px] font-semibold text-[#128c7e] transition hover:bg-[#dcfce7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#25d366]"
+                data-testid="chatbot-gate-whatsapp"
+              >
+                <WhatsAppIcon size={20} color="#128c7e" />
+                {t.gateWhatsapp}
+              </a>
+            </div>
+          )}
+
           {/* Messages */}
+          {authed && (
           <div className="flex-1 space-y-3.5 overflow-y-auto px-4 py-4 bg-[#fffafc]">
             {messages.length === 0 && (
               <div className="flex gap-2">
@@ -798,8 +950,10 @@ export const ChatbotWidget = () => {
             )}
             <div ref={bottomRef} />
           </div>
+          )}
 
           {/* Composer */}
+          {authed && (
           <form
             className="flex items-center gap-2 border-t border-[#f3d0de] bg-white px-3 py-3.5"
             onSubmit={(e) => {
@@ -848,6 +1002,7 @@ export const ChatbotWidget = () => {
               {t.send}
             </button>
           </form>
+          )}
         </div>
       )}
     </div>

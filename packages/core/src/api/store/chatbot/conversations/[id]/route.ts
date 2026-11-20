@@ -17,25 +17,10 @@ async function loadOwnedConversation(
     throw new MedusaError(MedusaError.Types.NOT_FOUND, "Conversation not found")
   }
 
+  // Strict gate (SPEC-011): auth is required by middleware, so the actor is
+  // always a customer — the conversation must be bound to that customer.
   const customerId = req.auth_context?.actor_id ?? null
-  const guestHeader =
-    (req.headers["x-chatbot-guest"] as string | undefined) ?? null
-
-  const ownsByCustomer =
-    customerId != null && conversation.customer_id === customerId
-  const ownsByGuest =
-    customerId == null &&
-    conversation.customer_id == null &&
-    conversation.guest_token != null &&
-    guestHeader === conversation.guest_token
-
-  // Guests without the token header can still read if they only know the id
-  // from the create response — treat possession of the id as ownership for
-  // guests (unguessable bconv_ ids), but customers must match exactly.
-  const ownsAsGuest =
-    customerId == null && conversation.customer_id == null && !guestHeader
-
-  if (!ownsByCustomer && !ownsByGuest && !ownsAsGuest) {
+  if (!customerId || conversation.customer_id !== customerId) {
     throw new MedusaError(MedusaError.Types.NOT_FOUND, "Conversation not found")
   }
 

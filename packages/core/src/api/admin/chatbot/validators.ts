@@ -1,4 +1,8 @@
 import { z } from "zod"
+import {
+  createFindParams,
+  createSelectParams,
+} from "@medusajs/medusa/api/utils/validators"
 
 export type AdminUpdateChatbotSettingsType = z.infer<
   typeof AdminUpdateChatbotSettings
@@ -28,5 +32,40 @@ export const AdminTestChatbot = z
     api_key: z.string().max(500).optional(),
     model: z.string().max(200).optional(),
   })
+  .optional()
+  .default({})
+
+export type AdminGetChatbotConversationsParamsType = z.infer<
+  typeof AdminGetChatbotConversationsParams
+>
+export const AdminGetChatbotConversationsParams = createFindParams({
+  offset: 0,
+  limit: 20,
+  order: "-last_message_at",
+}).merge(
+  z.object({
+    q: z.string().max(200).optional(),
+    status: z.enum(["open", "closed"]).optional(),
+  })
+)
+
+export type AdminGetChatbotConversationParamsType = z.infer<
+  typeof AdminGetChatbotConversationParams
+>
+export const AdminGetChatbotConversationParams = createSelectParams()
+
+export type AdminSendChatbotMessageType = z.infer<typeof AdminSendChatbotMessage>
+export const AdminSendChatbotMessage = z
+  .object({
+    content: z.string().min(1).max(4000),
+  })
+  .strict()
+
+export type AdminChatbotFollowupType = z.infer<typeof AdminChatbotFollowup>
+export const AdminChatbotFollowup = z
+  .object({
+    instruction: z.string().max(500).optional(),
+  })
+  .strict()
   .optional()
   .default({})

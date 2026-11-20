@@ -1,3 +1,5 @@
+import { SUPPORT_WHATSAPP } from "./support"
+
 const links = {
   brand: [
     {
@@ -29,7 +31,7 @@ const links = {
     { label: "Instagram", path: "https://www.instagram.com", icon: "InstagramIcon" },
     { label: "TikTok", path: "https://www.tiktok.com", icon: "TikTokIcon" },
     { label: "YouTube", path: "https://www.youtube.com", icon: "YouTubeIcon" },
-    { label: "WhatsApp", path: "https://wa.me/8801805101868", icon: "MessageIcon" },
+    { label: "WhatsApp", path: `https://wa.me/${SUPPORT_WHATSAPP}`, icon: "MessageIcon" },
   ],
 }
 

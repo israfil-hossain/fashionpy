@@ -54,21 +54,17 @@ medusaIntegrationTestRunner({
         expect(response.data.shipments).toEqual([])
       })
 
-      it("returns empty shipments for guests", async () => {
-        const created = await api.post(
-          "/store/chatbot/conversations",
-          { locale: "en", guest_token: "guest_ship_1" },
-          storeHeaders
-        )
-        const id = created.data.conversation.id
+      it("rejects guest conversation creation (strict login gate)", async () => {
+        const created = await api
+          .post(
+            "/store/chatbot/conversations",
+            { locale: "en", guest_token: "guest_ship_1" },
+            storeHeaders
+          )
+          .catch((e) => e.response)
 
-        const response = await api.get(
-          `/store/chatbot/conversations/${id}/shipments`,
-          storeHeaders
-        )
-
-        expect(response.status).toEqual(200)
-        expect(response.data.shipments).toEqual([])
+        // SPEC-011: no guest conversations — login is required.
+        expect(created.status).toEqual(401)
       })
 
       it("404s shipments for another customer's conversation", async () => {

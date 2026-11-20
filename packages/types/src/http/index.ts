@@ -33,6 +33,7 @@ export * from "./commission"
 export * from "./hero-banner"
 export * from "./blog"
 export * from "./policy-page"
+export * from "./chatbot"
 
 // Explicit re-exports to resolve ambiguity with @medusajs/types (Mercur overrides)
 export {

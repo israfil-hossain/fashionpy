@@ -21,6 +21,7 @@ export const SingleColumnPage = <TData,>({
    * Whether to show metadata view of the data. Defaults to false.
    */
   showMetadata,
+  ...rest
 }: PageProps<TData>) => {
   if (showJSON && !data) {
     if (process.env.NODE_ENV === "development") {
@@ -43,7 +44,7 @@ export const SingleColumnPage = <TData,>({
   }
 
   return (
-    <div className="flex flex-col gap-y-3">
+    <div className="flex flex-col gap-y-3" {...rest}>
       {children}
       {showMetadata && <MetadataSection data={data!} />}
       {showJSON && <JsonViewSection data={data!} />}

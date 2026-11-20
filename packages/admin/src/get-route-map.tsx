@@ -1156,6 +1156,24 @@ export function getRouteMap({
                 ],
               },
               {
+                path: "/chatbot",
+                errorElement: <ErrorBoundary />,
+                handle: {
+                  breadcrumb: () => t("chatbot.inbox"),
+                  permissions: "chatbot:view",
+                },
+                children: [
+                  {
+                    path: "",
+                    lazy: () => import("./pages/chatbot/page"),
+                  },
+                  {
+                    path: ":id",
+                    lazy: () => import("./pages/chatbot/[id]/page"),
+                  },
+                ],
+              },
+              {
                 path: "/payouts",
                 errorElement: <ErrorBoundary />,
                 handle: {
