@@ -6,6 +6,14 @@ import {
   ChatToolCall,
   ChatToolDefinition,
 } from "./types"
+import {
+  ProviderHttpError,
+  SleepFn,
+  defaultSleep,
+  formatProviderHttpError,
+  parseRetryAfterMs,
+  withTransientRetries,
+} from "./http"
 
 function toGeminiContents(messages: ChatMessage[]): {
   contents: Array<{ role: "user" | "model"; parts: Array<Record<string, unknown>> }>
@@ -98,6 +106,8 @@ function toGeminiTools(tools: ChatToolDefinition[]): Array<{
 }
 
 export class GeminiProvider implements ChatProvider {
+  constructor(private readonly sleepFn: SleepFn = defaultSleep) {}
+
   private baseUrl(config: ChatProviderConfig): string {
     if (config.base_url) {
       return config.base_url.replace(/\/+$/, "")
@@ -106,6 +116,17 @@ export class GeminiProvider implements ChatProvider {
   }
 
   async complete(
+    messages: ChatMessage[],
+    tools: ChatToolDefinition[],
+    config: ChatProviderConfig
+  ): Promise<ChatCompletionResult> {
+    return withTransientRetries(
+      () => this.doComplete(messages, tools, config),
+      { sleepFn: this.sleepFn }
+    )
+  }
+
+  private async doComplete(
     messages: ChatMessage[],
     tools: ChatToolDefinition[],
     config: ChatProviderConfig
@@ -135,16 +156,20 @@ export class GeminiProvider implements ChatProvider {
           "x-goog-api-key": config.api_key,
         },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(60_000),
+        signal: AbortSignal.timeout(config.timeout_ms ?? 60_000),
       }
     )
 
+    const text = await res.text().catch(() => "")
     if (!res.ok) {
-      const text = await res.text().catch(() => "")
-      throw new Error(`Gemini provider ${res.status}: ${text.slice(0, 400)}`)
+      throw new ProviderHttpError(
+        formatProviderHttpError("Gemini provider", res.status, text),
+        res.status,
+        parseRetryAfterMs(res.headers.get("retry-after"))
+      )
     }
 
-    const data = (await res.json()) as {
+    let data: {
       candidates?: Array<{
         content?: {
           parts?: Array<{
@@ -153,6 +178,14 @@ export class GeminiProvider implements ChatProvider {
           }>
         }
       }>
+    }
+    try {
+      data = JSON.parse(text)
+    } catch {
+      throw new ProviderHttpError(
+        formatProviderHttpError("Gemini provider", res.status, text),
+        res.status
+      )
     }
 
     const parts = data.candidates?.[0]?.content?.parts ?? []
@@ -183,6 +216,7 @@ export class GeminiProvider implements ChatProvider {
       await this.complete([{ role: "user", content: "ping" }], [], {
         ...config,
         max_tokens: 8,
+        timeout_ms: 15_000,
       })
       return { ok: true }
     } catch (err) {

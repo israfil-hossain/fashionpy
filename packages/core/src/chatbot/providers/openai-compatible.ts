@@ -7,6 +7,14 @@ import {
   ChatToolDefinition,
 } from "./types"
 import { normalizeOutgoingMessages, normalizeToolCalls } from "./normalize"
+import {
+  ProviderHttpError,
+  SleepFn,
+  defaultSleep,
+  formatProviderHttpError,
+  parseRetryAfterMs,
+  withTransientRetries,
+} from "./http"
 
 const DEFAULT_BASE_URLS: Record<string, string> = {
   openrouter: "https://openrouter.ai/api/v1",
@@ -25,7 +33,20 @@ function resolveBaseUrl(config: ChatProviderConfig): string {
  * OpenAI-compatible gateway (custom base_url).
  */
 export class OpenAICompatibleProvider implements ChatProvider {
+  constructor(private readonly sleepFn: SleepFn = defaultSleep) {}
+
   async complete(
+    messages: ChatMessage[],
+    tools: ChatToolDefinition[],
+    config: ChatProviderConfig
+  ): Promise<ChatCompletionResult> {
+    return withTransientRetries(
+      () => this.doComplete(messages, tools, config),
+      { sleepFn: this.sleepFn }
+    )
+  }
+
+  private async doComplete(
     messages: ChatMessage[],
     tools: ChatToolDefinition[],
     config: ChatProviderConfig
@@ -51,21 +72,33 @@ export class OpenAICompatibleProvider implements ChatProvider {
           : {}),
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(60_000),
+      signal: AbortSignal.timeout(config.timeout_ms ?? 60_000),
     })
 
+    const text = await res.text().catch(() => "")
     if (!res.ok) {
-      const text = await res.text().catch(() => "")
-      throw new Error(`Chat provider ${res.status}: ${text.slice(0, 400)}`)
+      throw new ProviderHttpError(
+        formatProviderHttpError("Chat provider", res.status, text),
+        res.status,
+        parseRetryAfterMs(res.headers.get("retry-after"))
+      )
     }
 
-    const data = (await res.json()) as {
+    let data: {
       choices?: Array<{
         message?: {
           content?: string | null
           tool_calls?: ChatToolCall[]
         }
       }>
+    }
+    try {
+      data = JSON.parse(text)
+    } catch {
+      throw new ProviderHttpError(
+        formatProviderHttpError("Chat provider", res.status, text),
+        res.status
+      )
     }
 
     const message = data.choices?.[0]?.message
@@ -80,7 +113,7 @@ export class OpenAICompatibleProvider implements ChatProvider {
       await this.complete(
         [{ role: "user", content: "ping" }],
         [],
-        { ...config, max_tokens: 8 }
+        { ...config, max_tokens: 8, timeout_ms: 15_000 }
       )
       return { ok: true }
     } catch (err) {
