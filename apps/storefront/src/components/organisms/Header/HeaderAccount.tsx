@@ -1,5 +1,4 @@
 import { UserDropdown } from "@/components/cells/UserDropdown/UserDropdown"
-import { MessageButton } from "@/components/molecules/MessageButton/MessageButton"
 import { CustomerTalkJsProvider } from "@/components/providers/TalkJs/CustomerTalkJsProvider"
 import { retrieveCustomer } from "@/lib/data/customer"
 
@@ -9,7 +8,6 @@ export const HeaderAccount = async () => {
 
   return (
     <CustomerTalkJsProvider>
-      {isLoggedIn && <MessageButton />}
       <UserDropdown isLoggedIn={isLoggedIn} />
     </CustomerTalkJsProvider>
   )

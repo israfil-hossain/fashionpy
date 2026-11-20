@@ -123,6 +123,7 @@ export const POST = async (
       container: req.scope,
       input: {
         type: "support_vendor" as ConversationType,
+        thread_key: `sv:${sellerId}`,
         seller_id: sellerId,
       },
     })
