@@ -1,5 +1,6 @@
 import { LoginForm, UserNavigation } from '@/components/molecules'
 import { NotificationsList } from '@/components/molecules/NotificationsList/NotificationsList'
+import { UserPanelBell } from '@/components/molecules/UserPanelBell/UserPanelBell'
 import { retrieveCustomer } from '@/lib/data/customer'
 import { listNotifications } from '@/lib/data/notifications'
 
@@ -22,7 +23,10 @@ export default async function NotificationsPage() {
       <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-4 md:gap-8">
         <UserNavigation />
         <div className="space-y-6 md:col-span-3">
-          <h1 className="heading-lg text-primary uppercase">Notifications</h1>
+          <div className="flex items-center gap-3">
+            <UserPanelBell />
+            <h1 className="heading-lg text-primary uppercase">Notifications</h1>
+          </div>
           <NotificationsList notifications={notifications} />
         </div>
       </div>
