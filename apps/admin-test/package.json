@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "rm -rf node_modules/.vite && vite --port 7001",
+    "dev": "node init && rm -rf node_modules/.vite && vite --port 7001",
     "lint": "oxlint",
     "preview": "vite preview --port 7000",
-    "build": "vite build"
+    "build": "node init && vite build"
   },
   "dependencies": {
     "@mercurjs/admin": "*",

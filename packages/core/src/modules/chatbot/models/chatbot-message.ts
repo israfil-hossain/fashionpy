@@ -13,6 +13,8 @@ export const ChatbotMessage = model
     cards: model.json().nullable(),
     tool_name: model.text().nullable(),
     locale: model.enum(["en", "bn"]).nullable(),
+    /** "ai" (default/legacy, null reads as ai) or "admin" follow-up. */
+    sender: model.text().nullable(),
   })
   .indexes([
     { on: ["conversation_id", "created_at", "id"] },

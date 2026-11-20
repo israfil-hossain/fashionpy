@@ -33,8 +33,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "dev": "NODE_OPTIONS=--max-old-space-size=8192 tsup --watch",
-    "build": "bun scripts/generate-routes-manifest.ts && tsup",
+    "dev": "node init && NODE_OPTIONS=--max-old-space-size=8192 tsup --watch",
+    "build": "node init && bun scripts/generate-routes-manifest.ts && tsup",
     "routes-manifest": "bun scripts/generate-routes-manifest.ts"
   },
   "dependencies": {

@@ -2,6 +2,8 @@ export type ChatbotProvider = "openrouter" | "gemini" | "openai_compatible"
 export type ChatbotSttProvider = "openai" | "gemini" | "none"
 export type ChatbotLocale = "en" | "bn"
 export type ChatbotRole = "user" | "assistant" | "tool"
+/** Author of an assistant message — null/`ai` = the model, `admin` = a follow-up. */
+export type ChatbotSender = "ai" | "admin"
 export type ChatbotConversationStatus = "open" | "closed"
 
 export interface ChatbotConversationDTO {
@@ -25,6 +27,7 @@ export interface ChatbotMessageDTO {
   cards: ChatbotCard[] | null
   tool_name: string | null
   locale: ChatbotLocale | null
+  sender: ChatbotSender | null
   created_at: Date | string
 }
 

@@ -14,6 +14,7 @@ import {
   ReceiptPercent,
   ShieldCheck,
   ShoppingCart,
+  SparklesMini,
   Tag,
   Users,
 } from "@medusajs/icons";
@@ -541,6 +542,11 @@ const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
       icon: <ChatBubbleLeftRight />,
       label: t("messages.title"),
       to: "/messages",
+    },
+    {
+      icon: <SparklesMini />,
+      label: t("chatbot.inbox", "Chat Inbox"),
+      to: "/chatbot",
     },
   ];
 };

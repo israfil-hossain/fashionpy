@@ -23,6 +23,12 @@ export const POST = async (
   }
 
   const customerId = req.auth_context?.actor_id ?? null
+  // Strict gate (SPEC-011): only the conversation's own customer may post —
+  // this route previously had no ownership check at all.
+  if (!conversation || !customerId || conversation.customer_id !== customerId) {
+    throw new MedusaError(MedusaError.Types.NOT_FOUND, "Conversation not found")
+  }
+
   const { audio_base64, mime_type } = req.validatedBody
 
   let transcript: string

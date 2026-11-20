@@ -3112,6 +3112,7 @@
   },
   "chatbot": {
     "domain": "AI Chatbot",
+    "inbox": "Chat Inbox",
     "subtitle": "Configure the storefront assistant: provider, model, voice, and system prompt.",
     "enabled": "Enable assistant",
     "enabled_hint": "Show the floating chat widget on the storefront",

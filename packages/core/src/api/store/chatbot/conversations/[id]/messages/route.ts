@@ -22,11 +22,8 @@ export const POST = async (
   }
 
   const customerId = req.auth_context?.actor_id ?? null
-  if (
-    conversation.customer_id &&
-    customerId &&
-    conversation.customer_id !== customerId
-  ) {
+  // Strict gate (SPEC-011): only the conversation's own customer may post.
+  if (!conversation || !customerId || conversation.customer_id !== customerId) {
     throw new MedusaError(MedusaError.Types.NOT_FOUND, "Conversation not found")
   }
 

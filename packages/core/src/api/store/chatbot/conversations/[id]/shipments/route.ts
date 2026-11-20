@@ -25,17 +25,9 @@ export const GET = async (
   }
 
   const customerId = req.auth_context?.actor_id ?? null
-  if (
-    conversation.customer_id &&
-    customerId &&
-    conversation.customer_id !== customerId
-  ) {
+  // Strict gate (SPEC-011): only the conversation's own customer may read.
+  if (!customerId || conversation.customer_id !== customerId) {
     throw new MedusaError(MedusaError.Types.NOT_FOUND, "Conversation not found")
-  }
-
-  if (!customerId) {
-    res.json({ shipments: [] })
-    return
   }
 
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)

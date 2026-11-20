@@ -11,6 +11,7 @@ import { Button } from '@/components/atoms/Button/Button';
 import { Alert } from '@/components/atoms/Alert/Alert';
 import { LabeledInput } from '@/components/cells';
 import { login, loginWithGoogle, transferCart } from '@/lib/data/customer';
+import { safeRedirectPath } from '@/lib/helpers/safe-redirect';
 import { toast } from '@/lib/helpers/toast';
 import { GoogleIcon } from '@/icons';
 
@@ -44,6 +45,9 @@ const Form = () => {
   const searchParams = useSearchParams();
   const isSessionExpired = searchParams.get('sessionExpired') === 'true';
   const isSessionRequired = searchParams.get('sessionRequired') === 'true';
+  // SPEC-011: return target (e.g. the chatbot gate's `/?chat=1`); only
+  // same-site relative paths are honoured.
+  const returnTo = safeRedirectPath(searchParams.get('redirect'));
 
   const submit = async (data: FieldValues) => {
     const formData = new FormData();
@@ -53,14 +57,16 @@ const Form = () => {
     const res = await login(formData);
 
     if (res.success) {
-      router.push('/user');
-      await transferCart();
+      await transferCart().catch(() => undefined);
+      // Full navigation so the server layout re-renders with the fresh
+      // session — the client router can otherwise reuse the cached
+      // logged-out layout (SPEC-011 chatbot gate depends on it).
+      window.location.href = returnTo ?? '/user';
     } else {
       toast.error({ title: res.message || 'An error occurred. Please try again.' });
     }
 
     setIsAuthError(false);
-    router.push('/user');
   };
 
   const submitGoogle = async () => {
