@@ -35,7 +35,7 @@
     "mercur-plugin"
   ],
   "scripts": {
-    "build": "npx @mercurjs/cli@latest plugin:build",
+    "build": "node init && npx @mercurjs/cli@latest plugin:build",
     "prepublishOnly": "npx @mercurjs/cli@latest plugin:build"
   },
   "devDependencies": {

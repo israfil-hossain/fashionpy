@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "build:registry": "mercurjs build"
+    "build": "node init && tsc",
+    "dev": "node init && tsc --watch",
+    "build:registry": "node init && mercurjs build"
   },
   "dependencies": {},
   "devDependencies": {

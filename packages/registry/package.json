@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsc --watch",
-    "build:registry": "bunx @mercurjs/cli@latest registry:build",
+    "dev": "node init && tsc --watch",
+    "build:registry": "node init && bunx @mercurjs/cli@latest registry:build",
     "codegen": "bunx @mercurjs/cli@latest registry:codegen",
     "test": "jest --config jest.config.cjs"
   },

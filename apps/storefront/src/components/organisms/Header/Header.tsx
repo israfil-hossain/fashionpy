@@ -6,8 +6,6 @@ import { CartDropdown } from "@/components/cells/CartDropdown/CartDropdown"
 import { UserDropdown } from "@/components/cells/UserDropdown/UserDropdown"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import { HeaderSearch } from "@/components/molecules/HeaderSearch/HeaderSearch"
-import { MessageButton } from "@/components/molecules/MessageButton/MessageButton"
-import { NotificationsButton } from "@/components/molecules/NotificationsButton/NotificationsButton"
 import { HeartIcon, SearchIcon } from "@/icons"
 import { listCategories } from "@/lib/data/categories"
 import { retrieveCustomer } from "@/lib/data/customer"
@@ -98,9 +96,6 @@ export const Header = async ({
               >
                 <SearchIcon size={20} color="#ffffff" />
               </LocalizedClientLink>
-
-              {isLoggedIn && <MessageButton iconColor="#ffffff" />}
-              {isLoggedIn && <NotificationsButton iconColor="#ffffff" />}
 
               <div
                 className="hidden items-center gap-1.5 md:flex"

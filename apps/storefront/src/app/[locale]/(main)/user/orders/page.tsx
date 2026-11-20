@@ -5,6 +5,7 @@ import { isEmpty } from 'lodash';
 import { LoginForm } from '@/components/molecules/LoginForm/LoginForm';
 import { ParcelAccordion } from '@/components/molecules/ParcelAccordion/ParcelAccordion';
 import { UserNavigation } from '@/components/molecules/UserNavigation/UserNavigation';
+import { UserPanelBell } from '@/components/molecules/UserPanelBell/UserPanelBell';
 import { OrdersPagination } from '@/components/organisms/OrdersPagination/OrdersPagination';
 import { retrieveCustomer } from '@/lib/data/customer';
 import { listOrders } from '@/lib/data/orders';
@@ -77,7 +78,10 @@ async function UserPageContent({
           className="space-y-8 md:col-span-3"
           data-testid="orders-container"
         >
-          <h1 className="heading-md uppercase">Orders</h1>
+          <div className="flex items-center gap-3">
+            <UserPanelBell />
+            <h1 className="heading-md uppercase">Orders</h1>
+          </div>
           {isEmpty(orders) ? (
             <div
               className="text-center"

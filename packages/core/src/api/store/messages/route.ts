@@ -135,6 +135,7 @@ export const POST = async (
       container: req.scope,
       input: {
         type: conversationType,
+        thread_key: threadKey,
         buyer_id: customerId,
         seller_id: conversationType === "marketplace" ? seller_id : null,
       },
