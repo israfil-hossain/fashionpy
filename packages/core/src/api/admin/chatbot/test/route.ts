@@ -10,17 +10,22 @@ export const POST = async (
   try {
     const result = await testConnection(req.scope, req.validatedBody ?? {})
     if (!result.ok) {
-      res.status(502).json(result)
+      // `message` mirrors `error` so API clients that surface `message`
+      // (the admin fetchQuery) show the real provider reason, not a
+      // generic status line.
+      res.status(502).json({ ...result, message: result.error ?? "Connection failed" })
       return
     }
     res.json(result)
   } catch (err) {
+    const message = (err as Error).message
     res.status(502).json({
       ok: false,
       provider: "unknown",
       model: "",
       latency_ms: 0,
-      error: (err as Error).message,
+      error: message,
+      message,
     })
   }
 }
