@@ -594,6 +594,23 @@
         "sizesInfo": "Sizes: {{sizes}}",
         "priceNote": "The source price is shown for reference only — set your selling price via offers after saving.",
         "failed": "Could not fetch product information from this URL"
+      },
+      "ai": {
+        "label": "Generate with AI",
+        "hint": "Upload a product photo or paste a link — AI drafts the title, description, variants and attributes. Review and edit before saving.",
+        "upload": "Upload photo",
+        "or": "or",
+        "urlPlaceholder": "https://example.com/product/...",
+        "generate": "Generate",
+        "success": "Drafted \"{{title}}\"",
+        "untitled": "product",
+        "variantsInfo": "{{count}} variant(s) suggested",
+        "sizesInfo": "Sizes: {{sizes}}",
+        "quotaInfo": "{{remaining}} of {{quota}} AI drafts left",
+        "note": "AI only fills the form — nothing is saved until you review and submit. Prices, stock and shipping stay manual.",
+        "invalidFile": "Please choose a JPEG, PNG, WebP or HEIC image.",
+        "uploadFailed": "Could not upload the image. Please try again.",
+        "failed": "Could not generate a draft. Please try again."
       }
     },
     "export": {

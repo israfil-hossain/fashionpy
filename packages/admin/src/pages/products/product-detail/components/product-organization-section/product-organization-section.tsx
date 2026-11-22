@@ -1,9 +1,10 @@
-import { PencilSquare } from "@medusajs/icons";
-import { Badge, Container, Heading, Tooltip } from "@medusajs/ui";
+import { PencilSquare, Sparkles } from "@medusajs/icons";
+import { Badge, Button, Container, Heading, Tooltip, toast } from "@medusajs/ui";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { HttpTypes } from "@medusajs/types";
 import { DisplayExtensionZone } from "@mercurjs/dashboard-shared";
+import { useAiEnrichProduct } from "../../../../../hooks/api/products";
 import { ActionMenu } from "../../../../../components/common/action-menu";
 import { SectionRow } from "../../../../../components/common/section";
 
@@ -13,6 +14,20 @@ export const ProductOrganizationSection = ({
   product: HttpTypes.AdminProduct;
 }) => {
   const { t } = useTranslation();
+  const enrich = useAiEnrichProduct();
+
+  const handleEnrich = async () => {
+    try {
+      await enrich.mutateAsync({ $id: product.id });
+      toast.success(t("products.organization.aiSuccess"));
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("products.organization.aiFailed"),
+      );
+    }
+  };
 
   return (
     <Container
@@ -26,21 +41,34 @@ export const ProductOrganizationSection = ({
         <Heading level="h2" data-testid="product-organization-title">
           {t("products.organization.header")}
         </Heading>
-        <ActionMenu
-          groups={[
-            {
-              actions: [
-                {
-                  label: t("actions.edit"),
-                  to: "organization",
-                  permission: "products:edit",
-                  icon: <PencilSquare />,
-                },
-              ],
-            },
-          ]}
-          data-testid="product-organization-action-menu"
-        />
+        <div className="flex items-center gap-x-2">
+          <Button
+            type="button"
+            size="small"
+            variant="secondary"
+            onClick={handleEnrich}
+            isLoading={enrich.isPending}
+            data-testid="product-organization-ai-enrich"
+          >
+            <Sparkles />
+            {t("products.organization.aiEnrich")}
+          </Button>
+          <ActionMenu
+            groups={[
+              {
+                actions: [
+                  {
+                    label: t("actions.edit"),
+                    to: "organization",
+                    permission: "products:edit",
+                    icon: <PencilSquare />,
+                  },
+                ],
+              },
+            ]}
+            data-testid="product-organization-action-menu"
+          />
+        </div>
       </div>
 
       <SectionRow

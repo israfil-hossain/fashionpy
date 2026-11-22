@@ -1520,6 +1520,36 @@ second, runtime failure. Both are landed and prod is verified healthy.
   path was not exercised today.
 
 
+## 2026-11-22 — AI product drafts, catalog enrichment, blog generation (SPEC-014)
+
+- **Landed.** Shared `packages/core/src/ai/` runtime on top of the existing
+  chatbot provider layer: JSON completion with zod validation, SSRF-safe image
+  normalization (http + base64), vision support in the OpenAI-compatible and
+  Gemini adapters, product-draft / insights / blog generators, metadata+tag+SKU
+  sanitizers, per-actor AI rate limit.
+- **Endpoints.** `POST /admin/products/ai/draft`,
+  `POST /vendor/products/ai/draft` (quota), `POST /admin/products/ai/insights`,
+  `POST /admin/products/:id/ai/enrich`, `POST /admin/blog-posts/ai/generate`.
+- **Seller quota.** `seller.metadata.ai_product_quota` (default 20) and
+  `ai_product_generations`; atomic conditional `UPDATE ... RETURNING` in
+  `SellerModuleService.consumeAiProductCredit`, with refund on generation
+  failure. Admin routes bypass the quota by construction.
+- **UI.** Vendor product create has an "Generate with AI" section (photo is
+  downscaled in-browser and sent as a data URL, then uploaded for media). Admin
+  product organization has "Enrich with AI"; admin blog form has an "AI draft"
+  panel that fills title/slug/excerpt/content/tags/metadata.
+- **Follow-up.** Added the same AI panel to the admin product create details
+  tab. Vendor and admin drafts now preselect a matching category and matching
+  catalog tag IDs (fetch is best-effort; failures never block the draft).
+- **Verified.** Core `tsc` exit 0; `bun run lint` exit 0; AI unit tests 24/24;
+  `seller/modules/ai-quota` integration 2/2; `http/ai/admin/ai-routes` 5/5 with
+  the provider mocked via `global.fetch` (admin draft, vendor draft + quota,
+  insights, enrich with tag creation + metadata merge, blog draft); core, vendor
+  and admin builds exit 0 (vendor/admin declaration builds included).
+  Live-provider smoke test left to the operator environment.
+- **Not run.** Root `bun run build` (turbo across all apps); the three changed
+  packages were built individually.
+
 ## Definition Of Done
 
 A change is done only when:

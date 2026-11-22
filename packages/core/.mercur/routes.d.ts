@@ -319,6 +319,9 @@ export type Routes = {
                         batch: typeof import("@medusajs/medusa/api/admin/products/[id]/variants/inventory-items/batch/route");
                     };
                 };
+                ai: {
+                    enrich: typeof import("../src/api/admin/products/[id]/ai/enrich/route");
+                };
             };
             batch: typeof import("@medusajs/medusa/api/admin/products/batch/route");
             export: typeof import("@medusajs/medusa/api/admin/products/export/route");
@@ -331,6 +334,10 @@ export type Routes = {
                 $transactionId: {
                     confirm: typeof import("@medusajs/medusa/api/admin/products/imports/[transaction_id]/confirm/route");
                 };
+            };
+            ai: {
+                draft: typeof import("../src/api/admin/products/ai/draft/route");
+                insights: typeof import("../src/api/admin/products/ai/insights/route");
             };
             scrape: typeof import("../src/api/admin/products/scrape/route");
         };
@@ -529,6 +536,9 @@ export type Routes = {
         };
         blogPosts: typeof import("../src/api/admin/blog-posts/route") & {
             $id: typeof import("../src/api/admin/blog-posts/[id]/route");
+            ai: {
+                generate: typeof import("../src/api/admin/blog-posts/ai/generate/route");
+            };
         };
         chatbot: {
             conversations: typeof import("../src/api/admin/chatbot/conversations/route") & {
@@ -980,6 +990,9 @@ export type Routes = {
                 variants: typeof import("../src/api/vendor/products/[id]/variants/route") & {
                     $variantId: typeof import("../src/api/vendor/products/[id]/variants/[variant_id]/route");
                 };
+            };
+            ai: {
+                draft: typeof import("../src/api/vendor/products/ai/draft/route");
             };
             export: typeof import("../src/api/vendor/products/export/route");
             import: typeof import("../src/api/vendor/products/import/route");

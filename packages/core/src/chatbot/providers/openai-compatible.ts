@@ -28,6 +28,45 @@ function resolveBaseUrl(config: ChatProviderConfig): string {
   return DEFAULT_BASE_URLS[config.provider] ?? DEFAULT_BASE_URLS.openai_compatible!
 }
 
+type WireContentPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } }
+
+type WireMessage = {
+  role: ChatMessage["role"]
+  content?: string | null | WireContentPart[]
+  tool_calls?: ChatMessage["tool_calls"]
+  tool_call_id?: string
+  name?: string
+}
+
+/**
+ * Fold `images` into the multimodal content array the chat-completions API
+ * expects. Non-user roles keep their plain string content (tool calls and
+ * results never carry images).
+ */
+function toWireMessage(message: ChatMessage): WireMessage {
+  if (!message.images?.length || message.role !== "user") {
+    return {
+      role: message.role,
+      content: message.content,
+      tool_calls: message.tool_calls,
+      tool_call_id: message.tool_call_id,
+      name: message.name,
+    }
+  }
+
+  const parts: WireContentPart[] = []
+  if (message.content) {
+    parts.push({ type: "text", text: message.content })
+  }
+  for (const url of message.images) {
+    parts.push({ type: "image_url", image_url: { url } })
+  }
+
+  return { role: message.role, content: parts }
+}
+
 /**
  * OpenAI chat-completions wire format — covers OpenRouter, OpenAI, and any
  * OpenAI-compatible gateway (custom base_url).
@@ -53,7 +92,7 @@ export class OpenAICompatibleProvider implements ChatProvider {
   ): Promise<ChatCompletionResult> {
     const body: Record<string, unknown> = {
       model: config.model,
-      messages: normalizeOutgoingMessages(messages),
+      messages: normalizeOutgoingMessages(messages).map(toWireMessage),
       temperature: config.temperature ?? 0.4,
       max_tokens: config.max_tokens ?? 1024,
     }

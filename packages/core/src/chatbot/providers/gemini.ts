@@ -64,7 +64,7 @@ function toGeminiContents(messages: ChatMessage[]): {
     }
     contents.push({
       role: "user",
-      parts: [{ text: msg.content ?? "" }],
+      parts: userParts(msg),
     })
   }
 
@@ -84,6 +84,27 @@ function safeJson(raw: unknown): Record<string, unknown> {
   } catch {
     return {}
   }
+}
+
+function dataUrlToInlineData(url: string): Record<string, unknown> | null {
+  const match = /^data:([^;,]+);base64,([\s\S]+)$/.exec(url)
+  if (!match) return null
+  return { inlineData: { mimeType: match[1], data: match[2] } }
+}
+
+function userParts(message: ChatMessage): Array<Record<string, unknown>> {
+  const parts: Array<Record<string, unknown>> = []
+  if (message.content) {
+    parts.push({ text: message.content })
+  }
+  for (const image of message.images ?? []) {
+    const inline = dataUrlToInlineData(image)
+    if (inline) parts.push(inline)
+  }
+  if (parts.length === 0) {
+    parts.push({ text: "" })
+  }
+  return parts
 }
 
 function toGeminiTools(tools: ChatToolDefinition[]): Array<{

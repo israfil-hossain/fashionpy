@@ -167,6 +167,19 @@ export const useScrapeProduct = (
   });
 };
 
+export const useAiProductDraft = (
+  options?: UseMutationOptions<
+    InferClientOutput<typeof sdk.vendor.products.ai.draft.mutate>,
+    ClientError,
+    InferClientInput<typeof sdk.vendor.products.ai.draft.mutate>
+  >
+) => {
+  return useMutation({
+    mutationFn: (payload) => sdk.vendor.products.ai.draft.mutate(payload),
+    ...options,
+  });
+};
+
 export const useUpdateProduct = (
   id: string,
   options?: UseMutationOptions<

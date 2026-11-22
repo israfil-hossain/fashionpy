@@ -12,6 +12,7 @@ import { ProductCreateSchemaType } from "../../types";
 import { ProductCreateGeneralSection } from "./components/product-create-details-general-section";
 import { ProductCreateMediaSection } from "./components/product-create-details-media-section";
 import { ProductCreateScrapeSection } from "./components/product-create-scrape-section";
+import { ProductCreateAiSection } from "./components/product-create-ai-section";
 import { ProductCreateVariantsSection } from "./components/product-create-details-variant-section";
 
 const Root = () => {
@@ -31,6 +32,7 @@ const Root = () => {
           className="flex flex-col gap-y-6"
           data-testid="product-create-details-form-sections"
         >
+          <ProductCreateAiSection />
           <ProductCreateScrapeSection />
           <ProductCreateGeneralSection />
           <ExtendableFormField

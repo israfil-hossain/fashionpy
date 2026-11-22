@@ -21,6 +21,8 @@ export interface ChatToolCall {
 export interface ChatMessage {
   role: ChatRole
   content?: string | null
+  /** Image inputs as `data:` URLs. Only used by vision-capable models. */
+  images?: string[]
   tool_calls?: ChatToolCall[]
   tool_call_id?: string
   name?: string

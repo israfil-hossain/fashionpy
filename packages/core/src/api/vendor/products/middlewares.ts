@@ -30,6 +30,7 @@ import {
   VendorUpdateProductVariant,
 } from "./validators"
 import { VendorScrapeProductBody } from "./scrape/validators"
+import { AiProductDraftBody } from "../../../ai"
 import {
   ContainerRegistrationKeys,
   MedusaError,
@@ -113,6 +114,14 @@ export const vendorProductsMiddlewares: MiddlewareRoute[] = [
     middlewares: [
       requirePermission("products", "edit"),
       validateAndTransformBody(VendorScrapeProductBody),
+    ],
+  },
+  {
+    method: ["POST"],
+    matcher: "/vendor/products/ai/draft",
+    middlewares: [
+      requirePermission("products", "edit"),
+      validateAndTransformBody(AiProductDraftBody),
     ],
   },
   {
