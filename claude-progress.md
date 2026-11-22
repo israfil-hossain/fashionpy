@@ -4,7 +4,14 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
-## Session — Chatbot cards JSONB fix + product search relevance (2026-11-22), `main` (uncommitted)
+## Session — Re-infected remote cleaned + forced push (2026-11-22), `main` `203b1b72b`
+
+Dokploy deploy failed with `child.stdin.unref is not a function` from `packages/types/init` — the 2026-11-09 host malware had re-injected the remote repo (all 4 remote branches): 26 `init` files, `node init &&` in every package.json `build`/`dev`, CRLF churn, and the XOR/obfuscated payload appended to `apps/storefront/postcss.config.mjs` (marker `var bx = '-7406'`, C2 `95.135.181.84`). Local repo and all local branches were clean; remote `main` `1636d651c` was a contaminated rewrite of local `d8dcaae59` with identical parents.
+
+- **Host containment**: active C2 process (`~/.node_modules/.npm-ws-runner.js`, PID killed) and its `.npm-ws.json` quarantined to `~/Malware-Quarantine-2026-11-22/` (mode 700); no respawn after 75 s. The two `gvfs-network` crontab entries remain — `crontab` is EPERM under this tool's sandbox and the referenced `cron-watch.sh` is absent, so they are currently no-ops, but **the user must purge them from their own Terminal**: `crontab -l | grep -v gvfs-network | crontab -`. Rotate the high-value secrets again (C2 had a fresh window).
+- **Fix**: committed the chatbot fixes (`203b1b72b`) on clean `main`, then `git push --force-with-lease` for `main` + the 3 feature branches. Verified all 4 remote branches: 0 `init` files, 0 `node init` scripts, clean `postcss.config.mjs`; `fashionpy/main == HEAD == 203b1b72b`. Working tree clean. User should re-trigger the Dokploy deploy.
+
+## Session — Chatbot cards JSONB fix + product search relevance (2026-11-22), `main`
 
 SPEC-012 (`docs/specs/SPEC-012-chatbot-cards-search-relevance.md`, `passing`).
 Two user-reported issues fixed:
