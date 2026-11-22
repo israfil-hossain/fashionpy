@@ -1,5 +1,7 @@
 import { medusaIntegrationTestRunner } from "@medusajs/test-utils"
 import { MedusaContainer } from "@medusajs/framework/types"
+import { Modules } from "@medusajs/framework/utils"
+import { ProductStatus } from "@mercurjs/types"
 import {
   adminHeaders,
   createAdminUser,
@@ -143,6 +145,98 @@ medusaIntegrationTestRunner({
           (m: any) => m.role === "assistant"
         )
         expect(assistant.content).toMatch(/facewash/i)
+      })
+
+      it("persists product cards on the assistant message", async () => {
+        const productModule = appContainer.resolve(Modules.PRODUCT)
+        const title = `Facewash Deep Clean ${Date.now()}`
+        await productModule.createProducts({
+          title,
+          status: ProductStatus.PUBLISHED,
+          variants: [{ title: "Default" }],
+        })
+
+        const response = await api.post(
+          `/store/chatbot/conversations/${conversationId}/messages`,
+          { content: "show me facewash" },
+          { ...customerHeaders, params: { stream: "false" } }
+        )
+
+        expect(response.status).toEqual(200)
+        expect(response.data.cards).toHaveLength(1)
+        expect(response.data.cards[0].title).toEqual(title)
+
+        const detail = await api.get(
+          `/store/chatbot/conversations/${conversationId}`,
+          customerHeaders
+        )
+        const assistant = detail.data.messages.find(
+          (m: any) => m.role === "assistant" && m.sender !== "admin"
+        )
+        expect(assistant.cards).toEqual(response.data.cards)
+      })
+
+      it("returns footwear for a shoes query without description-only matches", async () => {
+        const productModule = appContainer.resolve(Modules.PRODUCT)
+        const suffix = Date.now()
+        const [category] = await productModule.createProductCategories([
+          { name: `Sneakers ${suffix}`, handle: `sneakers-${suffix}`, is_active: true },
+        ])
+        await productModule.createProducts({
+          title: `Trail Runner ${suffix}`,
+          status: ProductStatus.PUBLISHED,
+          variants: [{ title: "Default" }],
+          categories: [{ id: category.id }],
+        })
+        const careKitTitle = `Leather Care Kit ${suffix}`
+        await productModule.createProducts({
+          title: careKitTitle,
+          description: "Designed to fit most shoe sizes and styles",
+          status: ProductStatus.PUBLISHED,
+          variants: [{ title: "Default" }],
+        })
+
+        let call = 0
+        global.fetch = (async (input: RequestInfo | URL) => {
+          const url = String(input)
+          if (url.includes("/chat/completions")) {
+            call += 1
+            const message =
+              call === 1
+                ? {
+                    content: null,
+                    tool_calls: [
+                      {
+                        id: "call_shoes",
+                        type: "function",
+                        function: {
+                          name: "search_products",
+                          arguments: JSON.stringify({ q: "shoes", limit: 12 }),
+                        },
+                      },
+                    ],
+                  }
+                : { content: "Here are some shoes.", tool_calls: [] }
+            return new Response(JSON.stringify({ choices: [{ message }] }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            })
+          }
+          return originalFetch(input as RequestInfo, undefined)
+        }) as typeof fetch
+
+        const response = await api.post(
+          `/store/chatbot/conversations/${conversationId}/messages`,
+          { content: "I want shoes" },
+          { ...customerHeaders, params: { stream: "false" } }
+        )
+
+        expect(response.status).toEqual(200)
+        const titles: string[] = response.data.cards.map((card: any) => card.title)
+        expect(titles.some((title) => /sneaker|runner|sandal|boot|shoe/i.test(title))).toBe(
+          true
+        )
+        expect(titles).not.toContain(careKitTitle)
       })
 
       it("replays tool_calls with JSON-string arguments even when the model returned objects", async () => {

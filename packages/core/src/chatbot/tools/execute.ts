@@ -14,6 +14,11 @@ import { defaultStoreCartFields, refetchCart } from "../../api/store/carts/helpe
 import { listSellerShippingOptionsForCartWorkflow } from "../../workflows/cart/workflows/list-seller-shipping-options-for-cart"
 import { addSellerShippingMethodToCartWorkflow } from "../../workflows/cart/workflows/add-seller-shipping-method-to-cart"
 import { transition, CheckoutState } from "../state"
+import {
+  getSearchTerms,
+  rankSearchResults,
+  type SearchCandidate,
+} from "./search-relevance"
 
 export type ToolContext = {
   container: MedusaContainer
@@ -57,12 +62,47 @@ function formatMoney(amount: number, currency: string): string {
   return `${currency.toUpperCase()} ${(amount / 100).toFixed(2)}`
 }
 
+type ProductCandidate = SearchCandidate & {
+  id: string
+  thumbnail?: string | null
+  variants?: Array<{
+    id?: string
+    prices?: Array<{ amount: number; currency_code?: string | null }>
+  }> | null
+}
+
 export async function searchProducts(
   ctx: ToolContext,
   args: { q: string; limit?: number }
 ): Promise<ToolResult> {
   const query = ctx.container.resolve(ContainerRegistrationKeys.QUERY)
   const limit = Math.min(args.limit ?? 8, 12)
+  const terms = getSearchTerms(args.q).slice(0, 20)
+
+  if (terms.length === 0) {
+    return {
+      content:
+        ctx.locale === "bn"
+          ? `"${args.q}" এর জন্য কোনো পণ্য পাওয়া যায়নি। অন্য কিছু লিখে দেখুন।`
+          : `No products found for "${args.q}". Try another search.`,
+      cards: [],
+    }
+  }
+
+  const { data: categories } = await query.graph({
+    entity: "product_category",
+    fields: ["id", "name", "handle"],
+    filters: {
+      $or: terms.flatMap((term) => [
+        { name: { $ilike: `%${term}%` } },
+        { handle: { $ilike: `%${term}%` } },
+      ]),
+    },
+    pagination: { take: 100 },
+  })
+  const categoryIds = (categories ?? [])
+    .map((category: { id?: string }) => category.id)
+    .filter((id): id is string => !!id)
 
   const { data: products } = await query.graph({
     entity: "product",
@@ -71,7 +111,13 @@ export async function searchProducts(
       "title",
       "handle",
       "thumbnail",
+      "description",
       "status",
+      "categories.id",
+      "categories.name",
+      "categories.handle",
+      "type.value",
+      "tags.value",
       "variants.id",
       "variants.title",
       "variants.sku",
@@ -81,19 +127,29 @@ export async function searchProducts(
     filters: {
       status: ProductStatus.PUBLISHED,
       $or: [
-        { title: { $ilike: `%${args.q}%` } },
-        { description: { $ilike: `%${args.q}%` } },
+        ...terms.flatMap((term) => [
+          { title: { $ilike: `%${term}%` } },
+          { handle: { $ilike: `%${term}%` } },
+          { description: { $ilike: `%${term}%` } },
+        ]),
+        ...(categoryIds.length ? [{ categories: { id: categoryIds } }] : []),
       ],
     },
-    pagination: { take: limit },
+    pagination: { take: 200 },
   })
 
-  const cards: ChatbotCard[] = (products ?? []).map((p: any) => {
+  const ranked = rankSearchResults(
+    (products ?? []) as ProductCandidate[],
+    args.q,
+    limit
+  )
+
+  const cards: ChatbotCard[] = ranked.map((p) => {
     const price = p.variants?.[0]?.prices?.[0]
     return {
       type: "product",
       id: p.id,
-      title: p.title,
+      title: p.title ?? "",
       handle: p.handle,
       thumbnail: p.thumbnail,
       price: price ? formatMoney(price.amount, price.currency_code ?? "usd") : null,

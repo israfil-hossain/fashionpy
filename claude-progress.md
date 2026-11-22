@@ -4,6 +4,25 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Chatbot cards JSONB fix + product search relevance (2026-11-22), `main` (uncommitted)
+
+SPEC-012 (`docs/specs/SPEC-012-chatbot-cards-search-relevance.md`, `passing`).
+Two user-reported issues fixed:
+1. **JSON error after product cards**: `appendMessage` bound the cards **array**
+   straight into the `jsonb` column. `pg` serializes arrays as PostgreSQL array
+   literals (`{"..."}`), not JSON — every successful product search 400'd in
+   the route's catch block. Now `JSON.stringify` before insert.
+2. **"shoes showed all products"**: `search_products` did a literal `$ilike` on
+   the raw user phrase over title/description. New
+   `chatbot/tools/search-relevance.ts` normalizes text (EN+BN stopwords),
+   expands synonyms (shoes → sneaker/sandal/boot/runner/…), queries matching
+   categories, and scores candidates by title/category/type/tag matches —
+   description-only hits are dropped when strong matches exist.
+
+- Evidence: unit `search-relevance` 10/10, unit `chatbot` 47/47, integration
+  `-- chatbot` 5 suites / 28 passed (2 new cases), lint 0, build 19/19
+  (`--concurrency=1`; default concurrency timed out under unrelated host load).
+
 ## Current Verified State
 
 - **Repository root**: `/Users/israfil/Proejcts/fashionpy/mercur`

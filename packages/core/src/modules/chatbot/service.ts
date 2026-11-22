@@ -343,7 +343,7 @@ class ChatbotModuleService extends MedusaService({
       conversation_id: input.conversation_id,
       role: input.role,
       content: input.content,
-      cards: (input.cards as never) ?? null,
+      cards: input.cards == null ? null : JSON.stringify(input.cards),
       tool_name: input.tool_name ?? null,
       locale: input.locale ?? null,
       sender: input.sender ?? null,
