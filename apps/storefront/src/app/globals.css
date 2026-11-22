@@ -386,6 +386,7 @@ button:disabled svg path {
 .studio-rail__garment {
   position: relative;
   z-index: 1;
+  isolation: isolate;
   width: var(--garment-w);
   height: var(--garment-w);
   margin: 0 auto;
@@ -602,9 +603,20 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
   }
 }
 
-/* Studio rail — hover reveals the front view of the garment */
-.studio-rail__image--front {
+/* Studio rail — hover crossfades the hanging shot to the front view */
+.studio-rail__image--back {
+  transition: opacity 0.45s ease;
+}
+
+.studio-rail__slide[data-has-front="true"]:hover .studio-rail__image--back,
+.studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__image--back {
   opacity: 0;
+}
+
+.studio-rail__image--front {
+  z-index: 1;
+  opacity: 0;
+  mix-blend-mode: normal;
   transform: scale(1.06);
   transition:
     opacity 0.45s ease,
@@ -853,6 +865,7 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .studio-rail__image--back,
   .studio-rail__image--front {
     transition: none;
   }

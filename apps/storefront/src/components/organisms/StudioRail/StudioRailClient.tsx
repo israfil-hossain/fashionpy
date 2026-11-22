@@ -38,6 +38,7 @@ const RailItem = ({
     <li
       className="studio-rail__slide"
       data-selected={selected ? 'true' : undefined}
+      data-has-front={showFrontOnHover ? 'true' : undefined}
       style={style}
     >
       <LocalizedClientLink
@@ -70,7 +71,7 @@ const RailItem = ({
                 alt={item.title}
                 fill
                 sizes="(min-width: 768px) 240px, 46vw"
-                className="studio-rail__image"
+                className="studio-rail__image studio-rail__image--back"
                 priority={index < 6}
               />
               {showFrontOnHover && (

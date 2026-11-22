@@ -4,6 +4,28 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Studio rail hover crossfade + hanger refresh (2026-11-22), `main`
+
+SPEC-008 (`docs/specs/SPEC-008-studio-rail-quick-view.md`, still `passing`,
+`last_updated` bumped) — user-reported hover image overlap fixed.
+
+- **Root cause**: only `.studio-rail__image--front` animated; the original
+  photo stayed at opacity 1 and both layers used `mix-blend-mode: multiply`,
+  so hovering composited the two photos into a ghosted double-exposure.
+- **Fix**: `StudioRailClient.tsx` marks the base image `--back` and the slide
+  `data-has-front`; `globals.css` fades `--back` out on hover/focus for slides
+  that have a front layer, isolates the garment, and makes the front layer
+  opaque + above the base. Single-image garments keep their photo on hover.
+  `HangerFrame.tsx` now renders a slim matte-metal hanger, preserving the
+  `(105, 11)` hook-centre math used by the rail CSS.
+- **Verified**: `bun run lint` 0; storefront `tsc --noEmit` only the 112
+  pre-existing errors (none in StudioRail); storefront build 3/3. Playwright
+  on the category rail (`localhost:3001/bd/categories/men`, API on :9000):
+  back/front opacity `1/0 → 0/1 → 1/0`, single-image back stays `1`; clean
+  before/hover screenshots and new hanger legible at desktop + 375px.
+- **Env note**: port 3000 is a different project's server; this storefront was
+  started on port 3001 and the Medusa API on 9000 for the check.
+
 ## Session — Re-infected remote cleaned + forced push (2026-11-22), `main` `203b1b72b`
 
 Dokploy deploy failed with `child.stdin.unref is not a function` from `packages/types/init` — the 2026-11-09 host malware had re-injected the remote repo (all 4 remote branches): 26 `init` files, `node init &&` in every package.json `build`/`dev`, CRLF churn, and the XOR/obfuscated payload appended to `apps/storefront/postcss.config.mjs` (marker `var bx = '-7406'`, C2 `95.135.181.84`). Local repo and all local branches were clean; remote `main` `1636d651c` was a contaminated rewrite of local `d8dcaae59` with identical parents.
