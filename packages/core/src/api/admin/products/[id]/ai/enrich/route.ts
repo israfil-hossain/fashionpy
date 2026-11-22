@@ -10,7 +10,7 @@ import {
 import { updateProductsWorkflow } from "@medusajs/medusa/core-flows"
 
 import {
-  assertAiRateLimit,
+  enforceAiRateLimit,
   generateProductInsights,
   type AiProductEnrichBodyType,
   type AiProductInsights,
@@ -74,7 +74,7 @@ export const POST = async (
           ...(context.images ?? []).map((image) => image.url),
         ].filter((url): url is string => Boolean(url))
 
-  assertAiRateLimit(`ai:admin:${req.auth_context?.actor_id ?? "admin"}`)
+  await enforceAiRateLimit(req.scope, `ai:admin:${req.auth_context?.actor_id ?? "admin"}`)
 
   const suggestions = await generateProductInsights({
     container: req.scope,

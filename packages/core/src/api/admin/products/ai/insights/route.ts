@@ -8,7 +8,7 @@ import {
 } from "@medusajs/framework/utils"
 
 import {
-  assertAiRateLimit,
+  enforceAiRateLimit,
   generateProductInsights,
   type AiProductInsights,
   type AiProductInsightsBodyType,
@@ -65,7 +65,7 @@ export const POST = async (
     )
   }
 
-  assertAiRateLimit(`ai:admin:${req.auth_context?.actor_id ?? "admin"}`)
+  await enforceAiRateLimit(req.scope, `ai:admin:${req.auth_context?.actor_id ?? "admin"}`)
 
   const insights = await generateProductInsights({
     container: req.scope,

@@ -5,7 +5,7 @@ import type {
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 
 import {
-  assertAiRateLimit,
+  enforceAiRateLimit,
   generateBlogDraft,
   type AiBlogDraft,
   type AiBlogGenerateBodyType,
@@ -38,7 +38,7 @@ export const POST = async (
     category = (found as BlogCategory | undefined)?.name ?? category
   }
 
-  assertAiRateLimit(`ai:admin:${req.auth_context?.actor_id ?? "admin"}`)
+  await enforceAiRateLimit(req.scope, `ai:admin:${req.auth_context?.actor_id ?? "admin"}`)
 
   const draft = await generateBlogDraft({
     container: req.scope,

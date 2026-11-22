@@ -1095,6 +1095,9 @@ export type Routes = {
         };
         stores: typeof import("../src/api/vendor/stores/route");
         uploads: typeof import("../src/api/vendor/uploads/route");
+        ai: {
+            quota: typeof import("../src/api/vendor/ai/quota/route");
+        };
         analytics: typeof import("../src/api/vendor/analytics/route");
         courierAccounts: typeof import("../src/api/vendor/courier-accounts/route") & {
             $id: typeof import("../src/api/vendor/courier-accounts/[id]/route");

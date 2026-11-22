@@ -1,7 +1,9 @@
+import type { MedusaContainer } from "@medusajs/framework/types"
 import { parseJsonResponse, AiResponseError } from "../json"
 import { normalizeImages } from "../images"
 import {
   checkAiRateLimit,
+  enforceAiRateLimit,
   resetAiRateLimits,
   AI_RATE_LIMIT_PER_MINUTE,
 } from "../rate-limit"
@@ -149,5 +151,21 @@ describe("AI rate limit", () => {
     }
     expect(checkAiRateLimit("seller-1").allowed).toBe(false)
     expect(checkAiRateLimit("seller-2").allowed).toBe(true)
+  })
+
+  test("falls back to the in-process window when Redis is unavailable", async () => {
+    const container = {
+      resolve: () => {
+        throw new Error("no redis")
+      },
+    } as unknown as MedusaContainer
+
+    for (let i = 0; i < AI_RATE_LIMIT_PER_MINUTE; i++) {
+      await enforceAiRateLimit(container, "actor-1")
+    }
+
+    await expect(enforceAiRateLimit(container, "actor-1")).rejects.toThrow(
+      /too quickly/
+    )
   })
 })

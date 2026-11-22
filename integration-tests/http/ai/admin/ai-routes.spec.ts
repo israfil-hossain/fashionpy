@@ -155,6 +155,10 @@ medusaIntegrationTestRunner({
           remaining: 19,
         })
         expect(seller.id).toBeTruthy()
+
+        const quota = await api.get("/vendor/ai/quota", headers)
+        expect(quota.status).toEqual(200)
+        expect(quota.data).toEqual({ used: 1, quota: 20, remaining: 19 })
       })
 
       it("suggests tags, metadata and SEO for catalog insights", async () => {

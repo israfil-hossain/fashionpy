@@ -5,7 +5,7 @@ import type {
 import { MedusaError } from "@medusajs/framework/utils"
 
 import {
-  assertAiRateLimit,
+  enforceAiRateLimit,
   generateProductDraft,
   sendAiHttpError,
   type AiProductDraft,
@@ -25,7 +25,7 @@ export const POST = async (
     )
   }
 
-  assertAiRateLimit(`ai:admin:${req.auth_context?.actor_id ?? "admin"}`)
+  await enforceAiRateLimit(req.scope, `ai:admin:${req.auth_context?.actor_id ?? "admin"}`)
 
   try {
     const product = await generateProductDraft({

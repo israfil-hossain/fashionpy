@@ -5,7 +5,7 @@ import type {
 import { MedusaError } from "@medusajs/framework/utils"
 
 import {
-  assertAiRateLimit,
+  enforceAiRateLimit,
   consumeAiProductCredit,
   generateProductDraft,
   refundAiProductCredit,
@@ -29,7 +29,7 @@ export const POST = async (
     )
   }
 
-  assertAiRateLimit(`ai:vendor:${sellerId}`)
+  await enforceAiRateLimit(req.scope, `ai:vendor:${sellerId}`)
   const quota = await consumeAiProductCredit(req.scope, sellerId)
 
   try {

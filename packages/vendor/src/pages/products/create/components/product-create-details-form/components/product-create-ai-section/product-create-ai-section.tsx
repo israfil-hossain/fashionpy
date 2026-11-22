@@ -2,9 +2,10 @@ import { useRef, useState } from "react"
 import { Button, Input, Text, toast } from "@medusajs/ui"
 import { Sparkles } from "@medusajs/icons"
 import { useTranslation } from "react-i18next"
+import { useQueryClient } from "@tanstack/react-query"
 
 import { useTabbedForm } from "@components/tabbed-form/tabbed-form"
-import { useAiProductDraft } from "@hooks/api"
+import { aiQuotaQueryKeys, useAiProductDraft, useAiQuota } from "@hooks/api"
 import { sdk } from "@lib/client"
 import { ProductCreateSchemaType } from "../../../../types"
 import { applyScrapedDraft } from "../../../../utils"
@@ -58,6 +59,8 @@ export const ProductCreateAiSection = () => {
   const { t } = useTranslation()
   const form = useTabbedForm<ProductCreateSchemaType>()
   const ai = useAiProductDraft()
+  const queryClient = useQueryClient()
+  const { quota, remaining } = useAiQuota()
   const fileInput = useRef<HTMLInputElement>(null)
   const [url, setUrl] = useState("")
   const [uploading, setUploading] = useState(false)
@@ -148,6 +151,8 @@ export const ProductCreateAiSection = () => {
           .join(" · ") || undefined,
       }
     )
+
+    void queryClient.invalidateQueries({ queryKey: aiQuotaQueryKeys.all })
   }
 
   const generate = async (payload: {
@@ -238,6 +243,15 @@ export const ProductCreateAiSection = () => {
         <Text size="xsmall" className="text-ui-fg-subtle">
           {t("products.create.ai.hint")}
         </Text>
+        {typeof quota === "number" && typeof remaining === "number" ? (
+          <Text
+            size="xsmall"
+            className="text-ui-fg-subtle"
+            data-testid="product-create-ai-quota"
+          >
+            {t("products.create.ai.quotaInfo", { remaining, quota })}
+          </Text>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
