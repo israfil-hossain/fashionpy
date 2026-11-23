@@ -525,6 +525,22 @@
         "sizesInfo": "Sizes: {{sizes}}",
         "priceNote": "The source price is shown for reference only — set your selling price via offers after saving.",
         "failed": "Could not fetch product information from this URL"
+      },
+      "ai": {
+        "label": "Generate with AI",
+        "hint": "Upload a product photo or paste a link — AI drafts the title, description, variants, tags and category. Review and edit before saving.",
+        "upload": "Upload photo",
+        "or": "or",
+        "urlPlaceholder": "https://example.com/product/...",
+        "generate": "Generate",
+        "success": "Drafted \"{{title}}\"",
+        "untitled": "product",
+        "variantsInfo": "{{count}} variant(s) suggested",
+        "sizesInfo": "Sizes: {{sizes}}",
+        "note": "AI only fills the form — nothing is saved until you review and submit. Prices, stock and shipping stay manual.",
+        "invalidFile": "Please choose a JPEG, PNG, WebP or HEIC image.",
+        "uploadFailed": "Could not upload the image. Please try again.",
+        "failed": "Could not generate a draft. Please try again."
       }
     },
     "export": {
@@ -849,6 +865,9 @@
     },
     "organization": {
       "header": "Organize",
+      "aiEnrich": "Enrich with AI",
+      "aiSuccess": "AI suggestions applied to tags and metadata",
+      "aiFailed": "Could not apply AI suggestions",
       "edit": {
         "header": "Edit Organization",
         "toasts": {
@@ -3114,6 +3133,9 @@
     "domain": "AI Chatbot",
     "inbox": "Chat Inbox",
     "subtitle": "Configure the storefront assistant: provider, model, voice, and system prompt.",
+    "ai_tools_header": "AI product tools",
+    "ai_tools_hint": "The same provider and model power AI product drafts, tag/metadata enrichment and blog drafts. Use a vision-capable model (e.g. Gemini flash or a GPT-4o-class model) for photo-to-product drafts.",
+    "ai_tools_usage": "Each AI call logs its surface and token usage as [ai] surface=… model=… total_tokens=… for cost monitoring.",
     "enabled": "Enable assistant",
     "enabled_hint": "Show the floating chat widget on the storefront",
     "provider": "Provider",
@@ -3246,7 +3268,14 @@
       "countriesHint": "Leave all unchecked to show this post in every country. Otherwise it only appears in the selected countries.",
       "toast_create": "Blog post created",
       "toast_update": "Blog post updated",
-      "toast_delete": "Blog post deleted"
+      "toast_delete": "Blog post deleted",
+      "aiHeader": "AI draft",
+      "aiHint": "Describe the topic and optional keywords. AI fills the title, slug, excerpt, content and hashtags — review everything before saving.",
+      "aiTopicPlaceholder": "Topic, e.g. How to style linen shirts this summer",
+      "aiKeywordsPlaceholder": "Keywords, comma separated",
+      "aiGenerate": "Generate draft",
+      "aiSuccess": "AI draft ready to review",
+      "aiFailed": "Could not generate a blog draft"
     },
     "policies": {
       "domain": "Policies",
@@ -3373,6 +3402,20 @@
         "title": "No time off yet",
         "message": "This store doesn't have scheduled time off",
         "action": "Create"
+      }
+    },
+    "aiQuota": {
+      "header": "AI product drafts",
+      "usage": "{{used}} of {{quota}} used · {{remaining}} left",
+      "limitLabel": "Draft limit",
+      "reset": "Reset usage",
+      "success": {
+        "limit": "AI draft limit set to {{limit}}",
+        "reset": "AI draft usage reset"
+      },
+      "errors": {
+        "invalid": "Enter a whole number of 0 or more",
+        "failed": "Could not update the AI quota"
       }
     },
     "scheduledClosure": {

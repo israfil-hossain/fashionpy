@@ -21,14 +21,23 @@ export interface ChatToolCall {
 export interface ChatMessage {
   role: ChatRole
   content?: string | null
+  /** Image inputs as `data:` URLs. Only used by vision-capable models. */
+  images?: string[]
   tool_calls?: ChatToolCall[]
   tool_call_id?: string
   name?: string
 }
 
+export interface ChatUsage {
+  prompt_tokens?: number
+  completion_tokens?: number
+  total_tokens?: number
+}
+
 export interface ChatCompletionResult {
   content: string | null
   tool_calls: ChatToolCall[]
+  usage?: ChatUsage
 }
 
 export interface ChatProviderConfig {

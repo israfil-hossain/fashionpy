@@ -196,6 +196,41 @@ export const useScrapeProduct = (
   });
 };
 
+export const useAiProductDraft = (
+  options?: UseMutationOptions<
+    InferClientOutput<typeof sdk.admin.products.ai.draft.mutate>,
+    ClientError,
+    InferClientInput<typeof sdk.admin.products.ai.draft.mutate>
+  >,
+) => {
+  return useMutation({
+    mutationFn: (payload) => sdk.admin.products.ai.draft.mutate(payload),
+    ...options,
+  });
+};
+
+export const useAiEnrichProduct = (  options?: UseMutationOptions<
+    InferClientOutput<typeof sdk.admin.products.$id.ai.enrich.mutate>,
+    ClientError,
+    InferClientInput<typeof sdk.admin.products.$id.ai.enrich.mutate>
+  >,
+) => {
+  return useMutation({
+    mutationFn: (payload) =>
+      sdk.admin.products.$id.ai.enrich.mutate(payload),
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({
+        queryKey: productsQueryKeys.lists(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: productsQueryKeys.detail(variables.$id),
+      });
+      options?.onSuccess?.(data, variables, context);
+    },
+    ...options,
+  });
+};
+
 // --- Product action mutations ---
 
 export const useConfirmProduct = (

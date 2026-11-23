@@ -19,6 +19,7 @@
   ],
   "scripts": {
     "seed": "medusa exec ./src/scripts/seed.ts",
+    "ai:smoke": "medusa exec ./src/scripts/ai-smoke.ts",
     "stripe:simulate": "medusa exec ./src/scripts/simulate-stripe-payouts.ts",
     "stripe:check-webhooks": "medusa exec ./src/scripts/check-stripe-webhooks.ts",
     "stripe:onboarding": "medusa exec ./src/scripts/stripe-onboarding.ts",

@@ -20,6 +20,7 @@ import { StoreGeneralSection } from "./store-general-section";
 import { StorePaymentDetailsSection } from "./store-payment-details-section";
 import { StoreCompanyDetailsSection } from "./store-company-details-section";
 import { StoreConfigurationSection } from "./store-configuration-section";
+import { StoreAiQuotaSection } from "./store-ai-quota-section";
 import { StoreAddressSection } from "./store-address-section";
 import { StorePayoutAccountSection } from "./store-payout-account-section";
 import { StoreRegionsSection } from "./store-regions-section";
@@ -194,6 +195,7 @@ const Root = ({ children }: { children?: ReactNode }) => {
       </TwoColumnPage.Main>
       <TwoColumnPage.Sidebar>
         <WidgetZone id="stores.detail.side" data={seller}>
+          <StoreAiQuotaSection seller={seller} />
           <StoreAddressSection seller={seller} />
           <StoreRegionsSection seller={seller} />
           <StoreCompanyDetailsSection seller={seller} />
@@ -212,6 +214,7 @@ export const StoreDetailPage = Object.assign(Root, {
   MainConfigurationSection: StoreConfigurationSection,
   MainPaymentDetailsSection: StorePaymentDetailsSection,
   MainCompanyDetailsSection: StoreCompanyDetailsSection,
+  SidebarAiQuotaSection: StoreAiQuotaSection,
   SidebarAddressSection: StoreAddressSection,
   SidebarPayoutAccountSection: StorePayoutAccountSection,
   SidebarRegionsSection: StoreRegionsSection,

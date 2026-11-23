@@ -1,4 +1,5 @@
 import { configManager } from "@medusajs/framework/config"
+import { EntityManager } from "@medusajs/framework/mikro-orm/knex"
 import {
   Context,
   DAL,
@@ -41,6 +42,13 @@ import {
   SellerStatisticsOutput,
   SellerStatus,
 } from "@mercurjs/types"
+
+import {
+  AiProductQuota,
+  DEFAULT_AI_PRODUCT_QUOTA,
+  quotaExceededError,
+  readAiProductQuota,
+} from "../../ai/quota"
 
 type SellerInput = Record<string, unknown> & {
   name?: string
@@ -99,6 +107,71 @@ class SellerModuleService extends MedusaService({
         (configManager.config.projectConfig.http.jwtSecret as string),
       vendor_url: opts.vendor_url ?? process.env.MERCUR_VENDOR_URL ?? "",
     }
+  }
+
+  /**
+   * Reserve one AI product generation. The conditional UPDATE makes the check
+   * and increment atomic, so concurrent requests cannot exceed the quota.
+   */
+  @InjectManager()
+  async consumeAiProductCredit(
+    sellerId: string,
+    @MedusaContext() sharedContext: Context<EntityManager> = {},
+  ): Promise<AiProductQuota> {
+    const knex = sharedContext!.manager!.getKnex()
+    const used = `COALESCE((metadata->>'ai_product_generations')::int, 0)`
+    const quota = `COALESCE((metadata->>'ai_product_quota')::int, ?)`
+
+    const updated = await knex("seller")
+      .where("id", sellerId)
+      .whereNull("deleted_at")
+      .whereRaw(`${used} < ${quota}`, [DEFAULT_AI_PRODUCT_QUOTA])
+      .update({
+        metadata: knex.raw(
+          `jsonb_set(COALESCE(metadata, '{}'::jsonb), '{ai_product_generations}', to_jsonb(${used} + 1))`,
+        ),
+        updated_at: knex.fn.now(),
+      })
+      .returning(["metadata"])
+
+    if (updated.length > 0) {
+      return readAiProductQuota(updated[0].metadata)
+    }
+
+    const current = await knex("seller")
+      .where("id", sellerId)
+      .whereNull("deleted_at")
+      .first("metadata")
+
+    if (!current) {
+      throw new MedusaError(
+        MedusaError.Types.NOT_FOUND,
+        `Seller with id ${sellerId} was not found`,
+      )
+    }
+
+    throw quotaExceededError(readAiProductQuota(current.metadata))
+  }
+
+  /** Return a reserved credit when generation failed. */
+  @InjectManager()
+  async refundAiProductCredit(
+    sellerId: string,
+    @MedusaContext() sharedContext: Context<EntityManager> = {},
+  ): Promise<void> {
+    const knex = sharedContext!.manager!.getKnex()
+    const used = `COALESCE((metadata->>'ai_product_generations')::int, 0)`
+
+    await knex("seller")
+      .where("id", sellerId)
+      .whereNull("deleted_at")
+      .whereRaw(`${used} > 0`)
+      .update({
+        metadata: knex.raw(
+          `jsonb_set(COALESCE(metadata, '{}'::jsonb), '{ai_product_generations}', to_jsonb(GREATEST(${used} - 1, 0)))`,
+        ),
+        updated_at: knex.fn.now(),
+      })
   }
 
   @InjectManager()

@@ -1,4 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
+import {
+  ClientError,
+  InferClientInput,
+  InferClientOutput,
+} from "@mercurjs/client"
 import { sdk } from "../../lib/client"
 import { queryClient } from "../../lib/query-client"
 import { queryKeysFactory } from "../../lib/query-key-factory"
@@ -59,8 +64,25 @@ export const useDeleteBlogPost = (options?: any) =>
     ...options,
   })
 
-export const useBlogCategories = (query?: any, options?: any) => {
-  const { data, ...rest } = useQuery({
+export const useGenerateBlogDraft = (
+  options?: {
+    onSuccess?: (
+      data: InferClientOutput<typeof sdk.admin.blog_posts.ai.generate.mutate>,
+      variables: InferClientInput<typeof sdk.admin.blog_posts.ai.generate.mutate>,
+      context: unknown
+    ) => void
+  }
+) =>
+  useMutation<
+    InferClientOutput<typeof sdk.admin.blog_posts.ai.generate.mutate>,
+    ClientError,
+    InferClientInput<typeof sdk.admin.blog_posts.ai.generate.mutate>
+  >({
+    mutationFn: (payload) => sdk.admin.blog_posts.ai.generate.mutate(payload),
+    ...options,
+  })
+
+export const useBlogCategories = (query?: any, options?: any) => {  const { data, ...rest } = useQuery({
     queryKey: blogCategoriesQueryKeys.list(query),
     queryFn: () => sdk.admin.blog_categories.query({ ...query }),
     ...options,

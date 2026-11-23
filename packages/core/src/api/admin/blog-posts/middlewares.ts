@@ -5,6 +5,7 @@ import {
 } from "@medusajs/framework"
 
 import { requirePermission } from "../../utils"
+import { AiBlogGenerateBody } from "../../../ai"
 import { adminBlogPostQueryConfig } from "./query-config"
 import {
   AdminCreateBlogPost,
@@ -35,6 +36,14 @@ export const adminBlogPostsMiddlewares: MiddlewareRoute[] = [
         AdminGetBlogPostParams,
         adminBlogPostQueryConfig.retrieve
       ),
+    ],
+  },
+  {
+    method: ["POST"],
+    matcher: "/admin/blog-posts/ai/generate",
+    middlewares: [
+      requirePermission("blog", "edit"),
+      validateAndTransformBody(AiBlogGenerateBody),
     ],
   },
   {

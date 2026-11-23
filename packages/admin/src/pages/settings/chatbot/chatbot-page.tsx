@@ -416,6 +416,24 @@ export const ChatbotPage = () => {
           />
         </div>
       </div>
+
+      <div className="px-6 py-4" data-testid="ai-tools-settings-note">
+        <Heading level="h3">
+          {t("chatbot.ai_tools_header", "AI product tools")}
+        </Heading>
+        <Text size="small" className="text-ui-fg-subtle">
+          {t(
+            "chatbot.ai_tools_hint",
+            "The same provider and model power AI product drafts, tag/metadata enrichment and blog drafts. Use a vision-capable model for photo-to-product drafts."
+          )}
+        </Text>
+        <Text size="xsmall" className="mt-2 text-ui-fg-subtle">
+          {t(
+            "chatbot.ai_tools_usage",
+            "AI calls log their surface and token usage for cost monitoring."
+          )}
+        </Text>
+      </div>
     </Container>
   )
 }

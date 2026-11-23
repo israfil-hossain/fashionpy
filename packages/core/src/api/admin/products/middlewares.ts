@@ -29,6 +29,11 @@ import {
 } from "./validators"
 import { withOriginalMiddlewares } from "../../../utils/disable-medusa-middlewares"
 import { AdminScrapeProductBody } from "./scrape/validators"
+import {
+  AiProductDraftBody,
+  AiProductEnrichBody,
+  AiProductInsightsBody,
+} from "../../../ai"
 
 const overrides: MiddlewareRoute[] = [
   {
@@ -61,6 +66,30 @@ const overrides: MiddlewareRoute[] = [
     middlewares: [
       requirePermission("products", "edit"),
       validateAndTransformBody(AdminScrapeProductBody),
+    ],
+  },
+  {
+    method: ["POST"],
+    matcher: "/admin/products/ai/draft",
+    middlewares: [
+      requirePermission("products", "edit"),
+      validateAndTransformBody(AiProductDraftBody),
+    ],
+  },
+  {
+    method: ["POST"],
+    matcher: "/admin/products/ai/insights",
+    middlewares: [
+      requirePermission("products", "edit"),
+      validateAndTransformBody(AiProductInsightsBody),
+    ],
+  },
+  {
+    method: ["POST"],
+    matcher: "/admin/products/:id/ai/enrich",
+    middlewares: [
+      requirePermission("products", "edit"),
+      validateAndTransformBody(AiProductEnrichBody),
     ],
   },
   {

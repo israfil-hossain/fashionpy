@@ -21,6 +21,7 @@ import { Form } from "../../../components/common/form"
 import {
   useBlogCategories,
   useCreateBlogPost,
+  useGenerateBlogDraft,
   useUpdateBlogPost,
 } from "../../../hooks/api/blogs"
 import { useRegions } from "../../../hooks/api/regions"
@@ -43,6 +44,7 @@ const Schema = z.object({
   category_id: z.string().optional(),
   tags: z.string().optional(),
   author: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type BlogFormValues = z.infer<typeof Schema>
@@ -67,6 +69,9 @@ export const BlogForm = ({
   const create = useCreateBlogPost()
   const update = useUpdateBlogPost(initial?.id ?? "")
   const [uploading, setUploading] = useState(false)
+  const [aiTopic, setAiTopic] = useState("")
+  const [aiKeywords, setAiKeywords] = useState("")
+  const generateAi = useGenerateBlogDraft()
   const [selectedCountries, setSelectedCountries] = useState<string[]>(
     initial?.country_codes ?? []
   )
@@ -100,6 +105,7 @@ export const BlogForm = ({
           category_id: initial.category_id ?? "",
           tags: (initial.tags ?? []).join(", "),
           author: initial.author ?? "",
+          metadata: initial.metadata ?? {},
         }
       : {
           title: "",
@@ -113,12 +119,48 @@ export const BlogForm = ({
           category_id: "",
           tags: "",
           author: "",
+          metadata: {},
         },
     resolver: zodResolver(Schema),
   })
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleGenerate = async () => {
+    const topic = aiTopic.trim()
+    if (!topic) return
+
+    try {
+      const categoryId = form.getValues("category_id")
+      const categoryName = (blog_categories ?? []).find(
+        (category: { id: string; name?: string }) => category.id === categoryId
+      )?.name
+
+      const { blog_post } = await generateAi.mutateAsync({
+        topic,
+        keywords: aiKeywords
+          .split(",")
+          .map((keyword) => keyword.trim())
+          .filter(Boolean),
+        category: categoryName ?? undefined,
+      })
+
+      form.setValue("title", blog_post.title, { shouldDirty: true })
+      form.setValue("slug", blog_post.slug, { shouldDirty: true })
+      form.setValue("excerpt", blog_post.excerpt ?? "", { shouldDirty: true })
+      form.setValue("content", blog_post.content, { shouldDirty: true })
+      form.setValue("tags", blog_post.tags.join(", "), { shouldDirty: true })
+      form.setValue("metadata", blog_post.metadata, { shouldDirty: true })
+
+      toast.success(t("marketplace.blog.aiSuccess"))
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("marketplace.blog.aiFailed")
+      )
+    }
+  }
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {    const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
     try {
@@ -164,6 +206,7 @@ export const BlogForm = ({
               .filter(Boolean)
           : [],
         author: values.author || null,
+        metadata: values.metadata ?? null,
       }
       if (initial?.id) {
         await update.mutateAsync(payload)
@@ -181,6 +224,38 @@ export const BlogForm = ({
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="flex flex-col gap-4 p-6">
+        <div className="flex flex-col gap-2 rounded-lg border border-dashed border-ui-border-base p-4">
+          <Text size="small" weight="plus">
+            {t("marketplace.blog.aiHeader")}
+          </Text>
+          <Text size="xsmall" className="text-ui-fg-subtle">
+            {t("marketplace.blog.aiHint")}
+          </Text>
+          <div className="flex flex-col gap-2 md:flex-row">
+            <Input
+              value={aiTopic}
+              onChange={(event) => setAiTopic(event.target.value)}
+              placeholder={t("marketplace.blog.aiTopicPlaceholder")}
+              data-testid="blog-ai-topic-input"
+            />
+            <Input
+              value={aiKeywords}
+              onChange={(event) => setAiKeywords(event.target.value)}
+              placeholder={t("marketplace.blog.aiKeywordsPlaceholder")}
+              data-testid="blog-ai-keywords-input"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleGenerate}
+              isLoading={generateAi.isPending}
+              disabled={!aiTopic.trim()}
+              data-testid="blog-ai-generate-button"
+            >
+              {t("marketplace.blog.aiGenerate")}
+            </Button>
+          </div>
+        </div>
         <Form.Field
           control={form.control}
           name="title"
