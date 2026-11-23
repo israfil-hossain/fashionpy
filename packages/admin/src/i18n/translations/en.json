@@ -3401,6 +3401,20 @@
         "action": "Create"
       }
     },
+    "aiQuota": {
+      "header": "AI product drafts",
+      "usage": "{{used}} of {{quota}} used · {{remaining}} left",
+      "limitLabel": "Draft limit",
+      "reset": "Reset usage",
+      "success": {
+        "limit": "AI draft limit set to {{limit}}",
+        "reset": "AI draft usage reset"
+      },
+      "errors": {
+        "invalid": "Enter a whole number of 0 or more",
+        "failed": "Could not update the AI quota"
+      }
+    },
     "scheduledClosure": {
       "validation": {
         "closedFromRequired": "Close from date is required",
