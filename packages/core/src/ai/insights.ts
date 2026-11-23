@@ -40,6 +40,7 @@ export async function generateProductInsights(
 
   const { data } = await completeJson(input.container, {
     schema: AiProductInsightsSchema,
+    surface: "product_insights",
     max_tokens: 1200,
     messages: [
       { role: "system", content: INSIGHTS_SYSTEM },

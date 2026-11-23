@@ -1,10 +1,14 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
-import { MedusaError } from "@medusajs/framework/utils"
+import {
+  ContainerRegistrationKeys,
+  MedusaError,
+} from "@medusajs/framework/utils"
 import { z } from "zod"
 
 import {
   ChatMessage,
   ChatProviderConfig,
+  ChatUsage,
   resolveProvider,
 } from "../chatbot/providers"
 import { CHATBOT_MODULE } from "../modules/chatbot"
@@ -54,11 +58,37 @@ export type CompleteJsonInput<T> = {
   schema: z.ZodType<T>
   max_tokens?: number
   temperature?: number
+  /** Label used in structured usage logs (e.g. "product_draft"). */
+  surface?: string
 }
 
 export type CompleteJsonResult<T> = {
   data: T
   model: string
+  usage?: ChatUsage
+}
+
+type LoggerLike = { info: (message: string) => void }
+
+function logUsage(
+  container: MedusaContainer,
+  surface: string,
+  model: string,
+  usage?: ChatUsage
+): void {
+  try {
+    const logger = container.resolve<LoggerLike>(
+      ContainerRegistrationKeys.LOGGER
+    )
+    logger.info(
+      `[ai] surface=${surface} model=${model} ` +
+        `prompt_tokens=${usage?.prompt_tokens ?? "?"} ` +
+        `completion_tokens=${usage?.completion_tokens ?? "?"} ` +
+        `total_tokens=${usage?.total_tokens ?? "?"}`
+    )
+  } catch {
+    // Logging must never fail an AI request.
+  }
 }
 
 /**
@@ -105,5 +135,12 @@ export async function completeJson<T>(
     )
   }
 
-  return { data: parsed.data, model: runtime.model }
+  logUsage(
+    container,
+    input.surface ?? "completion",
+    runtime.model,
+    completion.usage
+  )
+
+  return { data: parsed.data, model: runtime.model, usage: completion.usage }
 }

@@ -65,7 +65,9 @@ export const ProductCreateAiSection = () => {
   const [url, setUrl] = useState("")
   const [uploading, setUploading] = useState(false)
 
-  const applyOrganization = async (draft: DraftWithOrganization) => {
+  const applyOrganization = async (
+    draft: DraftWithOrganization
+  ): Promise<string[]> => {
     const categoryName = draft.category_names?.[0]
     if (categoryName && !form.getValues("category_id")) {
       try {
@@ -96,9 +98,16 @@ export const ProductCreateAiSection = () => {
             (tag) => [tag.value.toLowerCase(), tag.id] as const
           )
         )
-        const resolved = draft.tags
-          .map((tag) => byValue.get(tag.toLowerCase()))
-          .filter((id): id is string => Boolean(id))
+        const resolved: string[] = []
+        const unmatched: string[] = []
+        for (const tag of draft.tags) {
+          const id = byValue.get(tag.toLowerCase())
+          if (id) {
+            resolved.push(id)
+          } else {
+            unmatched.push(tag)
+          }
+        }
 
         if (resolved.length) {
           const existing = form.getValues("tags") ?? []
@@ -106,10 +115,15 @@ export const ProductCreateAiSection = () => {
             shouldDirty: true,
           })
         }
+
+        return unmatched
       } catch {
         // Tags are optional; never block the draft on a tag lookup.
+        return draft.tags
       }
     }
+
+    return []
   }
 
   const applyAndAnnounce = async (
@@ -117,7 +131,7 @@ export const ProductCreateAiSection = () => {
     quota?: { remaining: number; quota: number }
   ) => {
     applyScrapedDraft(form, product)
-    await applyOrganization(product)
+    const unmatchedTags = await applyOrganization(product)
 
     const sizes = product.option_axes.find(
       (axis) => axis.title.toLowerCase() === "size"
@@ -139,6 +153,12 @@ export const ProductCreateAiSection = () => {
             : null,
           sizes?.length
             ? t("products.create.ai.sizesInfo", { sizes: sizes.join(", ") })
+            : null,
+          unmatchedTags.length
+            ? t("products.create.ai.unmatchedTagsInfo", {
+                count: unmatchedTags.length,
+                tags: unmatchedTags.join(", "),
+              })
             : null,
           quota
             ? t("products.create.ai.quotaInfo", {

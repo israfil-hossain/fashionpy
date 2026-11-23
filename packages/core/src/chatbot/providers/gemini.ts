@@ -199,6 +199,11 @@ export class GeminiProvider implements ChatProvider {
           }>
         }
       }>
+      usageMetadata?: {
+        promptTokenCount?: number
+        candidatesTokenCount?: number
+        totalTokenCount?: number
+      }
     }
     try {
       data = JSON.parse(text)
@@ -229,7 +234,17 @@ export class GeminiProvider implements ChatProvider {
       }
     })
 
-    return { content: content || null, tool_calls }
+    return {
+      content: content || null,
+      tool_calls,
+      usage: data.usageMetadata
+        ? {
+            prompt_tokens: data.usageMetadata.promptTokenCount,
+            completion_tokens: data.usageMetadata.candidatesTokenCount,
+            total_tokens: data.usageMetadata.totalTokenCount,
+          }
+        : undefined,
+    }
   }
 
   async test(config: ChatProviderConfig): Promise<{ ok: boolean; error?: string }> {

@@ -91,9 +91,25 @@ export const ProductCreateAiSection = () => {
             (tag) => [tag.value.toLowerCase(), tag.id] as const
           )
         )
-        const resolved = draft.tags
-          .map((tag) => byValue.get(tag.toLowerCase()))
-          .filter((id): id is string => Boolean(id))
+        const resolved: string[] = []
+        for (const tag of draft.tags) {
+          const id = byValue.get(tag.toLowerCase())
+          if (id) {
+            resolved.push(id)
+            continue
+          }
+
+          try {
+            const { product_tag } = await sdk.admin.productTags.mutate({
+              value: tag,
+            })
+            if (product_tag?.id) {
+              resolved.push(product_tag.id)
+            }
+          } catch {
+            // Another concurrent request may have created it; skip on conflict.
+          }
+        }
 
         if (resolved.length) {
           const existing = form.getValues("tags") ?? []

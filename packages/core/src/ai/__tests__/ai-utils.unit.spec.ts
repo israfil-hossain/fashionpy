@@ -1,4 +1,5 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
+import { OpenAICompatibleProvider } from "../../chatbot/providers"
 import { parseJsonResponse, AiResponseError } from "../json"
 import { normalizeImages } from "../images"
 import {
@@ -167,5 +168,40 @@ describe("AI rate limit", () => {
     await expect(enforceAiRateLimit(container, "actor-1")).rejects.toThrow(
       /too quickly/
     )
+  })
+})
+
+describe("provider token usage", () => {
+  test("captures OpenAI-compatible usage metadata", async () => {
+    const original = global.fetch
+    global.fetch = (async () =>
+      new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "{}" } }],
+          usage: {
+            prompt_tokens: 12,
+            completion_tokens: 8,
+            total_tokens: 20,
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      )) as typeof fetch
+
+    try {
+      const provider = new OpenAICompatibleProvider()
+      const result = await provider.complete(
+        [{ role: "user", content: "ping" }],
+        [],
+        { provider: "openai_compatible", api_key: "k", model: "m" }
+      )
+
+      expect(result.usage).toEqual({
+        prompt_tokens: 12,
+        completion_tokens: 8,
+        total_tokens: 20,
+      })
+    } finally {
+      global.fetch = original
+    }
   })
 })

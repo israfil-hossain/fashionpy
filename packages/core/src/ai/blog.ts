@@ -31,6 +31,7 @@ export async function generateBlogDraft(
 ): Promise<AiBlogDraft> {
   const { data } = await completeJson(input.container, {
     schema: AiBlogDraftSchema,
+    surface: "blog_generation",
     max_tokens: 4000,
     temperature: 0.6,
     messages: [

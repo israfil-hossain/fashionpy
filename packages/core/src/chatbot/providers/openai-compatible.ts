@@ -130,6 +130,11 @@ export class OpenAICompatibleProvider implements ChatProvider {
           tool_calls?: ChatToolCall[]
         }
       }>
+      usage?: {
+        prompt_tokens?: number
+        completion_tokens?: number
+        total_tokens?: number
+      }
     }
     try {
       data = JSON.parse(text)
@@ -144,6 +149,13 @@ export class OpenAICompatibleProvider implements ChatProvider {
     return {
       content: message?.content ?? null,
       tool_calls: normalizeToolCalls(message?.tool_calls ?? []),
+      usage: data.usage
+        ? {
+            prompt_tokens: data.usage.prompt_tokens,
+            completion_tokens: data.usage.completion_tokens,
+            total_tokens: data.usage.total_tokens,
+          }
+        : undefined,
     }
   }
 

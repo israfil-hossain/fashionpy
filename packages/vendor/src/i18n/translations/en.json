@@ -606,6 +606,7 @@
         "untitled": "product",
         "variantsInfo": "{{count}} variant(s) suggested",
         "sizesInfo": "Sizes: {{sizes}}",
+        "unmatchedTagsInfo": "{{count}} suggested tag(s) aren't in the catalog yet and were skipped: {{tags}}",
         "quotaInfo": "{{remaining}} of {{quota}} AI drafts left",
         "note": "AI only fills the form — nothing is saved until you review and submit. Prices, stock and shipping stay manual.",
         "invalidFile": "Please choose a JPEG, PNG, WebP or HEIC image.",

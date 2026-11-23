@@ -114,6 +114,7 @@ export async function generateProductDraft(
 
   const { data } = await completeJson(input.container, {
     schema: AiProductDraftSchema,
+    surface: "product_draft",
     max_tokens: 2500,
     messages: [
       { role: "system", content: PRODUCT_DRAFT_SYSTEM },
