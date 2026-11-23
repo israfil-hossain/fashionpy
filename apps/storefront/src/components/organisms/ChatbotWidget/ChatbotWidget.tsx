@@ -186,8 +186,11 @@ export const ChatbotWidget = ({
   }, [])
 
   // SPEC-011: load server history when the panel opens (shows admin
-  // follow-ups sent while the customer was away). A 404 means the stored id
-  // is a stale guest-era conversation — drop it and start fresh on next send.
+  // follow-ups sent while the customer was away). Deliberately NOT refetched
+  // after every send — replacing the transcript each turn re-rendered every
+  // past product-card list. The visibility handler below covers refreshes.
+  // A 404 means the stored id is a stale guest-era conversation — drop it
+  // and start fresh on next send.
   const fetchHistory = useCallback(async (id: string) => {
     try {
       const res = await fetch(`/api/chatbot/conversations/${id}`)
@@ -220,12 +223,12 @@ export const ChatbotWidget = ({
   }, [])
 
   useEffect(() => {
-    if (!open || !authed || busy) return
+    if (!open || !authed) return
     const stored = sessionStorage.getItem(CONV_KEY)
     if (!stored) return
     setConversationId((current) => current ?? stored)
     void fetchHistory(stored)
-  }, [open, authed, busy, fetchHistory])
+  }, [open, authed, fetchHistory])
 
   // Refresh when the customer returns to the tab (an admin follow-up may
   // have landed while they were away).

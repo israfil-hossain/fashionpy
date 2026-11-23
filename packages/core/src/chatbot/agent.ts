@@ -13,6 +13,11 @@ import { RATE_LIMIT_MESSAGE, RATE_LIMIT_PER_MINUTE } from "./rate-limit"
 import { CHATBOT_TOOLS } from "./tools/definitions"
 import { dispatchTool, ToolContext } from "./tools/execute"
 import { CheckoutState, IDLE_STATE } from "./state"
+import {
+  buildSystemMessage,
+  collectShownProductTitles,
+  replayHistory,
+} from "./prompts"
 
 const MAX_TOOL_STEPS = 8
 const MAX_HISTORY_MESSAGES = 24
@@ -178,18 +183,16 @@ export async function runAgent(input: AgentRunInput): Promise<AgentRunResult> {
   const messages: ChatMessage[] = [
     {
       role: "system",
-      content: `${runtime.system_prompt_effective}\n\nCustomer locale: ${locale}. Checkout phase: ${checkout.phase}. Customer id: ${customer_id ?? "guest (not logged in)"}.`,
+      content: buildSystemMessage({
+        effectivePrompt: runtime.system_prompt_effective,
+        locale,
+        phase: checkout.phase,
+        customerId: customer_id,
+        shownProductTitles: collectShownProductTitles(history),
+      }),
     },
+    ...replayHistory(history),
   ]
-
-  for (const msg of history) {
-    if (msg.role === "user") {
-      messages.push({ role: "user", content: msg.content })
-    } else if (msg.role === "assistant") {
-      messages.push({ role: "assistant", content: msg.content })
-    }
-    // tool messages are not replayed to keep history small
-  }
 
   const collectedCards: ChatbotCard[] = []
   let finalContent = ""

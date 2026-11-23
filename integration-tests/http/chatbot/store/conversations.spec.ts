@@ -126,6 +126,50 @@ medusaIntegrationTestRunner({
           list.data.conversations.every((c: any) => c.customer_id === customerId)
         ).toBe(true)
       })
+
+      it("listMessages returns the latest N messages in chronological order", async () => {
+        // Regression: `asc + limit` used to return the OLDEST N rows, so long
+        // conversations replayed stale context to the agent (and dropped the
+        // recent tail from the history GET).
+        const created = await api.post(
+          "/store/chatbot/conversations",
+          { locale: "en" },
+          customerHeaders
+        )
+        const id = created.data.conversation.id
+
+        const service = appContainer.resolve("chatbot") as any
+        for (let i = 1; i <= 8; i++) {
+          await service.appendMessage({
+            conversation_id: id,
+            role: i % 2 === 1 ? "user" : "assistant",
+            content: `msg-${i}`,
+          })
+          // created_at has ms precision — keep inserts on distinct timestamps.
+          await new Promise((resolve) => setTimeout(resolve, 3))
+        }
+
+        const latest = await service.listMessages(id, { limit: 5 })
+        expect(latest.map((m: any) => m.content)).toEqual([
+          "msg-4",
+          "msg-5",
+          "msg-6",
+          "msg-7",
+          "msg-8",
+        ])
+
+        const all = await service.listMessages(id, { limit: 100 })
+        expect(all.map((m: any) => m.content)).toEqual([
+          "msg-1",
+          "msg-2",
+          "msg-3",
+          "msg-4",
+          "msg-5",
+          "msg-6",
+          "msg-7",
+          "msg-8",
+        ])
+      })
     })
   },
 })

@@ -4,6 +4,42 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Chatbot repeated product list + question quality (2026-11-22), `main`
+
+SPEC-013 (`docs/specs/SPEC-013-chatbot-repeat-context.md`, `passing`) — two
+user-reported issues fixed: the product list re-appeared on every question,
+and AI questions re-asked known info / went out of context / stacked multiple
+questions / mixed Bangla+English.
+
+Three compounding root causes, all fixed:
+1. **No card memory** — history replay dropped cards and the old default
+   prompt told the model to search whenever products came up, so every turn
+   re-ran `search_products` and persisted a fresh full card set per assistant
+   message. New `packages/core/src/chatbot/prompts.ts`: `replayHistory`
+   annotates assistant messages `[Shown cards: …]`, `buildSystemMessage`
+   adds "Products already shown earlier: …" + always-appended
+   `BEHAVIOR_RULES` (one question per reply, never re-ask known info, never
+   re-run a visible search, single-language replies, phase-aware asks) —
+   appended even over an admin system-prompt override. `search_products`
+   tool description tightened to "only NEW query".
+2. **History window bug** — `listMessages` did `ORDER BY created_at ASC
+   LIMIT n` → the **oldest** n rows, so past 24 messages the model was blind
+   to its own recent replies (the main driver of out-of-context/repeated
+   questions). Now `desc + limit` then reverse (latest-N, chronological);
+   also fixes the store history GET, admin transcript, and admin follow-up
+   draft.
+3. **Refetch after every send** — the widget history effect listed `busy` in
+   its deps, so each send replaced the whole transcript and re-rendered every
+   past card list. Now fetches on panel open + tab focus only.
+
+- Evidence: unit `bun run test:unit chatbot` **8 suites / 54/54** (new
+  `prompts.unit.spec.ts` 7 cases); integration `bun run test:integration:http
+  -- chatbot` **5 suites / 30/30** (first run failed 3 suites against stale
+  `.medusa` build output — rebuilt `packages/core`, then green; new cases:
+  latest-N `listMessages` ordering, turn-2 system message contains rules +
+  `[Shown cards: …]` + shown-product titles); `bun run lint` exit 0;
+  `bun run build` **19/19**.
+
 ## Session — Studio rail hover crossfade + hanger refresh (2026-11-22), `main`
 
 SPEC-008 (`docs/specs/SPEC-008-studio-rail-quick-view.md`, still `passing`,
@@ -1519,146 +1555,6 @@ second, runtime failure. Both are landed and prod is verified healthy.
   available keys (`carezii_deploy`) only authenticate the Dokploy host, so that
   path was not exercised today.
 
-
-## 2026-11-22 — AI product drafts, catalog enrichment, blog generation (SPEC-014)
-
-- **Landed.** Shared `packages/core/src/ai/` runtime on top of the existing
-  chatbot provider layer: JSON completion with zod validation, SSRF-safe image
-  normalization (http + base64), vision support in the OpenAI-compatible and
-  Gemini adapters, product-draft / insights / blog generators, metadata+tag+SKU
-  sanitizers, per-actor AI rate limit.
-- **Endpoints.** `POST /admin/products/ai/draft`,
-  `POST /vendor/products/ai/draft` (quota), `POST /admin/products/ai/insights`,
-  `POST /admin/products/:id/ai/enrich`, `POST /admin/blog-posts/ai/generate`.
-- **Seller quota.** `seller.metadata.ai_product_quota` (default 20) and
-  `ai_product_generations`; atomic conditional `UPDATE ... RETURNING` in
-  `SellerModuleService.consumeAiProductCredit`, with refund on generation
-  failure. Admin routes bypass the quota by construction.
-- **UI.** Vendor product create has an "Generate with AI" section (photo is
-  downscaled in-browser and sent as a data URL, then uploaded for media). Admin
-  product organization has "Enrich with AI"; admin blog form has an "AI draft"
-  panel that fills title/slug/excerpt/content/tags/metadata.
-- **Follow-up.** Added the same AI panel to the admin product create details
-  tab. Vendor and admin drafts now preselect a matching category and matching
-  catalog tag IDs (fetch is best-effort; failures never block the draft).
-- **Verified.** Core `tsc` exit 0; `bun run lint` exit 0; AI unit tests 24/24;
-  `seller/modules/ai-quota` integration 2/2; `http/ai/admin/ai-routes` 5/5 with
-  the provider mocked via `global.fetch` (admin draft, vendor draft + quota,
-  insights, enrich with tag creation + metadata merge, blog draft); core, vendor
-  and admin builds exit 0 (vendor/admin declaration builds included).
-  Live-provider smoke test left to the operator environment.
-- **Not run.** Root `bun run build` (turbo across all apps); the three changed
-  packages were built individually.
-
-## 2026-11-22 — AI product drafts, catalog enrichment, blog generation (SPEC-014)
-
-- **Landed.** Shared `packages/core/src/ai/` runtime on top of the existing
-  chatbot provider layer: JSON completion with zod validation, SSRF-safe image
-  normalization (http + base64), vision support in the OpenAI-compatible and
-  Gemini adapters, product-draft / insights / blog generators, metadata+tag+SKU
-  sanitizers, per-actor AI rate limit.
-- **Endpoints.** `POST /admin/products/ai/draft`,
-  `POST /vendor/products/ai/draft` (quota), `POST /admin/products/ai/insights`,
-  `POST /admin/products/:id/ai/enrich`, `POST /admin/blog-posts/ai/generate`.
-- **Seller quota.** `seller.metadata.ai_product_quota` (default 20) and
-  `ai_product_generations`; atomic conditional `UPDATE ... RETURNING` in
-  `SellerModuleService.consumeAiProductCredit`, with refund on generation
-  failure. Admin routes bypass the quota by construction.
-- **UI.** Vendor product create has an "Generate with AI" section (photo is
-  downscaled in-browser and sent as a data URL, then uploaded for media). Admin
-  product organization has "Enrich with AI"; admin blog form has an "AI draft"
-  panel that fills title/slug/excerpt/content/tags/metadata.
-- **Follow-up.** Added the same AI panel to the admin product create details
-  tab. Vendor and admin drafts now preselect a matching category and matching
-  catalog tag IDs (fetch is best-effort; failures never block the draft).
-- **Follow-up 2.** `GET /vendor/ai/quota` powers an "X of Y AI drafts left"
-  readout in the vendor panel. AI rate limiting now shares the Redis window via
-  `messaging-redis` when available and falls back to the in-process window.
-- **Verified.** Core `tsc` exit 0; `bun run lint` exit 0; AI unit tests 24/24;
-  `seller/modules/ai-quota` integration 2/2; `http/ai/admin/ai-routes` 5/5 with
-  the provider mocked via `global.fetch` (admin draft, vendor draft + quota,
-  insights, enrich with tag creation + metadata merge, blog draft); core, vendor
-  and admin builds exit 0 (vendor/admin declaration builds included).
-  Live-provider smoke test left to the operator environment.
-- **Not run.** Root `bun run build` (turbo across all apps); the three changed
-  packages were built individually.
-
-## 2026-11-22 — AI product drafts, catalog enrichment, blog generation (SPEC-014)
-
-- **Landed.** Shared `packages/core/src/ai/` runtime on top of the existing
-  chatbot provider layer: JSON completion with zod validation, SSRF-safe image
-  normalization (http + base64), vision support in the OpenAI-compatible and
-  Gemini adapters, product-draft / insights / blog generators, metadata+tag+SKU
-  sanitizers, per-actor AI rate limit.
-- **Endpoints.** `POST /admin/products/ai/draft`,
-  `POST /vendor/products/ai/draft` (quota), `POST /admin/products/ai/insights`,
-  `POST /admin/products/:id/ai/enrich`, `POST /admin/blog-posts/ai/generate`.
-- **Seller quota.** `seller.metadata.ai_product_quota` (default 20) and
-  `ai_product_generations`; atomic conditional `UPDATE ... RETURNING` in
-  `SellerModuleService.consumeAiProductCredit`, with refund on generation
-  failure. Admin routes bypass the quota by construction.
-- **UI.** Vendor product create has an "Generate with AI" section (photo is
-  downscaled in-browser and sent as a data URL, then uploaded for media). Admin
-  product organization has "Enrich with AI"; admin blog form has an "AI draft"
-  panel that fills title/slug/excerpt/content/tags/metadata.
-- **Follow-up.** Added the same AI panel to the admin product create details
-  tab. Vendor and admin drafts now preselect a matching category and matching
-  catalog tag IDs (fetch is best-effort; failures never block the draft).
-- **Follow-up 2.** `GET /vendor/ai/quota` powers an "X of Y AI drafts left"
-  readout in the vendor panel. AI rate limiting now shares the Redis window via
-  `messaging-redis` when available and falls back to the in-process window.
-- **Follow-up 3.** Admin store detail sidebar has an "AI product drafts"
-  section to raise/lower a seller's limit and reset the used count (writes
-  `seller.metadata.ai_product_quota` / `ai_product_generations`).
-- **Verified.** Core `tsc` exit 0; `bun run lint` exit 0; AI unit tests 24/24;
-  `seller/modules/ai-quota` integration 2/2; `http/ai/admin/ai-routes` 5/5 with
-  the provider mocked via `global.fetch` (admin draft, vendor draft + quota,
-  insights, enrich with tag creation + metadata merge, blog draft); core, vendor
-  and admin builds exit 0 (vendor/admin declaration builds included).
-  Live-provider smoke test left to the operator environment.
-- **Not run.** Root `bun run build` (turbo across all apps); the three changed
-  packages were built individually.
-
-## 2026-11-22 — AI product drafts, catalog enrichment, blog generation (SPEC-014)
-
-- **Landed.** Shared `packages/core/src/ai/` runtime on top of the existing
-  chatbot provider layer: JSON completion with zod validation, SSRF-safe image
-  normalization (http + base64), vision support in the OpenAI-compatible and
-  Gemini adapters, product-draft / insights / blog generators, metadata+tag+SKU
-  sanitizers, per-actor AI rate limit.
-- **Endpoints.** `POST /admin/products/ai/draft`,
-  `POST /vendor/products/ai/draft` (quota), `POST /admin/products/ai/insights`,
-  `POST /admin/products/:id/ai/enrich`, `POST /admin/blog-posts/ai/generate`.
-- **Seller quota.** `seller.metadata.ai_product_quota` (default 20) and
-  `ai_product_generations`; atomic conditional `UPDATE ... RETURNING` in
-  `SellerModuleService.consumeAiProductCredit`, with refund on generation
-  failure. Admin routes bypass the quota by construction.
-- **UI.** Vendor product create has an "Generate with AI" section (photo is
-  downscaled in-browser and sent as a data URL, then uploaded for media). Admin
-  product organization has "Enrich with AI"; admin blog form has an "AI draft"
-  panel that fills title/slug/excerpt/content/tags/metadata.
-- **Follow-up.** Added the same AI panel to the admin product create details
-  tab. Vendor and admin drafts now preselect a matching category and matching
-  catalog tag IDs (fetch is best-effort; failures never block the draft).
-- **Follow-up 2.** `GET /vendor/ai/quota` powers an "X of Y AI drafts left"
-  readout in the vendor panel. AI rate limiting now shares the Redis window via
-  `messaging-redis` when available and falls back to the in-process window.
-- **Follow-up 3.** Admin store detail sidebar has an "AI product drafts"
-  section to raise/lower a seller's limit and reset the used count (writes
-  `seller.metadata.ai_product_quota` / `ai_product_generations`).
-- **Follow-up 4.** Providers surface token usage (OpenAI `usage`, Gemini
-  `usageMetadata`); `completeJson` logs `[ai] surface=… model=… *_tokens=…`.
-  Admin drafts create missing product tags; vendor drafts warn about suggested
-  tags that are not in the catalog. AI settings page documents that the same
-  provider powers product tools and recommends a vision-capable model.
-- **Verified.** Core `tsc` exit 0; `bun run lint` exit 0; AI unit tests 24/24;
-  `seller/modules/ai-quota` integration 2/2; `http/ai/admin/ai-routes` 5/5 with
-  the provider mocked via `global.fetch` (admin draft, vendor draft + quota,
-  insights, enrich with tag creation + metadata merge, blog draft); core, vendor
-  and admin builds exit 0 (vendor/admin declaration builds included).
-  Live-provider smoke test left to the operator environment.
-- **Not run.** Root `bun run build` (turbo across all apps); the three changed
-  packages were built individually.
 
 ## 2026-11-22 — AI product drafts, catalog enrichment, blog generation (SPEC-014)
 

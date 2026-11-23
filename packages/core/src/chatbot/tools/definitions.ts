@@ -6,7 +6,7 @@ export const CHATBOT_TOOLS: ChatToolDefinition[] = [
     function: {
       name: "search_products",
       description:
-        "Search published marketplace products by free-text query (e.g. facewash). Returns product cards.",
+        "Search published marketplace products by free-text query (e.g. facewash). Results are shown to the customer as product cards. Only call for a NEW query — never re-run a search whose results are already visible in the conversation; refer to those products by name instead, unless the customer explicitly asks to see them again.",
       parameters: {
         type: "object",
         properties: {

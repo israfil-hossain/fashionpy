@@ -307,6 +307,100 @@ medusaIntegrationTestRunner({
         expect(JSON.parse(args)).toEqual({ q: "facewash", limit: 4 })
       })
 
+      it("sends behavior rules, shown-cards annotations, and shown products to the model", async () => {
+        // Regression for the repeated product-list bug: the model must see
+        // (a) the always-appended behavior rules, (b) an inline annotation of
+        // cards the customer already sees, and (c) the shown-product titles —
+        // otherwise it re-runs the same search on every follow-up question.
+        const productModule = appContainer.resolve(Modules.PRODUCT)
+        const title = `Harlow Test Boot ${Date.now()}`
+        await productModule.createProducts({
+          title,
+          status: ProductStatus.PUBLISHED,
+          variants: [{ title: "Default" }],
+        })
+
+        const requests: Array<{ messages: Array<Record<string, any>> }> = []
+        let call = 0
+        global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+          const url = String(input)
+          if (url.includes("/chat/completions")) {
+            call += 1
+            if (init?.body) {
+              requests.push(JSON.parse(String(init.body)))
+            }
+            const message =
+              call === 1
+                ? {
+                    content: null,
+                    tool_calls: [
+                      {
+                        id: "call_ctx_1",
+                        type: "function",
+                        function: {
+                          name: "search_products",
+                          arguments: JSON.stringify({ q: "boot", limit: 4 }),
+                        },
+                      },
+                    ],
+                  }
+                : call === 2
+                  ? {
+                      content: `Here is ${title}. Tap a card to view.`,
+                      tool_calls: [],
+                    }
+                  : { content: "BDT 249.60. Need a size?", tool_calls: [] }
+            return new Response(JSON.stringify({ choices: [{ message }] }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            })
+          }
+          return originalFetch(input as RequestInfo, init)
+        }) as typeof fetch
+
+        const first = await api.post(
+          `/store/chatbot/conversations/${conversationId}/messages`,
+          { content: "show me boots" },
+          { ...customerHeaders, params: { stream: "false" } }
+        )
+        expect(first.status).toEqual(200)
+        expect(first.data.cards.map((c: any) => c.title)).toContain(title)
+
+        const second = await api.post(
+          `/store/chatbot/conversations/${conversationId}/messages`,
+          { content: "how much is it?" },
+          { ...customerHeaders, params: { stream: "false" } }
+        )
+        expect(second.status).toEqual(200)
+
+        // Turn 2 is the third completion call (turn 1: tool_call + final).
+        const turn2 = requests[2]
+        expect(turn2).toBeTruthy()
+
+        const system = turn2.messages.find((m) => m.role === "system")
+        expect(system.content).toContain("Ask at most ONE")
+        expect(system.content).toContain("Do not mix scripts")
+        expect(system.content).toContain("Never ask again")
+        expect(system.content).toContain(
+          `Products already shown earlier: ${title}`
+        )
+
+        const annotated = turn2.messages.find(
+          (m) =>
+            m.role === "assistant" &&
+            typeof m.content === "string" &&
+            m.content.includes("[Shown cards:") &&
+            m.content.includes(title)
+        )
+        expect(annotated).toBeTruthy()
+
+        const userTurns = turn2.messages.filter((m) => m.role === "user")
+        expect(userTurns.map((m) => m.content)).toEqual([
+          "show me boots",
+          "how much is it?",
+        ])
+      })
+
       it("returns a structured error when the provider fails", async () => {
         global.fetch = (async (input: RequestInfo | URL) => {
           const url = String(input)

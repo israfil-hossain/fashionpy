@@ -14,12 +14,7 @@ import {
   ChatbotSettingsInput,
 } from "./types/common"
 import { encryptSecret, decryptSecret } from "./crypto"
-
-const DEFAULT_SYSTEM_PROMPT = `You are a helpful marketplace shopping assistant for a Bangladeshi ecommerce store.
-You help customers find products, place orders, and check order/delivery status.
-Reply in the same language the customer uses (Bangla or English).
-Keep replies short and friendly. When you find products, call search_products and surface product cards.
-Never invent prices or stock. Only place an order after the customer explicitly confirms the review summary.`
+import { DEFAULT_SYSTEM_PROMPT } from "../../chatbot/prompts"
 
 class ChatbotModuleService extends MedusaService({
   ChatbotConversation,
@@ -379,11 +374,15 @@ class ChatbotModuleService extends MedusaService({
     @MedusaContext() sharedContext?: Context<EntityManager>
   ): Promise<ChatbotMessageDTO[]> {
     const knex = sharedContext!.manager!.getKnex()
-    return (await knex("chatbot_message")
+    // Latest-N in chronological order: `desc + limit` picks the most recent
+    // rows, then reverse restores chat order. An `asc + limit` scan returned
+    // the oldest N instead, so long conversations replayed stale context.
+    const rows = (await knex("chatbot_message")
       .where("conversation_id", conversationId)
       .whereNull("deleted_at")
-      .orderBy("created_at", "asc")
+      .orderBy("created_at", "desc")
       .limit(Math.min(opts.limit ?? 100, 200))) as ChatbotMessageDTO[]
+    return rows.reverse()
   }
 
   @InjectManager()
