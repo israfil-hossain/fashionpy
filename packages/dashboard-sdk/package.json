@@ -29,8 +29,8 @@
     "dist"
   ],
   "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup",
+    "dev": "node init && tsup --watch",
+    "build": "node init && tsup",
     "test:types": "tsc -p src/__tests__/types",
     "lint": "oxlint --max-warnings 0"
   },
