@@ -76,7 +76,10 @@ const buildRows = (
   locations: HttpTypes.AdminStockLocation[],
 ): EditStockRow[] =>
   (product.variants ?? []).flatMap((variant) =>
-    (variant.offers ?? []).map((offer) => {
+    (variant.offers ?? []).flatMap((offer) => {
+      if (!offer) {
+        return []
+      }
       const link = offer.inventory_item_link?.[0]
       const levels = link?.inventory_item?.location_levels ?? []
       const inventory: Record<string, LocationLevel> = {}
@@ -90,14 +93,16 @@ const buildRows = (
             }
           : { checked: false, quantity: "" }
       }
-      return {
-        offer_id: offer.id,
-        inventory_item_id: link?.inventory_item_id ?? null,
-        variant_title: variant.title ?? "",
-        product_thumbnail: product.thumbnail ?? null,
-        sku: offer.sku ?? variant.sku ?? null,
-        inventory,
-      }
+      return [
+        {
+          offer_id: offer.id,
+          inventory_item_id: link?.inventory_item_id ?? null,
+          variant_title: variant.title ?? "",
+          product_thumbnail: product.thumbnail ?? null,
+          sku: offer.sku ?? variant.sku ?? null,
+          inventory,
+        },
+      ]
     }),
   )
 

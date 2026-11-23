@@ -119,6 +119,7 @@ export const vendorProductsMiddlewares: MiddlewareRoute[] = [
   {
     method: ["POST"],
     matcher: "/vendor/products/ai/draft",
+    bodyParser: { sizeLimit: "32mb" },
     middlewares: [
       requirePermission("products", "edit"),
       validateAndTransformBody(AiProductDraftBody),

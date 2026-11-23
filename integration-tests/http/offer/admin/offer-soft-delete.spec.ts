@@ -14,6 +14,7 @@ medusaIntegrationTestRunner({
       let appContainer: MedusaContainer
       let sellerHeaders: any
       let offerId: string
+      let inventoryItemId: string
 
       beforeAll(async () => {
         appContainer = getContainer()
@@ -36,7 +37,7 @@ medusaIntegrationTestRunner({
           await api.post(`/vendor/stock-locations`, { name: "SoftDel WH" }, sellerHeaders)
         ).data.stock_location
 
-        offerId = (
+        const createdOffer = (
           await api.post(
             `/vendor/offers`,
             {
@@ -54,7 +55,10 @@ medusaIntegrationTestRunner({
             },
             sellerHeaders
           )
-        ).data.offer.id
+        ).data.offer
+
+        offerId = createdOffer.id
+        inventoryItemId = createdOffer.inventory_items[0].id
       })
 
       it("hides deleted offers by default and exposes them with with_deleted or a deleted_at filter", async () => {
@@ -76,6 +80,18 @@ medusaIntegrationTestRunner({
           adminHeaders
         )
         expect(byCursor.data.offers.map((o: any) => o.id)).toContain(offerId)
+      })
+
+      it("dismisses the offer's inventory links so linked items keep an empty offers relation", async () => {
+        await api.delete(`/admin/offers/${offerId}`, adminHeaders)
+
+        const inventory = await api.get(
+          `/admin/inventory-items?id=${inventoryItemId}&fields=id,offers.seller_id`,
+          adminHeaders
+        )
+
+        expect(inventory.data.inventory_items).toHaveLength(1)
+        expect(inventory.data.inventory_items[0].offers).toEqual([])
       })
     })
   },

@@ -41,7 +41,7 @@ export const OfferDetailGeneralSection = ({
   const { mutateAsync: bulkDelete } = useBulkDeleteOffers()
 
   const offerIds = (product.variants ?? []).flatMap((v) =>
-    (v.offers ?? []).map((o) => o.id),
+    (v.offers ?? []).flatMap((o) => (o ? [o.id] : [])),
   )
 
   const handleDelete = async () => {

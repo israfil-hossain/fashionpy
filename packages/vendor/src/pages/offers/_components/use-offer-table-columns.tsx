@@ -32,7 +32,9 @@ const countOfferedVariants = (row: OfferProduct) =>
   (row.variants ?? []).filter((v) => (v.offers?.length ?? 0) > 0).length
 
 export const collectOfferIds = (row: OfferProduct) =>
-  (row.variants ?? []).flatMap((v) => (v.offers ?? []).map((o) => o.id))
+  (row.variants ?? []).flatMap((v) =>
+    (v.offers ?? []).flatMap((o) => (o ? [o.id] : []))
+  )
 
 export const useOfferTableColumns = () => {
   const { t } = useTranslation()

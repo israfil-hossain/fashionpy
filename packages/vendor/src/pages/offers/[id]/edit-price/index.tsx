@@ -132,9 +132,9 @@ const EditPriceGrid = ({
     () =>
       new Map(
         (product.variants ?? []).flatMap((variant) =>
-          ((variant as { offers?: { id: string }[] | null }).offers ?? []).map(
-            (offer) => [offer.id, offer] as const,
-          ),
+          ((variant as { offers?: Array<{ id: string } | null> | null }).offers ?? [])
+            .filter((offer): offer is { id: string } => !!offer)
+            .map((offer) => [offer.id, offer] as const),
         ),
       ),
     [product],

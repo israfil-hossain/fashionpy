@@ -52,10 +52,15 @@ export const InventoryStock = () => {
 
   // Scope the location columns to the warehouses owned by the sellers behind
   // the selected items' offers — a store can only stock at its own locations.
+  // Links can outlive the offer they point at (e.g. an offer deleted before
+  // its inventory links were dismissed), so the relation contains nulls.
   const sellerIds = new Set(
-    ((inventory_items ?? []) as Array<{ offers?: { seller_id: string }[] }>)
+    ((inventory_items ?? []) as Array<{
+      offers?: Array<{ seller_id: string } | null> | null
+    }>)
       .flatMap((item) => item.offers ?? [])
-      .map((offer) => offer.seller_id)
+      .map((offer) => offer?.seller_id)
+      .filter((sellerId): sellerId is string => !!sellerId)
   )
   const scopedLocations = (
     (stock_locations ?? []) as Array<

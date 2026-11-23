@@ -274,11 +274,17 @@ export const OfferVariantsSection = ({
   const allRows: OfferVariantRow[] = useMemo(
     () =>
       (variants ?? []).flatMap((variant) =>
-        (variant.offers ?? []).map((offer) => ({
-          id: offer.id,
-          variant,
-          offer: offer as OfferWithInventory,
-        })),
+        (variant.offers ?? []).flatMap((offer) =>
+          offer
+            ? [
+                {
+                  id: offer.id,
+                  variant,
+                  offer: offer as OfferWithInventory,
+                },
+              ]
+            : [],
+        ),
       ),
     [variants],
   )

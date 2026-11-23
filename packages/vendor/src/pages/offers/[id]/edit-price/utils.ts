@@ -41,7 +41,10 @@ export const buildRows = (
   regions: RegionPrice[],
 ): EditPriceRow[] =>
   (product.variants ?? []).flatMap((variant) =>
-    (variant.offers ?? []).map((offer) => {
+    (variant.offers ?? []).flatMap((offer) => {
+      if (!offer) {
+        return []
+      }
       const offerPrices = (offer.prices ?? []) as OfferPrice[]
       const prices: Record<string, number | ""> = {}
       for (const code of currencies) {
@@ -55,13 +58,15 @@ export const buildRows = (
         const match = offerPrices.find((p) => isRegionPrice(p, region.id))
         region_prices[region.id] = match?.amount ?? ""
       }
-      return {
-        offer_id: offer.id,
-        variant_title: variant.title ?? "",
-        product_thumbnail: product.thumbnail ?? null,
-        prices,
-        region_prices,
-      }
+      return [
+        {
+          offer_id: offer.id,
+          variant_title: variant.title ?? "",
+          product_thumbnail: product.thumbnail ?? null,
+          prices,
+          region_prices,
+        },
+      ]
     }),
   )
 

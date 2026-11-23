@@ -71,6 +71,7 @@ const overrides: MiddlewareRoute[] = [
   {
     method: ["POST"],
     matcher: "/admin/products/ai/draft",
+    bodyParser: { sizeLimit: "32mb" },
     middlewares: [
       requirePermission("products", "edit"),
       validateAndTransformBody(AiProductDraftBody),

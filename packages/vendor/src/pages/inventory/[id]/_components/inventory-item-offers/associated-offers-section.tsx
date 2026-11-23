@@ -14,7 +14,11 @@ export const AssociatedOffersSection = ({
 }: AssociatedOffersSectionProps) => {
   const { t } = useTranslation()
 
-  if (!offers?.length) {
+  const linkedOffers = (offers ?? []).filter(
+    (offer): offer is OfferDTO => !!offer
+  )
+
+  if (!linkedOffers.length) {
     return null
   }
 
@@ -25,7 +29,7 @@ export const AssociatedOffersSection = ({
           {t("inventory.associatedOffers")}
         </Heading>
       </div>
-      {offers.map((offer) => {
+      {linkedOffers.map((offer) => {
         const variantTitle = offer.product_variant?.title
         const productTitle = offer.product_variant?.product?.title
         const label = variantTitle || offer.sku

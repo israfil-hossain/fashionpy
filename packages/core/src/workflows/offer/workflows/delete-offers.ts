@@ -44,7 +44,7 @@ export const deleteOffersWorkflow: ReturnWorkflow<
   function (input: DeleteOffersWorkflowInput) {
     const { data: offers } = useQueryGraphStep({
       entity: "offer",
-      fields: ["*", ...OFFER_PRICE_FIELDS],
+      fields: ["*", "inventory_items.id", ...OFFER_PRICE_FIELDS],
       filters: { id: input.ids },
     })
 
@@ -61,6 +61,14 @@ export const deleteOffersWorkflow: ReturnWorkflow<
           links.push({
             [MercurModules.OFFER]: { offer_id: offer.id },
             [Modules.PRODUCT]: { product_id: offer.product_id },
+          })
+        }
+        for (const item of (offer.inventory_items ?? []) as Array<{
+          id: string
+        }>) {
+          links.push({
+            [MercurModules.OFFER]: { offer_id: offer.id },
+            [Modules.INVENTORY]: { inventory_item_id: item.id },
           })
         }
       }
