@@ -310,6 +310,56 @@ export const subscribeVariantsToAttributes = (
 
 // --- Scrape-from-URL seeding ---
 
+const draftOptionsKey = (options: Record<string, string> | undefined) =>
+  Object.keys(options ?? {})
+    .sort()
+    .map((key) => `${key}=${(options ?? {})[key]}`)
+    .join("|")
+
+/**
+ * The draft carries a SKU per suggested variant; the form rebuilds rows from
+ * the option axes, so match them back by options and only fill blanks. A lone
+ * draft-level SKU still seeds the single-variant case.
+ */
+const applyDraftSkus = (
+  form: Pick<UseFormReturn<ProductCreateSchemaType>, "getValues" | "setValue">,
+  draft: ScrapedProductDraft
+) => {
+  const variants = form.getValues("variants") ?? []
+  if (!variants.length) return
+
+  const draftVariants = (draft.variants ?? []) as Array<{
+    title?: string
+    options?: Record<string, string>
+    sku?: string | null
+  }>
+  const skuByOptions = new Map<string, string>()
+  for (const variant of draftVariants) {
+    if (variant.sku) skuByOptions.set(draftOptionsKey(variant.options), variant.sku)
+  }
+
+  let changed = false
+  const next = variants.map((variant, index) => {
+    if (variant.sku) return variant
+    const sku =
+      skuByOptions.get(draftOptionsKey(variant.options)) ??
+      draftVariants.find((candidate) => candidate.title === variant.title)?.sku ??
+      draftVariants[index]?.sku ??
+      (draft.sku
+        ? variants.length === 1
+          ? draft.sku
+          : `${draft.sku}-${index + 1}`
+        : undefined)
+    if (!sku) return variant
+    changed = true
+    return { ...variant, sku }
+  })
+
+  if (changed) {
+    form.setValue("variants", next, { shouldDirty: true })
+  }
+}
+
 /**
  * Seed the create form from a scraped product draft. Image URLs are stored as
  * url-only media entries (file: null) — the media list renders them and the
@@ -356,12 +406,9 @@ export const applyScrapedDraft = (
       { shouldDirty: true }
     )
     syncVariantsWithAttributes(form as VariantSyncForm)
-  } else if (draft.sku) {
-    const variants = form.getValues("variants") ?? []
-    if (variants.length === 1) {
-      form.setValue("variants.0.sku", draft.sku, { shouldDirty: true })
-    }
   }
+
+  applyDraftSkus(form, draft)
 }
 
 /** Gives rows without custom-field values the configured defaults. */

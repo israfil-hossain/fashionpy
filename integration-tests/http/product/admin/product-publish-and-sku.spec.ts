@@ -99,6 +99,23 @@ medusaIntegrationTestRunner({
         expect(response.data.products).toHaveLength(1)
         expect(response.data.products[0].id).toEqual(product.id)
       })
+
+      it("generates a SKU for variants created without one", async () => {
+        const response = await api.post(
+          `/admin/products`,
+          {
+            title: "Auto Sku Runner",
+            status: "draft",
+            variants: [{ title: "Default" }],
+          },
+          adminHeaders
+        )
+
+        expect(response.status).toEqual(200)
+        expect(response.data.product.variants?.[0]?.sku).toBe(
+          "AUTO-SKU-RUNNER"
+        )
+      })
     })
   },
 })

@@ -4,6 +4,48 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Product SKU generation + publish/review clarity (2026-11-23), `main`
+
+- AI product drafts now apply the per-variant SKUs the model returned; the
+  form used to ignore `draft.variants[].sku` whenever option axes existed, so
+  AI-created multi-variant products had blank SKUs. The draft-level SKU still
+  seeds the single-variant case.
+- `createProductsWorkflow` now generates a deterministic SKU from the product
+  handle + option values when a variant is created without one (explicit SKUs
+  are reserved first, collisions get a numeric suffix). This also fills the SKU
+  that the offer create form prefills from the master variant.
+- Vendor product create now labels the submit button "Submit for review" when
+  the product-request flag is on, matching the `proposed` status the POST sets.
+- Availability/delivery note: a vendor product becomes buyable only after an
+  offer (price + stock) exists, and delivery needs a seller service zone with a
+  shipping option priced in the storefront region currency (BDT). The local
+  `FashionPy` seller warehouse has no fulfilment set/service zone yet.
+- Evidence: `bun run lint` exit 0; core build clean; new SKU integration case
+  `product/admin/product-publish-and-sku.spec.ts` 4/4; admin/vendor
+  `variant-sync.spec.ts` 7/7 each (vitest).
+
+## Session — Inventory stock crash + AI image upload limit (2026-11-23), `main`
+
+Two user-reported issues on the dashboards:
+1. **Inventory stock / deletion crash** — deleting an offer left its
+   `offer ↔ inventory_item` link rows behind (`deleteOffersWorkflow` only
+   dismissed seller/product links). Querying those items with
+   `fields=…,offers.seller_id` then returned `offers: [null]`, and the admin
+   stock modal read `offer.seller_id` unguarded. Fixed the root cause by
+   dismissing inventory links in `deleteOffersWorkflow`, and made the stock
+   modal + offer/inventory list views skip null relation entries so already
+   orphaned rows don't crash the UI.
+2. **AI product create “request entity too large”** — the draft POST sent
+   base64 image data through the default ~100 KB express JSON limit. The
+   admin/vendor `/products/ai/draft` routes now opt into a 32 MB body parser.
+
+- Evidence: new integration case in
+  `integration-tests/http/offer/admin/offer-soft-delete.spec.ts` (deleted
+  offer → linked inventory item comes back with `offers: []`) passes
+  (`2/2`); `bun run lint` exit 0; `packages/core` build clean; admin/vendor
+  `tsc --noEmit` shows only the pre-existing errors and none in the touched
+  files.
+
 ## Session — Chatbot repeated product list + question quality (2026-11-22), `main`
 
 SPEC-013 (`docs/specs/SPEC-013-chatbot-repeat-context.md`, `passing`) — two

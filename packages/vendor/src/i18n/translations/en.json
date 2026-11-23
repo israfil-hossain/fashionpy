@@ -612,7 +612,8 @@
         "invalidFile": "Please choose a JPEG, PNG, WebP or HEIC image.",
         "uploadFailed": "Could not upload the image. Please try again.",
         "failed": "Could not generate a draft. Please try again."
-      }
+      },
+      "submitForReview": "Submit for review"
     },
     "export": {
       "header": "Export Product List",

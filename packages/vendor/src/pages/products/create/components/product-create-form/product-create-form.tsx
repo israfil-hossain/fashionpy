@@ -282,7 +282,9 @@ export const ProductCreateForm = ({
               isLoading={isLoading}
               data-testid="product-create-form-publish-button"
             >
-              {t("actions.publish")}
+              {productRequestEnabled
+                ? t("products.create.submitForReview")
+                : t("actions.publish")}
             </Button>
           ) : (
             <Button

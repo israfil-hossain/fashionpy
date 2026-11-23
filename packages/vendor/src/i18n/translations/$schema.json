@@ -2344,6 +2344,9 @@
                 "noAttributesDescription"
               ],
               "additionalProperties": false
+            },
+            "submitForReview": {
+              "type": "string"
             }
           },
           "required": [
@@ -2356,7 +2359,8 @@
             "variants",
             "successToast",
             "requestSuccessToast",
-            "attributes"
+            "attributes",
+            "submitForReview"
           ],
           "additionalProperties": false
         },

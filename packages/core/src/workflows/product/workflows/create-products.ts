@@ -39,6 +39,33 @@ export type CreateProductsWorkflowInput = {
   created_by: string
 } & AdditionalData
 
+const skuPart = (value: unknown) =>
+  String(value ?? "")
+    .normalize("NFKD")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toUpperCase()
+
+const buildSku = (
+  handle: string | undefined,
+  options: Record<string, string>,
+  used: Set<string>,
+) => {
+  const optionValues = Object.entries(options)
+    .filter(([key]) => key !== "__default__")
+    .map(([, value]) => skuPart(value))
+  const base =
+    [skuPart(handle), ...optionValues].filter(Boolean).join("-") || "SKU"
+  let sku = base.slice(0, 64)
+  let suffix = 2
+  while (used.has(sku)) {
+    const tail = `-${suffix++}`
+    sku = `${base.slice(0, 64 - tail.length)}${tail}`
+  }
+  used.add(sku)
+  return sku
+}
+
 export const createProductsWorkflowId = "mercur-create-products"
 
 export const createProductsWorkflow: ReturnWorkflow<
@@ -178,24 +205,42 @@ export const createProductsWorkflow: ReturnWorkflow<
 
     const productVariants = transform(
       { input, createdProducts, hasAxisByIndex },
-      ({ input, createdProducts, hasAxisByIndex }) =>
-        input.products.flatMap((p, idx) => {
+      ({ input, createdProducts, hasAxisByIndex }) => {
+        // Explicit SKUs always win; reserve them so generated ones can't clash.
+        const usedSkus = new Set<string>()
+        for (const product of input.products) {
+          for (const variant of product.variants ?? []) {
+            const sku = (variant as { sku?: string | null }).sku?.trim()
+            if (sku) usedSkus.add(sku)
+          }
+        }
+
+        return input.products.flatMap((p, idx) => {
           const product_id = createdProducts[idx]?.id as string
+          const handle = (
+            createdProducts[idx] as { handle?: string } | undefined
+          )?.handle
           const formOptions = (v: unknown) =>
             (v as { options?: Record<string, string> }).options ?? {}
           return (p.variants ?? []).map((v) => {
             const { additional_data: _additional_data, ...variant } =
               v as typeof v & { additional_data?: Record<string, unknown> }
+            const options = hasAxisByIndex[idx]
+              ? formOptions(v)
+              : { __default__: "__default__", ...formOptions(v) }
+            const explicitSku = (
+              variant as { sku?: string | null }
+            ).sku?.trim()
             return {
               manage_inventory: false,
               ...variant,
+              sku: explicitSku || buildSku(handle, options, usedSkus),
               product_id,
-              options: hasAxisByIndex[idx]
-                ? formOptions(v)
-                : { __default__: "__default__", ...formOptions(v) },
+              options,
             }
           })
-        }),
+        })
+      },
     )
 
     const createdVariants = when(

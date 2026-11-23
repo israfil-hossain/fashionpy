@@ -2,7 +2,7 @@ import { createFormControl } from "react-hook-form"
 import { describe, expect, test } from "vitest"
 
 import { ProductCreateSchemaType } from "../types"
-import { subscribeVariantsToAttributes } from "../utils"
+import { applyScrapedDraft, subscribeVariantsToAttributes } from "../utils"
 
 const customAxis = (title: string, values: string[]) => ({
   attribute_id: undefined,
@@ -81,4 +81,40 @@ describe("subscribeVariantsToAttributes", () => {
 
     expect(titles()).toEqual(["Default variant"])
   })
+  test("applies per-variant SKUs from an AI draft to the generated rows", () => {
+    const { form } = setup()
+
+    applyScrapedDraft(form as never, {
+      source_url: "https://example.com/p/1",
+      images: [],
+      category_names: [],
+      option_axes: [{ title: "Size", values: ["S", "M"] }],
+      variants: [
+        { title: "S", options: { Size: "S" }, sku: "TEE-S" },
+        { title: "M", options: { Size: "M" }, sku: "TEE-M" },
+      ],
+      sku: "TEE",
+    })
+
+    expect(form.getValues("variants").map((variant) => variant.sku)).toEqual([
+      "TEE-S",
+      "TEE-M",
+    ])
+  })
+
+  test("uses the draft-level SKU when there is a single variant", () => {
+    const { form } = setup()
+
+    applyScrapedDraft(form as never, {
+      source_url: "https://example.com/p/2",
+      images: [],
+      category_names: [],
+      option_axes: [],
+      variants: [],
+      sku: "SOLO-SKU",
+    })
+
+    expect(form.getValues("variants")[0]?.sku).toBe("SOLO-SKU")
+  })
 })
+
