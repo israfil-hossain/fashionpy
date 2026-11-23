@@ -61,3 +61,21 @@ Then, pass the arguments in the `exec` command after the file path:
 ```bash
 npx medusa exec ./src/scripts/my-script.ts arg1 arg2
 ```
+---
+
+## AI smoke test
+
+`ai-smoke.ts` exercises the configured AI provider without writing to the
+database. Configure the provider in Admin → Settings → AI Chatbot first.
+
+```bash
+# Insights + blog only
+bun --cwd apps/api run ai:smoke
+
+# Also generate a product draft from a public image or product page
+AI_SMOKE_IMAGE_URL=https://cdn.example.com/shirt.jpg bun --cwd apps/api run ai:smoke
+AI_SMOKE_SOURCE_URL=https://example.com/product/shirt bun --cwd apps/api run ai:smoke
+```
+
+Photo drafts need a vision-capable model. The script exits non-zero if any
+check fails.
