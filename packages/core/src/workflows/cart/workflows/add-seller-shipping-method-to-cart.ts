@@ -7,10 +7,11 @@ import {
     WorkflowData,
     WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk"
-import { acquireLockStep, addShippingMethodToCartStep, AddShippingMethodToCartWorkflowInput, emitEventStep, listShippingOptionsForCartWithPricingWorkflow, refreshCartItemsWorkflow, releaseLockStep, removeShippingMethodFromCartStep, useQueryGraphStep, useRemoteQueryStep, validateAndReturnShippingMethodsDataStep, validateCartShippingOptionsPriceStep, validateCartShippingOptionsStep, validateCartStep } from "@medusajs/medusa/core-flows"
+import { acquireLockStep, addShippingMethodToCartStep, AddShippingMethodToCartWorkflowInput, emitEventStep, listShippingOptionsForCartWithPricingWorkflow, refreshCartItemsWorkflow, releaseLockStep, removeShippingMethodFromCartStep, updateShippingMethodsStep, useQueryGraphStep, useRemoteQueryStep, validateAndReturnShippingMethodsDataStep, validateCartShippingOptionsPriceStep, validateCartShippingOptionsStep, validateCartStep } from "@medusajs/medusa/core-flows"
 import { AdditionalData } from "@medusajs/types"
 import { cartFieldsForRefreshSteps } from "../utils"
 import { quoteCourierRatesStep } from "../steps/quote-courier-rates"
+import { quoteBangladeshDeliveryStep } from "../steps/quote-bangladesh-delivery"
 
 export const addSellerShippingMethodToCartWorkflow = createWorkflow(
     {
@@ -52,6 +53,17 @@ export const addSellerShippingMethodToCartWorkflow = createWorkflow(
         const courierRates = quoteCourierRatesStep({
             cart_id: input.cart_id,
             option_ids: optionIds,
+        })
+
+        const allOptionIds = transform({ allShippingOptionsIds }, ({ allShippingOptionsIds }) =>
+            Array.from(allShippingOptionsIds)
+        )
+
+        // Bangladesh pricing is authoritative for BDT carts: one charge per
+        // physical shipment, computed from zone, weight and overrides.
+        const deliveryQuote = quoteBangladeshDeliveryStep({
+            cart_id: input.cart_id,
+            option_ids: allOptionIds,
         })
 
         const [allShippingOptions, shippingOptions] = parallelize(
@@ -111,6 +123,7 @@ export const addSellerShippingMethodToCartWorkflow = createWorkflow(
                 shippingOptions,
                 validatedMethodData,
                 courierRates,
+                deliveryQuote,
             },
             (data) => {
                 const options = (data.input.options ?? []).map((option) => {
@@ -133,13 +146,31 @@ export const addSellerShippingMethodToCartWorkflow = createWorkflow(
                         (r: { option_id: string }) => r.option_id === shippingOption.id
                     )
 
+                    const deliveryAmount = data.deliveryQuote?.amountByOption?.[shippingOption.id]
+                    const deliveryGroup = (data.deliveryQuote?.groups ?? []).find(
+                        (group: { option_ids: string[] }) =>
+                            group.option_ids.includes(shippingOption.id)
+                    )
+
                     return {
                         shipping_option_id: shippingOption.id,
-                        amount: liveRate?.amount ?? shippingOption.calculated_price.calculated_amount,
+                        amount: deliveryAmount ?? liveRate?.amount ?? shippingOption.calculated_price.calculated_amount,
                         is_tax_inclusive:
                             !!shippingOption.calculated_price
                                 .is_calculated_price_tax_inclusive,
-                        data: methodData?.[option.id] ?? {},
+                        data: {
+                            ...(methodData?.[option.id] ?? {}),
+                            mercur_delivery_group: deliveryGroup
+                                ? {
+                                      key: deliveryGroup.key,
+                                      type: deliveryGroup.type,
+                                      carrier:
+                                          data.deliveryQuote?.carrierByGroup?.[
+                                              deliveryGroup.key
+                                          ] === shippingOption.id,
+                                  }
+                                : undefined,
+                        },
                         name: shippingOption.name,
                         cart_id: data.input.cart_id,
                     }
@@ -183,6 +214,38 @@ export const addSellerShippingMethodToCartWorkflow = createWorkflow(
                 additional_data: input.additional_data,
             },
         })
+
+        // Medusa's refresh resets every method to the flat option price. Restore
+        // the computed Bangladesh amounts afterwards, including methods that
+        // were already on the cart.
+        const deliveryAmountUpdates = transform(
+            { cart, createdShippingMethods, deliveryQuote },
+            ({ cart, createdShippingMethods, deliveryQuote }) => {
+                if (!deliveryQuote?.amountByOption) {
+                    return []
+                }
+
+                const seen = new Set<string>()
+                const updates: Array<{ id: string; amount: number }> = []
+                for (const method of [
+                    ...(cart.shipping_methods ?? []),
+                    ...(createdShippingMethods ?? []),
+                ]) {
+                    if (!method?.id || seen.has(method.id)) {
+                        continue
+                    }
+                    seen.add(method.id)
+                    const amount =
+                        deliveryQuote.amountByOption[method.shipping_option_id]
+                    if (typeof amount === "number") {
+                        updates.push({ id: method.id, amount })
+                    }
+                }
+                return updates
+            }
+        )
+
+        updateShippingMethodsStep(deliveryAmountUpdates)
 
         parallelize(
             emitEventStep({

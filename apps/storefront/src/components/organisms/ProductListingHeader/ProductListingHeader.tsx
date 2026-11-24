@@ -7,7 +7,8 @@ import { SelectField } from '@/components/molecules/SelectField/SelectField';
 const selectOptions = [
   { label: 'Newest', value: 'created_at' },
   { label: 'Price: Low to High', value: 'price_asc' },
-  { label: 'Price: High to Low', value: 'price_desc' }
+  { label: 'Price: High to Low', value: 'price_desc' },
+  { label: 'Biggest Discount', value: 'discount' }
 ];
 
 export const ProductListingHeader = ({ total }: { total: number }) => {

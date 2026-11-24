@@ -17,6 +17,11 @@ interface ExtendedInventoryItem extends InventoryTypes.InventoryItemDTO {
 
 const columnHelper = createColumnHelper<ExtendedInventoryItem>()
 
+const relatedProductTitle = (item: ExtendedInventoryItem) =>
+  item.offers?.find(offer => offer?.product_variant?.product?.title)
+    ?.product_variant?.product?.title ??
+  item.variants?.find(variant => variant?.product?.title)?.product?.title
+
 export const useInventoryTableColumns = () => {
   const { t } = useTranslation()
 
@@ -65,8 +70,9 @@ export const useInventoryTableColumns = () => {
         ),
         cell: ({ getValue, row }) => {
           const title = getValue()
+          const productTitle = relatedProductTitle(row.original)
 
-          if (!title) {
+          if (!productTitle && !title) {
             return <PlaceholderCell />
           }
 
@@ -76,7 +82,10 @@ export const useInventoryTableColumns = () => {
                 className="truncate"
                 data-testid={`inventory-table-cell-${row.id}-title-value`}
               >
-                {title}
+                {productTitle ?? title}
+                {productTitle && title && title !== productTitle && (
+                  <span className="text-ui-fg-subtle"> · {title}</span>
+                )}
               </span>
             </div>
           )
@@ -125,8 +134,7 @@ export const useInventoryTableColumns = () => {
           </div>
         ),
         cell: ({ row }) => {
-          const productTitle =
-            row.original.offers?.[0]?.product_variant?.product?.title
+          const productTitle = relatedProductTitle(row.original)
 
           if (!productTitle) {
             return <PlaceholderCell />

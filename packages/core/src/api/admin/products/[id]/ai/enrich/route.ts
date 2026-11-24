@@ -84,6 +84,7 @@ export const POST = async (
     existing_tags: (context.tags ?? []).map((tag) => tag.value),
     existing_metadata: context.metadata ?? {},
     language: body.language,
+    task: "admin_text",
   })
 
   const update: Record<string, unknown> = {}

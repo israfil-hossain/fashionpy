@@ -1,3 +1,5 @@
+import type { AiTaskModels, AiTaskModelsDTO } from "@mercurjs/types"
+
 export type ChatbotProvider = "openrouter" | "gemini" | "openai_compatible"
 export type ChatbotSttProvider = "openai" | "gemini" | "none"
 export type ChatbotLocale = "en" | "bn"
@@ -87,6 +89,7 @@ export interface ChatbotSettingsDTO {
   provider: ChatbotProvider
   base_url: string | null
   model: string | null
+  task_models: AiTaskModelsDTO
   stt_provider: ChatbotSttProvider
   stt_model: string | null
   system_prompt: string | null
@@ -102,12 +105,19 @@ export interface ChatbotSettingsInput {
   base_url?: string | null
   api_key?: string | null
   model?: string | null
+  task_models?: Partial<AiTaskModels>
   stt_provider?: ChatbotSttProvider
   stt_api_key?: string | null
   stt_model?: string | null
   system_prompt?: string | null
   temperature?: number
   max_tokens?: number
+}
+
+export type ChatbotRuntimeSettings = ChatbotSettingsDTO & {
+  api_key: string | null
+  stt_api_key: string | null
+  system_prompt_effective: string
 }
 
 export const CHATBOT_SETTINGS_ID = "global"

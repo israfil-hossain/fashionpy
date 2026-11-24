@@ -14,12 +14,35 @@ import {
   toast,
 } from "@medusajs/ui"
 import { usePermissionGate } from "@mercurjs/dashboard-shared"
+import {
+  AI_TASKS,
+  type AiTask,
+  type AiTaskModels,
+} from "@mercurjs/types"
 
 import {
   useChatbotSettings,
   useTestChatbot,
   useUpdateChatbotSettings,
 } from "../../../hooks/api/chatbot"
+
+type TaskModelForm = {
+  provider: "openrouter" | "gemini" | "openai_compatible"
+  base_url: string
+  api_key: string
+  model: string
+  temperature: string
+  max_tokens: string
+}
+
+const emptyTaskModelForm = (): TaskModelForm => ({
+  provider: "openrouter",
+  base_url: "",
+  api_key: "",
+  model: "",
+  temperature: "",
+  max_tokens: "",
+})
 
 type FormState = {
   enabled: boolean
@@ -33,6 +56,22 @@ type FormState = {
   system_prompt: string
   temperature: string
   max_tokens: string
+  task_models: Record<AiTask, TaskModelForm>
+}
+
+const TASK_MODEL_LABELS: Record<AiTask, { title: string; description: string }> = {
+  admin_text: {
+    title: "Admin panel model",
+    description: "Product drafts, tag/SEO suggestions, blog drafts and chat follow-ups.",
+  },
+  vendor_text: {
+    title: "Seller panel model",
+    description: "Product drafts created from the seller panel.",
+  },
+  vision: {
+    title: "Image / vision model",
+    description: "Any AI task that receives product photos. Must be vision-capable.",
+  },
 }
 
 const defaultForm = (): FormState => ({
@@ -47,6 +86,11 @@ const defaultForm = (): FormState => ({
   system_prompt: "",
   temperature: "0.4",
   max_tokens: "1024",
+  task_models: {
+    admin_text: emptyTaskModelForm(),
+    vendor_text: emptyTaskModelForm(),
+    vision: emptyTaskModelForm(),
+  },
 })
 
 export const ChatbotPage = () => {
@@ -74,6 +118,27 @@ export const ChatbotPage = () => {
       system_prompt: s.system_prompt ?? "",
       temperature: String(s.temperature ?? 0.4),
       max_tokens: String(s.max_tokens ?? 1024),
+      task_models: AI_TASKS.reduce(
+        (acc, task) => {
+          const slot = s.task_models?.[task]
+          acc[task] = {
+            provider: slot?.provider ?? s.provider,
+            base_url: slot?.base_url ?? "",
+            api_key: "",
+            model: slot?.model ?? "",
+            temperature:
+              slot?.temperature != null
+                ? String(slot.temperature)
+                : String(s.temperature ?? 0.4),
+            max_tokens:
+              slot?.max_tokens != null
+                ? String(slot.max_tokens)
+                : String(s.max_tokens ?? 1024),
+          }
+          return acc
+        },
+        {} as Record<AiTask, TaskModelForm>
+      ),
     })
     setDirty(false)
   }, [data])
@@ -145,6 +210,18 @@ export const ChatbotPage = () => {
         system_prompt: form.system_prompt.trim() || null,
         temperature: Number(form.temperature) || 0.4,
         max_tokens: Number(form.max_tokens) || 1024,
+        task_models: AI_TASKS.reduce((acc, task) => {
+          const slot = form.task_models[task]
+          acc[task] = {
+            provider: slot.provider,
+            base_url: slot.base_url.trim() || null,
+            model: slot.model.trim() || null,
+            temperature: Number(slot.temperature) || 0.4,
+            max_tokens: Number(slot.max_tokens) || 1024,
+            ...(slot.api_key.trim() ? { api_key: slot.api_key.trim() } : {}),
+          }
+          return acc
+        }, {} as AiTaskModels),
       })
       setDirty(false)
       setForm((prev) => ({ ...prev, api_key: "", stt_api_key: "" }))
@@ -178,6 +255,40 @@ export const ChatbotPage = () => {
     } catch (err) {
       toast.error((err as Error).message || "Test failed")
     }
+  }
+
+  const handleTestTask = async (task: AiTask) => {
+    const slot = form.task_models[task]
+    try {
+      const result = await test.mutateAsync({
+        task,
+        ...(slot.api_key.trim() ? { api_key: slot.api_key.trim() } : {}),
+        ...(slot.model.trim() ? { model: slot.model.trim() } : {}),
+        ...(slot.base_url.trim() ? { base_url: slot.base_url.trim() } : {}),
+      })
+      if (result.ok) {
+        toast.success(
+          t("chatbot.toast_test_ok", "Connection OK ({{ms}}ms)", {
+            ms: result.latency_ms,
+          })
+        )
+      } else {
+        toast.error(result.error || "Connection failed")
+      }
+    } catch (err) {
+      toast.error((err as Error).message || "Test failed")
+    }
+  }
+
+  const updateTaskModel = (task: AiTask, partial: Partial<TaskModelForm>) => {
+    setForm((prev) => ({
+      ...prev,
+      task_models: {
+        ...prev.task_models,
+        [task]: { ...prev.task_models[task], ...partial },
+      },
+    }))
+    setDirty(true)
   }
 
   return (
@@ -417,6 +528,170 @@ export const ChatbotPage = () => {
         </div>
       </div>
 
+      <div className="flex flex-col gap-y-4 px-6 py-4" data-testid="ai-task-models">
+        <div>
+          <Heading level="h3">{t("chatbot.task_models_header", "AI models by task")}</Heading>
+          <Text size="small" className="text-ui-fg-subtle">
+            {t(
+              "chatbot.task_models_hint",
+              "Each model has its own provider, key and limits. Leave a field empty to use the global settings above."
+            )}
+          </Text>
+        </div>
+
+        {AI_TASKS.map((task) => {
+          const slot = form.task_models[task]
+          const slotSaved = settings?.task_models?.[task]
+          return (
+            <div
+              key={task}
+              className="flex flex-col gap-y-4 rounded-lg border border-ui-border-base p-4"
+              data-testid={`ai-task-model-${task}`}
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <Label>{TASK_MODEL_LABELS[task].title}</Label>
+                  <Text size="small" className="text-ui-fg-subtle">
+                    {TASK_MODEL_LABELS[task].description}
+                  </Text>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  isLoading={test.isPending}
+                  disabled={!allowed}
+                  onClick={() => handleTestTask(task)}
+                  data-testid={`ai-task-model-test-${task}`}
+                >
+                  {t("chatbot.test", "Test connection")}
+                </Button>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor={`task-${task}-provider`}>
+                    {t("chatbot.provider", "Provider")}
+                  </Label>
+                  <Select
+                    value={slot.provider}
+                    disabled={!allowed}
+                    onValueChange={(v) =>
+                      updateTaskModel(task, {
+                        provider: v as TaskModelForm["provider"],
+                      })
+                    }
+                  >
+                    <Select.Trigger
+                      id={`task-${task}-provider`}
+                      data-testid={`ai-task-model-provider-${task}`}
+                    >
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content>
+                      <Select.Item value="openrouter">OpenRouter</Select.Item>
+                      <Select.Item value="gemini">Google Gemini</Select.Item>
+                      <Select.Item value="openai_compatible">
+                        OpenAI-compatible
+                      </Select.Item>
+                    </Select.Content>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor={`task-${task}-model`}>
+                    {t("chatbot.model", "Model")}
+                  </Label>
+                  <Input
+                    id={`task-${task}-model`}
+                    value={slot.model}
+                    disabled={!allowed}
+                    placeholder="e.g. openai/gpt-4o-mini"
+                    onChange={(e) =>
+                      updateTaskModel(task, { model: e.target.value })
+                    }
+                    data-testid={`ai-task-model-model-${task}`}
+                  />
+                </div>
+
+                {slot.provider === "openai_compatible" && (
+                  <div className="md:col-span-2">
+                    <Label htmlFor={`task-${task}-base-url`}>
+                      {t("chatbot.base_url", "Base URL")}
+                    </Label>
+                    <Input
+                      id={`task-${task}-base-url`}
+                      value={slot.base_url}
+                      disabled={!allowed}
+                      placeholder="https://api.openai.com/v1"
+                      onChange={(e) =>
+                        updateTaskModel(task, { base_url: e.target.value })
+                      }
+                      data-testid={`ai-task-model-base-url-${task}`}
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <Label htmlFor={`task-${task}-api-key`}>
+                    {t("chatbot.api_key", "API key")}
+                  </Label>
+                  <Input
+                    id={`task-${task}-api-key`}
+                    type="password"
+                    value={slot.api_key}
+                    disabled={!allowed}
+                    placeholder={
+                      slotSaved?.api_key_set ? "••••••••" : "optional"
+                    }
+                    onChange={(e) =>
+                      updateTaskModel(task, { api_key: e.target.value })
+                    }
+                    data-testid={`ai-task-model-api-key-${task}`}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor={`task-${task}-temperature`}>
+                    {t("chatbot.temperature", "Temperature")}
+                  </Label>
+                  <Input
+                    id={`task-${task}-temperature`}
+                    type="number"
+                    min={0}
+                    max={2}
+                    step={0.1}
+                    value={slot.temperature}
+                    disabled={!allowed}
+                    onChange={(e) =>
+                      updateTaskModel(task, { temperature: e.target.value })
+                    }
+                    data-testid={`ai-task-model-temperature-${task}`}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor={`task-${task}-max-tokens`}>
+                    {t("chatbot.max_tokens", "Max tokens")}
+                  </Label>
+                  <Input
+                    id={`task-${task}-max-tokens`}
+                    type="number"
+                    min={64}
+                    max={8192}
+                    value={slot.max_tokens}
+                    disabled={!allowed}
+                    onChange={(e) =>
+                      updateTaskModel(task, { max_tokens: e.target.value })
+                    }
+                    data-testid={`ai-task-model-max-tokens-${task}`}
+                  />
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
       <div className="px-6 py-4" data-testid="ai-tools-settings-note">
         <Heading level="h3">
           {t("chatbot.ai_tools_header", "AI product tools")}
@@ -424,7 +699,7 @@ export const ChatbotPage = () => {
         <Text size="small" className="text-ui-fg-subtle">
           {t(
             "chatbot.ai_tools_hint",
-            "The same provider and model power AI product drafts, tag/metadata enrichment and blog drafts. Use a vision-capable model for photo-to-product drafts."
+            "Admin, seller and image-based AI tasks use the dedicated models above. The storefront assistant and voice transcription keep using the global settings."
           )}
         </Text>
         <Text size="xsmall" className="mt-2 text-ui-fg-subtle">

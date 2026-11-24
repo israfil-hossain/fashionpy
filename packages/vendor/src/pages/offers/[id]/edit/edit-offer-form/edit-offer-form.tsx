@@ -1,5 +1,9 @@
 import { Button, Input, Select, toast } from "@medusajs/ui"
 import { useTranslation } from "react-i18next"
+import {
+  DELIVERY_PRICING_METADATA_KEY,
+  readDeliveryPricingOverride,
+} from "@mercurjs/types"
 
 import {
   ExtendableFormField,
@@ -24,6 +28,7 @@ export const EditOfferForm = ({ offer }: Props) => {
   const { t } = useTranslation()
   const dir = useDocumentDirection()
   const { handleSuccess } = useRouteModal()
+  const deliveryOverride = readDeliveryPricingOverride(offer.metadata)
 
   const { shipping_profiles } = useShippingProfiles({ limit: 1000 })
 
@@ -38,6 +43,9 @@ export const EditOfferForm = ({ offer }: Props) => {
       shipping_profile_id: offer.shipping_profile_id ?? "",
       leadtime_to_ship: offer.leadtime_to_ship?.toString() ?? "",
       metadata: offer.metadata ?? null,
+      delivery_dhaka_base: deliveryOverride?.dhaka_base?.toString() ?? "",
+      delivery_outside_dhaka_base:
+        deliveryOverride?.outside_dhaka_base?.toString() ?? "",
     },
   })
 
@@ -51,7 +59,21 @@ export const EditOfferForm = ({ offer }: Props) => {
         leadtime_to_ship: values.leadtime_to_ship
           ? Number(values.leadtime_to_ship)
           : null,
-        metadata: values.metadata ?? undefined,
+        metadata: {
+          ...(values.metadata ?? {}),
+          [DELIVERY_PRICING_METADATA_KEY]: {
+            ...(offer.metadata?.[DELIVERY_PRICING_METADATA_KEY] as Record<
+              string,
+              unknown
+            > | undefined),
+            dhaka_base: values.delivery_dhaka_base
+              ? Number(values.delivery_dhaka_base)
+              : null,
+            outside_dhaka_base: values.delivery_outside_dhaka_base
+              ? Number(values.delivery_outside_dhaka_base)
+              : null,
+          },
+        },
       },
       {
         onSuccess: () => {
@@ -156,6 +178,35 @@ export const EditOfferForm = ({ offer }: Props) => {
               )}
             />
           </ExtendableFormField>
+
+          <div className="flex flex-col gap-y-4">
+            <Form.Field
+              control={form.control}
+              name="delivery_dhaka_base"
+              render={({ field }) => (
+                <Form.Item>
+                  <Form.Label optional>Delivery base inside Dhaka (BDT)</Form.Label>
+                  <Form.Control>
+                    <Input type="number" min={0} step={1} {...field} />
+                  </Form.Control>
+                  <Form.Hint>Empty uses the seller or marketplace default.</Form.Hint>
+                </Form.Item>
+              )}
+            />
+            <Form.Field
+              control={form.control}
+              name="delivery_outside_dhaka_base"
+              render={({ field }) => (
+                <Form.Item>
+                  <Form.Label optional>Delivery base outside Dhaka (BDT)</Form.Label>
+                  <Form.Control>
+                    <Input type="number" min={0} step={1} {...field} />
+                  </Form.Control>
+                  <Form.Hint>Empty uses the seller or marketplace default.</Form.Hint>
+                </Form.Item>
+              )}
+            />
+          </div>
 
           <FormExtensionZone
             model="offer"

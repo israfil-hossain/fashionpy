@@ -4,6 +4,160 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Per-task AI models (2026-11-24), `main`
+
+SPEC-017 (`docs/specs/SPEC-017-per-task-ai-models.md`, `in_progress`).
+Split the single shared AI model into three admin-configurable slots:
+`admin_text`, `vendor_text` and `vision`, each with its own provider, base URL,
+encrypted key, temperature and max tokens. Unset slots fall back field-by-field
+to global → panel slot; storefront chat/STT stay on the global model.
+
+- Storage: `chatbot_settings.task_models` jsonb + migration
+  `Migration20261124000000`; resolution helpers in
+  `modules/chatbot/task-models.ts`; keys encrypted, DTO exposes `api_key_set`.
+- Routing: `loadAiRuntime(container, task, fallbackTask)` and
+  `completeJson({ task, fallback_task })`; generators select `vision` when
+  images are present, with the panel task as fallback. Admin/vendor/blog/
+  follow-up routes pass their task explicitly.
+- Admin Settings → AI Chatbot now renders one editable/testable card per slot;
+  the old "same model powers everything" note was replaced.
+- Evidence: 8 task-model unit tests pass; lint clean; types/core/admin builds
+  clean. Integration spec extended with wire-model assertions but could not run
+  locally (no test DB). SPEC stays `in_progress` pending CI.
+
+## Session — Bangladesh delivery charges (2026-11-24), `main`
+
+SPEC-016 (`docs/specs/SPEC-016-bangladesh-delivery-charges.md`, `in_progress`).
+Implementing the Bangladesh delivery-charge rules: 60 BDT inside Dhaka / 120
+outside, weight increments on top in both zones, seller + offer base overrides,
+one charge per platform-warehouse shipment vs per seller store, a separate
+platform order for the warehouse charge, and an admin-configurable 12 BDT
+warehouse fee recorded as a seller commission line. Config lives in store
+metadata under `delivery_pricing` with typed defaults in `packages/types`.
+
+- Pure resolver + grouping unit tests are in place: 32 cases passing
+  (`bun run test:unit -- --testPathPatterns=delivery`).
+- Cart quote grouping, shipping-method application (with re-apply after Medusa
+  refresh), checkout platform order for the warehouse charge, admin-controlled
+  12 BDT warehouse-fee commission line and admin/vendor config forms are wired.
+- Evidence: `bun run lint` clean; types/core builds clean; admin/vendor tsup
+  builds clean with 8 GB heap. Full turbo build hit a parallel-worker heap limit
+  in this environment. Integration spec added but could not run locally (no
+  test DB connection); left for CI. SPEC-016 stays `in_progress` until the
+  integration verification runs.
+
+## Session — Inventory title + delete diagnosis (2026-11-24), `main`
+
+SPEC-019 (`docs/specs/SPEC-019-inventory-title-and-delete.md`, `passing`) —
+user reported blank/product-name-less Title and an unusable Delete in inventory.
+
+- Root cause of Title: `createOffersWorkflow` stores the **variant** title
+  (`EU 40`) as `inventory_item.title`; the product name only exists at
+  `offers[0].product_variant.product.title`. The admin/vendor Title cells now
+  resolve that relation (with `variants.product.title` fallback) and show the
+  product name plus the variant as a secondary label; Product cells use the
+  same resolver. Added `+variants.product.title` to both list queries.
+- Delete: API probes showed DELETE works (200) for clean, offer-linked and
+  seller-linked items. A greyed-out Delete is the RBAC right
+  `inventory_items:manage` missing; genuine API failures are reservations
+  (`reserved_quantity > 0`) or a missing seller link on vendor routes. Custom
+  disabled tooltips are now preserved so the menu says which right is needed.
+
+- Evidence: lint 0; admin/vendor builds clean; API field probes 200; all probe
+  data cleaned up / real item restored.
+
+## Session — PDP share popover + jump links (2026-11-23), `main`
+
+SPEC-018 (`docs/specs/SPEC-018-pdp-share-and-jumps.md`, `passing`) — three
+user-reported PDP issues:
+
+- `ProductShare` now renders only a Share toggle; copy/WhatsApp/Messenger live
+  in a popover that closes on outside click or Escape. Copy keeps a "Copied!"
+  confirmation.
+- Added client `ProductJumpLink` (re-dispatches `hashchange` so repeat clicks
+  work) and used it for the description **View more** and delivery teaser
+  **View details** links. Gave the full description section a real `id`
+  (it previously only had a `data-testid`, so the anchor went nowhere) and
+  scroll margins for the sticky header.
+- `ProductTabs` now tracks a scroll signal so a jump to the already-active
+  About tab still scrolls; delivery jumps select the Delivery tab and scroll
+  the tabs container.
+
+- Evidence: lint 0; storefront tsc only the 112 known pre-existing errors;
+  storefront build 3/3; Playwright at 1440px and 375px confirmed hidden-by-default
+  share actions, clipboard copy, popover close, both jumps landing ~68px below
+  the compact header, and Delivery tab selection.
+
+## Session — Compact header on downward scroll (2026-11-23), `main`
+
+SPEC-017 (`docs/specs/SPEC-017-compact-header.md`, `passing`) — user asked that
+scrolling down hide the announcement, utility and navigation rows, leaving only
+the logo header. Added client `HeaderShell` around the sticky `<header>` with a
+direction-aware `data-compact` flag (threshold 80px, restores on upward scroll);
+added `header-announcement`/`header-utility`/`header-nav` classes and CSS that
+collapses those rows to height 0 with an opacity transition. A 450ms settle lock
+avoids scroll-anchoring feedback from flipping the state.
+
+- Evidence: lint 0; storefront tsc only the 112 known pre-existing errors;
+  storefront build 3/3; Playwright at 1440px and 375px confirmed compact state,
+  all three bars at height/opacity 0, logo row at `top: 0`, and full restore on
+  scroll up.
+
+## Session — Announcement bar to top of header (2026-11-23), `main`
+
+Swapped the order in `Header.tsx`: `AnnouncementBar` now renders before
+`UtilityBar`, so it is the first (topmost) bar in the sticky header on both
+desktop and mobile. Verified in the browser on `:3000`: header children tops
+`announcement 0, utility 28, header-top 68, navbar 132` at 1440px, and the
+announcement is the only visible bar at 375px. `bun run lint` 0; storefront
+tsc only the 112 known pre-existing errors; storefront build 3/3.
+
+## Session — Product card hover image + full-product fit (2026-11-23), `main`
+
+SPEC-016 (`docs/specs/SPEC-016-product-card-hover-and-fit.md`, `passing`) —
+user-reported product card issues fixed:
+
+- `ProductCard.tsx` used a single thumbnail with `object-cover`,
+  `hover:scale-110` and fixed 4:3/3:4 boxes — it cropped products and had no
+  second-image hover. Replaced with an `aspect-square` media box,
+  `object-contain`, no zoom, and a stacked second `<Image>` that crossfades in
+  on hover/focus (first gallery URL differing from the thumbnail). Cards with
+  one image never fade out; the hover layer is decorative.
+- Removed the now-unused `imageAspect` prop from the two call sites in
+  `BestDealsSection` and `TabbedProductGridClient`.
+- Evidence: `bun run lint` 0; storefront tsc only the 112 known pre-existing
+  errors; storefront build 3/3; Playwright on `:3002`: 250×250 media box,
+  `object-fit: contain`, no transform, `-1.png → -2.png` hover swap with
+  opacity `1/0 → 0/1`, single-image cards unchanged.
+
+## Session — Studio rail opt-in, dedicated imagery, 3D hanger turn (2026-11-23), `main`
+
+SPEC-015 (`docs/specs/SPEC-015-studio-rail-opt-in.md`, `passing`) — four
+user-reported items:
+
+- Whole storefront background is white below `md`: home page main is now
+  `bg-white md:bg-[#FFF5F8]`, plus a mobile rule in `globals.css` forcing
+  `body`/`main[class]` white.
+- Admin + vendor product detail pages render a shared `StudioRailSection`
+  (`packages/dashboard-shared`) with a yes/no Switch and three image URL
+  fields. Save writes `show_in_studio_rail`, `studio_rail_thumbnail`,
+  `studio_rail_front_image`, `studio_rail_back_image` to `product.metadata`.
+- `StudioRail.tsx` now fetches `metadata`, includes only products explicitly
+  switched on, and prefers the dedicated thumbnail/front/back images with
+  gallery fallbacks — fixes the "no front/back image" report for products that
+  have no gallery images.
+- Garment now turns 180° on its hanger on hover (`rotateY` + backface culling,
+  springy settle, hanger counter-swing, shadow reaction); reduced motion keeps
+  a crossfade. Removing `isolation: isolate` from the 3D garment was required
+  or the front face vanished at full rotation. SPEC-008 hover text updated.
+
+- Evidence: `bun run lint` 0; storefront tsc only the 112 known pre-existing
+  errors (none touched); build log clean for all packages that finished;
+  Playwright on `:3002` with temporary seeded metadata (reverted after):
+  opt-in filtering (3 slides), dedicated thumbnail/front sources, hover
+  back `1→0` / front `0→1` / garment 180° matrix, quick view Front|Back with
+  dedicated front, mobile home body+main `rgb(255,255,255)`.
+
 ## Session — Product SKU generation + publish/review clarity (2026-11-23), `main`
 
 - AI product drafts now apply the per-variant SKUs the model returned; the

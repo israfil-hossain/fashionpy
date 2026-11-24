@@ -5,6 +5,8 @@ export const EditOfferSchema = z.object({
   shipping_profile_id: z.string().min(1),
   leadtime_to_ship: z.string().regex(/^\d*$/).optional(),
   metadata: z.record(z.string(), z.unknown()).nullish(),
+  delivery_dhaka_base: z.string().regex(/^\d*$/).optional(),
+  delivery_outside_dhaka_base: z.string().regex(/^\d*$/).optional(),
 })
 
 export type EditOfferFormValues = z.infer<typeof EditOfferSchema>

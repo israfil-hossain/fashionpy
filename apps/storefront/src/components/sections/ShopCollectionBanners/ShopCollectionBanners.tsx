@@ -45,7 +45,7 @@ export const ShopCollectionBanners = async () => {
 
   return (
     <section data-testid="shop-collection-banners">
-      <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {banners.map((banner, index) => (
           <ScrollReveal
             key={banner.id}
@@ -54,7 +54,7 @@ export const ShopCollectionBanners = async () => {
           >
             <LocalizedClientLink
               href={banner.href}
-              className="group relative block aspect-[16/8] overflow-hidden rounded-2xl sm:aspect-[16/7] lg:aspect-[21/9]"
+              className="group relative block h-[180px] overflow-hidden rounded-2xl sm:h-[200px] lg:h-[220px]"
             >
               {banner.image ? (
                 <Image

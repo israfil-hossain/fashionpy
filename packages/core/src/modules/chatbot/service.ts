@@ -1,6 +1,7 @@
 import { InjectManager, MedusaContext, MedusaService } from "@medusajs/framework/utils"
 import { Context } from "@medusajs/framework/types"
 import { EntityManager } from "@medusajs/framework/mikro-orm/knex"
+import { emptyAiTaskModelsDTO, type AiTask } from "@mercurjs/types"
 
 import { ChatbotConversation } from "./models/chatbot-conversation"
 import { ChatbotMessage } from "./models/chatbot-message"
@@ -10,11 +11,18 @@ import {
   ChatbotConversationDTO,
   ChatbotLocale,
   ChatbotMessageDTO,
+  ChatbotRuntimeSettings,
   ChatbotSettingsDTO,
   ChatbotSettingsInput,
 } from "./types/common"
 import { encryptSecret, decryptSecret } from "./crypto"
 import { DEFAULT_SYSTEM_PROMPT } from "../../chatbot/prompts"
+import {
+  mergeTaskModelsForUpdate,
+  parseStoredTaskModels,
+  resolveTaskConfig,
+  toTaskModelsDto,
+} from "./task-models"
 
 class ChatbotModuleService extends MedusaService({
   ChatbotConversation,
@@ -36,6 +44,7 @@ class ChatbotModuleService extends MedusaService({
         provider: "openrouter",
         base_url: null,
         model: null,
+        task_models: emptyAiTaskModelsDTO(),
         stt_provider: "none",
         stt_model: null,
         system_prompt: null,
@@ -51,6 +60,7 @@ class ChatbotModuleService extends MedusaService({
       provider: row.provider ?? "openrouter",
       base_url: row.base_url ?? null,
       model: row.model ?? null,
+      task_models: toTaskModelsDto(parseStoredTaskModels(row.task_models)),
       stt_provider: row.stt_provider ?? "none",
       stt_model: row.stt_model ?? null,
       system_prompt: row.system_prompt ?? null,
@@ -80,6 +90,10 @@ class ChatbotModuleService extends MedusaService({
           ? input.base_url || null
           : (existing?.base_url ?? null),
       model: input.model !== undefined ? input.model || null : (existing?.model ?? null),
+      task_models: mergeTaskModelsForUpdate(
+        parseStoredTaskModels(existing?.task_models),
+        input.task_models
+      ),
       stt_provider: input.stt_provider ?? existing?.stt_provider ?? "none",
       stt_model:
         input.stt_model !== undefined
@@ -127,28 +141,31 @@ class ChatbotModuleService extends MedusaService({
     return this.getSettings(sharedContext)
   }
 
-  /** Decrypted secrets for the agent runtime only — never exposed over HTTP. */
+  /**
+   * Decrypted secrets for the AI runtimes only — never exposed over HTTP.
+   * Passing a task selects that task's model slot (with global fallback);
+   * omitting it keeps the storefront chatbot and STT on the legacy model.
+   */
   @InjectManager()
   async getRuntimeSettings(
+    task?: AiTask,
+    fallbackTask?: AiTask,
     @MedusaContext() sharedContext?: Context<EntityManager>
-  ): Promise<
-    ChatbotSettingsDTO & {
-      api_key: string | null
-      stt_api_key: string | null
-      system_prompt_effective: string
-    }
-  > {
+  ): Promise<ChatbotRuntimeSettings> {
     const knex = sharedContext!.manager!.getKnex()
     const row = await knex("chatbot_settings")
       .where("id", CHATBOT_SETTINGS_ID)
       .first()
 
     const base = await this.getSettings(sharedContext)
+    const resolved = resolveTaskConfig(
+      (row ?? {}) as Record<string, unknown>,
+      task,
+      fallbackTask
+    )
     return {
       ...base,
-      api_key: row?.api_key_encrypted
-        ? decryptSecret(row.api_key_encrypted)
-        : null,
+      ...resolved,
       stt_api_key: row?.stt_api_key_encrypted
         ? decryptSecret(row.stt_api_key_encrypted)
         : null,

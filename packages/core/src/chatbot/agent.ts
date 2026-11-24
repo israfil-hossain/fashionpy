@@ -297,10 +297,11 @@ export async function testConnection(
     base_url?: string | null
     api_key?: string
     model?: string
+    task?: "admin_text" | "vendor_text" | "vision"
   }
 ): Promise<{ ok: boolean; provider: string; model: string; latency_ms: number; error?: string }> {
   const service = container.resolve<ChatbotModuleService>(CHATBOT_MODULE)
-  const runtime = await service.getRuntimeSettings()
+  const runtime = await service.getRuntimeSettings(overrides?.task)
 
   const provider = (overrides?.provider ?? runtime.provider) as
     | "openrouter"

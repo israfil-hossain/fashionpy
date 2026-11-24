@@ -7,7 +7,11 @@ export const ProductPageDetails = ({ details }: { details: string }) => {
   if (!details) return null
 
   return (
-    <div data-testid="product-details-section">
+    <div
+      id="product-details-section"
+      className="scroll-mt-24 lg:scroll-mt-[180px]"
+      data-testid="product-details-section"
+    >
       <h3 className="label-lg uppercase mb-2">Seller's description</h3>
       {isRichText(details) ? (
         <div

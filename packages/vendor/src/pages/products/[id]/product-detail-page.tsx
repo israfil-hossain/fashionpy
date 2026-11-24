@@ -3,8 +3,12 @@ import { useLoaderData, useParams } from "react-router-dom";
 
 import { TwoColumnPageSkeleton } from "@components/common/skeleton";
 import { TwoColumnPage } from "@components/layout/pages";
-import { WidgetZone, useLinkQuery } from "@mercurjs/dashboard-shared";
-import { useProduct } from "@hooks/api";
+import {
+  StudioRailSection,
+  WidgetZone,
+  useLinkQuery,
+} from "@mercurjs/dashboard-shared";
+import { useProduct, useUpdateProduct } from "@hooks/api";
 
 import { PRODUCT_DETAIL_QUERY } from "../common/constants";
 import { loader } from "./loader";
@@ -26,6 +30,7 @@ const Root = ({ children }: { children?: ReactNode }) => {
   const { product, isLoading, isError, error } = useProduct(id!, query, {
     initialData,
   });
+  const { mutateAsync: updateProduct } = useUpdateProduct(id!);
 
   if (isLoading || !product) {
     return <TwoColumnPageSkeleton mainSections={4} sidebarSections={3} />;
@@ -46,6 +51,12 @@ const Root = ({ children }: { children?: ReactNode }) => {
           <ProductActiveEditSection product={product} />
           <ProductGeneralSection product={product} />
           <ProductMediaSection product={product} />
+          <StudioRailSection
+            product={product}
+            onSave={async (metadata) => {
+              await updateProduct({ metadata });
+            }}
+          />
           <ProductVariantSection product={product} />
         </WidgetZone>
       </TwoColumnPage.Main>

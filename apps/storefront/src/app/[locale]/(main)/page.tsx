@@ -92,7 +92,7 @@ export default async function Home({
     "FashionPy - Marketplace Storefront"
 
   return (
-    <main className="min-h-screen bg-[#FFF5F8] text-primary">
+    <main className="min-h-screen bg-white text-primary md:bg-[#FFF5F8]">
       <Script
         id="ld-org"
         type="application/ld+json"

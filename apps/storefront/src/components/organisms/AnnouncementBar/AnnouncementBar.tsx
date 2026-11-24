@@ -50,7 +50,7 @@ export const AnnouncementBar = async ({
 
   return (
     <div
-      className="bg-[rgb(var(--brand-500))] text-white h-7 flex items-center justify-center lg:px-4 px-0.5"
+      className="header-announcement bg-[rgb(var(--brand-500))] text-white h-7 flex items-center justify-center lg:px-4 px-0.5"
       data-testid="announcement-bar"
     >
       <p className="lg:text-xs text-[8px] font-medium">

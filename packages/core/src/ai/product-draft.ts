@@ -1,4 +1,5 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
+import type { AiTask } from "@mercurjs/types"
 
 import {
   ScrapeError,
@@ -36,6 +37,8 @@ export type GenerateProductDraftInput = {
   image_data_urls?: string[]
   source_url?: string
   hints?: AiProductDraftHints
+  /** Panel task; photo-based drafts automatically switch to the vision slot. */
+  task?: AiTask
 }
 
 function deriveAxes(variants: ScrapedVariant[]): ScrapedOptionAxis[] {
@@ -115,6 +118,8 @@ export async function generateProductDraft(
   const { data } = await completeJson(input.container, {
     schema: AiProductDraftSchema,
     surface: "product_draft",
+    task: images.data_urls.length ? "vision" : (input.task ?? "admin_text"),
+    fallback_task: input.task ?? "admin_text",
     max_tokens: 2500,
     messages: [
       { role: "system", content: PRODUCT_DRAFT_SYSTEM },

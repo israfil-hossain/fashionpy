@@ -14,6 +14,7 @@ export const ChatbotSettings = model
     base_url: model.text().nullable(),
     api_key_encrypted: model.text().nullable(),
     model: model.text().nullable(),
+    task_models: model.json().nullable(),
     stt_provider: model.enum(["openai", "gemini", "none"]).default("none"),
     stt_api_key_encrypted: model.text().nullable(),
     stt_model: model.text().nullable(),

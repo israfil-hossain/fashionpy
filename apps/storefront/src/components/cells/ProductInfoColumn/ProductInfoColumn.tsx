@@ -1,6 +1,7 @@
 import { SellerDTO } from "@mercurjs/types"
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
+import { ProductJumpLink } from "@/components/molecules/ProductJumpLink/ProductJumpLink"
 import { ProductShare } from "@/components/molecules/ProductShare/ProductShare"
 import { AdditionalAttributeProps } from "@/types/product"
 
@@ -98,13 +99,13 @@ export const ProductInfoColumn = ({
           <p className="label-md text-secondary line-clamp-4">
             {shortDescription}
           </p>
-          <a
-            href="#product-details-section"
+          <ProductJumpLink
+            hash="product-details-section"
             className="mt-1 inline-block label-md text-primary underline underline-offset-2"
-            data-testid="product-description-view-more"
+            testId="product-description-view-more"
           >
             View more
-          </a>
+          </ProductJumpLink>
         </div>
       )}
     </div>

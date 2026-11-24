@@ -8,8 +8,11 @@ import { z } from "zod"
 
 import { usePermissionGate } from "@mercurjs/dashboard-shared"
 import {
+  DELIVERY_PRICING_METADATA_KEY,
+  DEFAULT_DELIVERY_PRICING,
   getMarketplaceDefaultLeadtime,
   MARKETPLACE_DEFAULT_LEADTIME_KEY,
+  resolveDeliveryPricingConfig,
 } from "@mercurjs/types"
 
 import { ConditionalTooltip } from "../../../../../components/common/conditional-tooltip"
@@ -36,12 +39,18 @@ const EditStoreSchema = z.object({
     .string()
     .regex(/^\d*$/, { message: i18n.t("marketplace.leadtimeInvalid") })
     .optional(),
+  delivery_dhaka_base: z.string().regex(/^\d*$/).optional(),
+  delivery_outside_dhaka_base: z.string().regex(/^\d*$/).optional(),
+  delivery_extra_kg_increment: z.string().regex(/^\d*$/).optional(),
+  delivery_warehouse_fee: z.string().regex(/^\d*$/).optional(),
+  delivery_platform_warehouse_location_id: z.string().optional(),
 })
 
 export const EditMarketplaceForm = ({ store }: EditMarketplaceFormProps) => {
   const { t } = useTranslation()
   const { handleSuccess } = useRouteModal()
-  const direction = useDocumentDirection()  
+  const direction = useDocumentDirection()
+  const deliveryConfig = resolveDeliveryPricingConfig(store.metadata)
   const form = useForm<z.infer<typeof EditStoreSchema>>({
     defaultValues: {
       name: store.name,
@@ -53,6 +62,12 @@ export const EditMarketplaceForm = ({ store }: EditMarketplaceFormProps) => {
       default_location_id: store.default_location_id || undefined,
       default_leadtime_to_ship:
         getMarketplaceDefaultLeadtime(store.metadata)?.toString() ?? "",
+      delivery_dhaka_base: deliveryConfig.dhaka_base.toString(),
+      delivery_outside_dhaka_base: deliveryConfig.outside_dhaka_base.toString(),
+      delivery_extra_kg_increment: deliveryConfig.extra_kg_increment.toString(),
+      delivery_warehouse_fee: deliveryConfig.warehouse_fee.toString(),
+      delivery_platform_warehouse_location_id:
+        deliveryConfig.platform_warehouse_location_id ?? "",
     },
     resolver: zodResolver(EditStoreSchema),
   })
@@ -94,7 +109,16 @@ export const EditMarketplaceForm = ({ store }: EditMarketplaceFormProps) => {
   })
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    const { default_currency_code, default_leadtime_to_ship, ...rest } = values
+    const {
+      default_currency_code,
+      default_leadtime_to_ship,
+      delivery_dhaka_base,
+      delivery_outside_dhaka_base,
+      delivery_extra_kg_increment,
+      delivery_warehouse_fee,
+      delivery_platform_warehouse_location_id,
+      ...rest
+    } = values
 
     const normalizedMutation: HttpTypes.AdminUpdateStore = {
       ...rest,
@@ -103,6 +127,23 @@ export const EditMarketplaceForm = ({ store }: EditMarketplaceFormProps) => {
         [MARKETPLACE_DEFAULT_LEADTIME_KEY]: default_leadtime_to_ship
           ? Number(default_leadtime_to_ship)
           : null,
+        [DELIVERY_PRICING_METADATA_KEY]: {
+          ...deliveryConfig,
+          dhaka_base: Number(delivery_dhaka_base || DEFAULT_DELIVERY_PRICING.dhaka_base),
+          outside_dhaka_base: Number(
+            delivery_outside_dhaka_base ||
+              DEFAULT_DELIVERY_PRICING.outside_dhaka_base
+          ),
+          extra_kg_increment: Number(
+            delivery_extra_kg_increment ||
+              DEFAULT_DELIVERY_PRICING.extra_kg_increment
+          ),
+          warehouse_fee: Number(
+            delivery_warehouse_fee || DEFAULT_DELIVERY_PRICING.warehouse_fee
+          ),
+          platform_warehouse_location_id:
+            delivery_platform_warehouse_location_id || null,
+        },
       },
       supported_currencies: store.supported_currencies?.map((c) => ({
         ...c,
@@ -289,6 +330,94 @@ export const EditMarketplaceForm = ({ store }: EditMarketplaceFormProps) => {
                 </Form.Item>
               )}
             />
+
+            <div className="flex flex-col gap-y-4">
+              <span className="text-sm font-semibold">Delivery charge (BDT)</span>
+              <Form.Field
+                control={form.control}
+                name="delivery_dhaka_base"
+                render={({ field }) => (
+                  <Form.Item>
+                    <Form.Label>Base charge inside Dhaka</Form.Label>
+                    <Form.Control>
+                      <Input type="number" min={0} step={1} {...field} />
+                    </Form.Control>
+                  </Form.Item>
+                )}
+              />
+              <Form.Field
+                control={form.control}
+                name="delivery_outside_dhaka_base"
+                render={({ field }) => (
+                  <Form.Item>
+                    <Form.Label>Base charge outside Dhaka</Form.Label>
+                    <Form.Control>
+                      <Input type="number" min={0} step={1} {...field} />
+                    </Form.Control>
+                  </Form.Item>
+                )}
+              />
+              <Form.Field
+                control={form.control}
+                name="delivery_extra_kg_increment"
+                render={({ field }) => (
+                  <Form.Item>
+                    <Form.Label>Extra charge per kg above 2 kg</Form.Label>
+                    <Form.Control>
+                      <Input type="number" min={0} step={1} {...field} />
+                    </Form.Control>
+                    <Form.Hint>
+                      Weight bands: up to 500g +0, 500g–1kg +10, 1–2kg +30.
+                    </Form.Hint>
+                  </Form.Item>
+                )}
+              />
+              <Form.Field
+                control={form.control}
+                name="delivery_warehouse_fee"
+                render={({ field }) => (
+                  <Form.Item>
+                    <Form.Label>Platform warehouse fee (per seller order)</Form.Label>
+                    <Form.Control>
+                      <Input type="number" min={0} step={1} {...field} />
+                    </Form.Control>
+                    <Form.Hint>
+                      Deducted from the seller payout, not added to the customer bill.
+                    </Form.Hint>
+                  </Form.Item>
+                )}
+              />
+              <Form.Field
+                control={form.control}
+                name="delivery_platform_warehouse_location_id"
+                render={({ field }) => (
+                  <Form.Item>
+                    <Form.Label>Platform warehouse location</Form.Label>
+                    <ConditionalTooltip
+                      showTooltip={locationsGate.denied}
+                      content={locationsGate.tooltip}
+                    >
+                      <div>
+                        <Form.Control>
+                          <Combobox
+                            {...field}
+                            options={locationsCombobox.options}
+                            searchValue={locationsCombobox.searchValue}
+                            onSearchValueChange={
+                              locationsCombobox.onSearchValueChange
+                            }
+                            disabled={locationsCombobox.disabled}
+                          />
+                        </Form.Control>
+                      </div>
+                    </ConditionalTooltip>
+                    <Form.Hint>
+                      Items stocked here share one delivery charge across sellers.
+                    </Form.Hint>
+                  </Form.Item>
+                )}
+              />
+            </div>
           </div>
         </RouteDrawer.Body>
         <RouteDrawer.Footer data-testid="store-edit-form-footer">

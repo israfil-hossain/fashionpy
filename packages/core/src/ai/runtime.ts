@@ -4,6 +4,7 @@ import {
   MedusaError,
 } from "@medusajs/framework/utils"
 import { z } from "zod"
+import type { AiTask } from "@mercurjs/types"
 
 import {
   ChatMessage,
@@ -21,10 +22,12 @@ export type AiRuntime = {
 }
 
 export async function loadAiRuntime(
-  container: MedusaContainer
+  container: MedusaContainer,
+  task?: AiTask,
+  fallbackTask?: AiTask
 ): Promise<AiRuntime> {
   const service = container.resolve<ChatbotModuleService>(CHATBOT_MODULE)
-  const settings = await service.getRuntimeSettings()
+  const settings = await service.getRuntimeSettings(task, fallbackTask)
 
   if (!settings.enabled) {
     throw new MedusaError(
@@ -60,6 +63,10 @@ export type CompleteJsonInput<T> = {
   temperature?: number
   /** Label used in structured usage logs (e.g. "product_draft"). */
   surface?: string
+  /** Selects a named model slot; omitted means the legacy global model. */
+  task?: AiTask
+  /** Used when `task` has no model configured (e.g. vision → panel model). */
+  fallback_task?: AiTask
 }
 
 export type CompleteJsonResult<T> = {
@@ -74,6 +81,7 @@ function logUsage(
   container: MedusaContainer,
   surface: string,
   model: string,
+  task?: AiTask,
   usage?: ChatUsage
 ): void {
   try {
@@ -81,7 +89,7 @@ function logUsage(
       ContainerRegistrationKeys.LOGGER
     )
     logger.info(
-      `[ai] surface=${surface} model=${model} ` +
+      `[ai] surface=${surface} task=${task ?? "global"} model=${model} ` +
         `prompt_tokens=${usage?.prompt_tokens ?? "?"} ` +
         `completion_tokens=${usage?.completion_tokens ?? "?"} ` +
         `total_tokens=${usage?.total_tokens ?? "?"}`
@@ -99,7 +107,7 @@ export async function completeJson<T>(
   container: MedusaContainer,
   input: CompleteJsonInput<T>
 ): Promise<CompleteJsonResult<T>> {
-  const runtime = await loadAiRuntime(container)
+  const runtime = await loadAiRuntime(container, input.task, input.fallback_task)
   const provider = resolveProvider(runtime.config)
 
   const completion = await provider.complete(input.messages, [], {
@@ -139,6 +147,7 @@ export async function completeJson<T>(
     container,
     input.surface ?? "completion",
     runtime.model,
+    input.task,
     completion.usage
   )
 

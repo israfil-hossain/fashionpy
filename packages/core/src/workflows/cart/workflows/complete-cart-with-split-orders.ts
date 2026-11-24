@@ -44,6 +44,7 @@ import {
     validateSellerCartItemsStep,
     validateSellerCartShippingStep,
 } from "../steps"
+import { createWarehouseFeeCommissionLinesStep } from "../steps/create-warehouse-fee-commission-lines"
 import {
     allocateCreditLines,
     completeCartFields,
@@ -276,15 +277,39 @@ export const completeCartWithSplitOrdersWorkflow = createWorkflow(
                         .filter((id: unknown): id is string => typeof id === "string")
                 )
                 const sellerShippingOptionsMap = new Map()
+                const shippingOptionById = new Map<
+                  string,
+                  { id: string; seller?: { id?: string | null } | null }
+                >()
                 shippingOptionsData.forEach((so) => {
                     const sellerId = so.seller.id
                     const previous = sellerShippingOptionsMap.get(sellerId) ?? []
                     sellerShippingOptionsMap.set(sellerId, [...previous, so])
+                    shippingOptionById.set(so.id, so)
                 })
 
                 const sellerOrdersMap: Record<string, string> = {}
                 const ordersToCreate: (CreateOrderDTO & { id: string })[] = []
                 const offerIdsByOrderId: Record<string, (string | null)[]> = {}
+
+                const deliveryGroupOf = (method: any) =>
+                    method?.data?.mercur_delivery_group as
+                        | { key?: string; type?: string; carrier?: boolean }
+                        | undefined
+
+                const warehouseShippingMethods = (cart.shipping_methods ?? []).filter(
+                    (method: any) => deliveryGroupOf(method)?.type === "platform_warehouse"
+                )
+                const warehouseChargeCarrier = warehouseShippingMethods.find(
+                    (method: any) => deliveryGroupOf(method)?.carrier
+                )
+                const warehouseSellerIds = new Set<string>(
+                    warehouseShippingMethods
+                        .map((method: any) =>
+                            shippingOptionById.get(method.shipping_option_id)?.seller?.id
+                        )
+                        .filter((id: unknown): id is string => typeof id === "string")
+                )
 
                 const sellerIds = Array.from(cartSellerIds)
                 const itemsOfSeller = (sellerId: string) =>
@@ -293,7 +318,11 @@ export const completeCartWithSplitOrdersWorkflow = createWorkflow(
                     )
                 const shippingMethodsOfSeller = (sellerId: string) => {
                     const sellerShippingOptions = sellerShippingOptionsMap.get(sellerId) ?? []
-                    return (cart.shipping_methods ?? []).filter((sm) => sellerShippingOptions.some((so) => so.id === sm.shipping_option_id))
+                    return (cart.shipping_methods ?? []).filter(
+                        (sm) =>
+                            !deliveryGroupOf(sm)?.type?.includes("warehouse") &&
+                            sellerShippingOptions.some((so) => so.id === sm.shipping_option_id)
+                    )
                 }
 
                 const sellerCreditLines = allocateCreditLines({
@@ -406,7 +435,12 @@ export const completeCartWithSplitOrdersWorkflow = createWorkflow(
                         no_notification: false,
                         items: allItems,
                         shipping_methods: shippingMethods,
-                        metadata: cart.metadata,
+                        metadata: warehouseSellerIds.has(sellerId)
+                            ? {
+                                  ...(cart.metadata ?? {}),
+                                  mercur_warehouse_item_count: sellerCartItems.length,
+                              }
+                            : cart.metadata,
                         promo_codes: promoCodes,
                         credit_lines: sellerCreditLines[sellerIndex].map((creditLine) => ({
                             ...creditLine,
@@ -420,6 +454,59 @@ export const completeCartWithSplitOrdersWorkflow = createWorkflow(
                             (item.offer?.id as string | undefined) ?? null,
                     )
                 })
+
+                if (warehouseChargeCarrier) {
+                    const platformOrderId = generateEntityId(undefined, "order")
+                    const shippingAddress = cart.shipping_address
+                        ? { ...cart.shipping_address }
+                        : null
+                    const billingAddress = cart.billing_address
+                        ? { ...cart.billing_address }
+                        : null
+                    if (shippingAddress) {
+                        delete shippingAddress.id
+                    }
+                    if (billingAddress) {
+                        delete billingAddress.id
+                    }
+
+                    ordersToCreate.push({
+                        id: platformOrderId,
+                        region_id: cart.region?.id,
+                        customer_id: cart.customer?.id,
+                        sales_channel_id: cart.sales_channel_id,
+                        status: statusResult?.status ?? OrderStatus.PENDING,
+                        email: cart.email,
+                        currency_code: cart.currency_code,
+                        locale: cart.locale,
+                        shipping_address: shippingAddress,
+                        billing_address: billingAddress,
+                        no_notification: false,
+                        items: [],
+                        shipping_methods: [
+                            {
+                                name: warehouseChargeCarrier.name,
+                                amount:
+                                    warehouseChargeCarrier.raw_amount ??
+                                    warehouseChargeCarrier.amount,
+                                is_tax_inclusive: warehouseChargeCarrier.is_tax_inclusive,
+                                shipping_option_id: warehouseChargeCarrier.shipping_option_id,
+                                data: warehouseChargeCarrier.data,
+                                tax_lines: prepareTaxLinesData(
+                                    warehouseChargeCarrier.tax_lines ?? []
+                                ),
+                                adjustments: [],
+                            },
+                        ],
+                        metadata: {
+                            ...(cart.metadata ?? {}),
+                            mercur_platform_delivery_order: true,
+                        },
+                        promo_codes: [],
+                        credit_lines: [],
+                    })
+                    offerIdsByOrderId[platformOrderId] = []
+                }
 
                 return {
                     sellerOrdersMap,
@@ -680,6 +767,23 @@ export const completeCartWithSplitOrdersWorkflow = createWorkflow(
                 input: {
                     order_ids: orderIds
                 }
+            })
+
+            const warehouseFeeLines = transform({ createdOrders }, ({ createdOrders }) =>
+                createdOrders
+                    .filter((order) => !!(order.metadata as Record<string, unknown> | null)?.mercur_warehouse_item_count)
+                    .map((order) => ({
+                        order_id: order.id,
+                        item_id: (order.items ?? [])[0]?.id,
+                    }))
+                    .filter(
+                        (line): line is { order_id: string; item_id: string } =>
+                            !!line.item_id
+                    )
+            )
+
+            createWarehouseFeeCommissionLinesStep({
+                order_items: warehouseFeeLines,
             })
 
             createHook("orderGroupCreated", {

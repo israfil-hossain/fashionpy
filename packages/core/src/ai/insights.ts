@@ -1,4 +1,5 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
+import type { AiTask } from "@mercurjs/types"
 
 import { normalizeImages } from "./images"
 import { buildInsightsPrompt, INSIGHTS_SYSTEM } from "./prompts"
@@ -24,6 +25,8 @@ export type GenerateProductInsightsInput = {
   existing_tags?: string[]
   existing_metadata?: Record<string, unknown>
   language?: string
+  /** Panel task; requests with images automatically switch to the vision slot. */
+  task?: AiTask
 }
 
 export async function generateProductInsights(
@@ -41,6 +44,8 @@ export async function generateProductInsights(
   const { data } = await completeJson(input.container, {
     schema: AiProductInsightsSchema,
     surface: "product_insights",
+    task: imageDataUrls.length ? "vision" : (input.task ?? "admin_text"),
+    fallback_task: input.task ?? "admin_text",
     max_tokens: 1200,
     messages: [
       { role: "system", content: INSIGHTS_SYSTEM },

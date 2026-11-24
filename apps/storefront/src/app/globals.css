@@ -28,6 +28,13 @@ body {
   font-family: "Funnel Display", "Noto Sans Bengali", "Hind Siliguri", sans-serif;
 }
 
+@media (max-width: 767px) {
+  body,
+  body main[class] {
+    background-color: #ffffff;
+  }
+}
+
 /* Typography */
 .text-xl {
   @apply font-light tracking-normal;
@@ -199,21 +206,31 @@ button:disabled svg path {
   -moz-appearance: textfield;
 }
 
-/* Header nav row on the brand header background */
-.nav-brand nav > a,
-.nav-brand nav > div > a {
-  color: rgba(255, 255, 255, 0.8);
-  transition: color 150ms ease;
+/* Compact sticky header — collapse the non-logo rows on downward scroll */
+.header-announcement,
+.header-utility,
+.header-nav {
+  transition:
+    height 0.28s ease,
+    opacity 0.2s ease;
 }
-.nav-brand nav > a:hover,
-.nav-brand nav > div > a:hover,
-.nav-brand nav > a.border-b,
-.nav-brand nav > div > a.border-b {
-  color: #ffffff;
+
+[data-compact="true"] > .header-announcement,
+[data-compact="true"] > .header-utility,
+[data-compact="true"] > .header-nav {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  border-bottom-width: 0;
+  pointer-events: none;
 }
-.nav-brand nav > a.border-b,
-.nav-brand nav > div > a.border-b {
-  border-color: #ffffff;
+
+@media (prefers-reduced-motion: reduce) {
+  .header-announcement,
+  .header-utility,
+  .header-nav {
+    transition: none;
+  }
 }
 
 /* Studio Rail — clothing rack showcase */
@@ -365,10 +382,12 @@ button:disabled svg path {
 
 .studio-rail__sway {
   position: relative;
-  padding-top: calc(20px + var(--hang-step, 0px));
+  padding-top: calc(10px + var(--hang-step, 0px));
   transform-origin: 50% calc(var(--rail-y) - var(--track-pad));
   animation: studio-rail-sway 6.5s ease-in-out infinite;
   animation-delay: var(--sway-delay, 0s);
+  perspective: 900px;
+  perspective-origin: 50% 28%;
   will-change: transform;
 }
 
@@ -380,24 +399,31 @@ button:disabled svg path {
   left: calc((var(--garment-w) - var(--hanger-w)) / 2);
   width: var(--hanger-w);
   height: auto;
-  z-index: 2;
+  z-index: 3;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+  transform-origin: 50% 0;
+  transition: transform 0.6s cubic-bezier(0.34, 1.32, 0.64, 1);
 }
 
 .studio-rail__garment {
   position: relative;
   z-index: 1;
-  isolation: isolate;
   width: var(--garment-w);
   height: var(--garment-w);
   margin: 0 auto;
-  background-color: #ffffff;
+  transform-style: preserve-3d;
+  transform: rotateY(0deg);
+  transition: transform 0.85s cubic-bezier(0.34, 1.32, 0.64, 1);
+  will-change: transform;
 }
 
 .studio-rail__image {
   object-fit: contain;
-  object-position: center;
+  object-position: center top;
   filter: contrast(1.25) brightness(1.1);
   mix-blend-mode: multiply;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .studio-rail__shadow {
@@ -410,6 +436,9 @@ button:disabled svg path {
     rgba(35, 28, 18, 0) 75%
   );
   filter: blur(4px);
+  transition:
+    transform 0.6s ease,
+    opacity 0.6s ease;
 }
 
 .studio-rail__caption {
@@ -530,7 +559,7 @@ button:disabled svg path {
   }
 
   .studio-rail__sway {
-    padding-top: calc(10px + var(--hang-step, 0px));
+    padding-top: calc(4px + var(--hang-step, 0px));
   }
 
   /* cover fills the frame and trims the studio photo's side margins, so the
@@ -603,9 +632,23 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
   }
 }
 
-/* Studio rail — hover crossfades the hanging shot to the front view */
+/* Studio rail — hovering turns the garment on its hanger to the front view */
 .studio-rail__image--back {
-  transition: opacity 0.45s ease;
+  transform: rotateY(0deg);
+  transition: opacity 0.4s ease;
+}
+
+.studio-rail__image--front {
+  z-index: 1;
+  opacity: 0;
+  mix-blend-mode: normal;
+  transform: rotateY(180deg);
+  transition: opacity 0.4s ease;
+}
+
+.studio-rail__slide[data-has-front="true"]:hover .studio-rail__garment,
+.studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__garment {
+  transform: rotateY(-180deg);
 }
 
 .studio-rail__slide[data-has-front="true"]:hover .studio-rail__image--back,
@@ -613,20 +656,20 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
   opacity: 0;
 }
 
-.studio-rail__image--front {
-  z-index: 1;
-  opacity: 0;
-  mix-blend-mode: normal;
-  transform: scale(1.06);
-  transition:
-    opacity 0.45s ease,
-    transform 0.55s cubic-bezier(0.22, 0.8, 0.24, 1);
+.studio-rail__slide[data-has-front="true"]:hover .studio-rail__image--front,
+.studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__image--front {
+  opacity: 1;
 }
 
-.studio-rail__slide:hover .studio-rail__image--front,
-.studio-rail__slide:focus-within .studio-rail__image--front {
-  opacity: 1;
-  transform: scale(1);
+.studio-rail__slide[data-has-front="true"]:hover .studio-rail__hanger,
+.studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__hanger {
+  transform: rotate(-2.5deg);
+}
+
+.studio-rail__slide[data-has-front="true"]:hover .studio-rail__shadow,
+.studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__shadow {
+  transform: scaleX(0.86);
+  opacity: 0.65;
 }
 
 /* Studio rail — product quick view */
@@ -865,9 +908,26 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .studio-rail__garment,
+  .studio-rail__hanger,
+  .studio-rail__shadow,
   .studio-rail__image--back,
   .studio-rail__image--front {
     transition: none;
+  }
+
+  .studio-rail__image--back,
+  .studio-rail__image--front,
+  .studio-rail__slide[data-has-front="true"]:hover .studio-rail__garment,
+  .studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__garment,
+  .studio-rail__slide[data-has-front="true"]:hover .studio-rail__hanger,
+  .studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__hanger {
+    transform: none;
+  }
+
+  .studio-rail__slide[data-has-front="true"]:hover .studio-rail__shadow,
+  .studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__shadow {
+    transform: none;
   }
 
   .studio-qv {

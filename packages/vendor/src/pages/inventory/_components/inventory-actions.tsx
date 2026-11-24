@@ -47,6 +47,8 @@ export const InventoryActions = ({ item }: { item: InventoryItemDTO }) => {
             {
               icon: <Trash />,
               permission: "inventory_items:manage",
+              disabledTooltip:
+                "Deleting inventory items requires the Inventory items: manage permission.",
               label: t("actions.delete"),
               onClick: handleDelete,
             },

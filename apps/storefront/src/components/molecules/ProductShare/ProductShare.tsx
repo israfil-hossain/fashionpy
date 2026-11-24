@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { CopyIcon, ShareIcon } from "@/icons"
 
@@ -37,12 +37,15 @@ const ACTIONS = [
 ] as const
 
 /**
- * PDP share row: copy the product link, or open WhatsApp / Messenger
- * share dialogs pre-filled with the product title + URL.
+ * PDP share control: the copy/WhatsApp/Messenger actions stay hidden until the
+ * Share button is clicked. Copy keeps the popover open to show confirmation;
+ * external shares close it after handing off to the new tab.
  */
 export const ProductShare = ({ title }: { title: string }) => {
+  const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [url, setUrl] = useState("")
+  const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setUrl(window.location.href)
@@ -50,9 +53,31 @@ export const ProductShare = ({ title }: { title: string }) => {
 
   useEffect(() => {
     if (!copied) return
-    const t = setTimeout(() => setCopied(false), 2000)
-    return () => clearTimeout(t)
+    const timeout = setTimeout(() => setCopied(false), 2000)
+    return () => clearTimeout(timeout)
   }, [copied])
+
+  useEffect(() => {
+    if (!open) return
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener("pointerdown", onPointerDown)
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown)
+      document.removeEventListener("keydown", onKeyDown)
+    }
+  }, [open])
 
   const shareText = `${title} ${url}`
 
@@ -66,47 +91,69 @@ export const ProductShare = ({ title }: { title: string }) => {
       }
       return
     }
+
     const target =
       id === "whatsapp"
         ? `https://wa.me/?text=${encodeURIComponent(shareText)}`
         : `https://www.messenger.com/share/?link=${encodeURIComponent(url)}`
     window.open(target, "_blank", "noopener,noreferrer")
+    setOpen(false)
   }
 
   return (
     <div
-      className="flex items-center gap-3"
+      className="relative flex items-center"
+      ref={rootRef}
       data-testid="product-share"
     >
-      <span className="label-md text-secondary flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={() => setOpen(previous => !previous)}
+        aria-expanded={open}
+        aria-haspopup="true"
+        aria-controls="product-share-popover"
+        className="label-md text-secondary flex items-center gap-1.5 rounded-xs border border-tertiary px-2 py-1.5 transition-colors hover:bg-component-secondary"
+        data-testid="product-share-toggle"
+      >
         <ShareIcon size={16} />
         Share
-      </span>
-      <div className="flex items-center gap-1">
-        {ACTIONS.map((action) => (
-          <button
-            key={action.id}
-            type="button"
-            onClick={() => handleAction(action.id)}
-            aria-label={action.label}
-            title={action.label}
-            className={cn(
-              "flex items-center gap-1.5 rounded-xs border border-tertiary px-2 py-1.5 label-sm text-primary transition-colors hover:bg-component-secondary",
-              action.id === "copy" && copied && "text-positive-on-primary border-positive"
-            )}
-            data-testid={`share-${action.id}`}
-          >
-            {action.id === "copy" ? (
-              <CopyIcon size={14} />
-            ) : action.id === "whatsapp" ? (
-              <WhatsAppGlyph size={14} />
-            ) : (
-              <MessengerGlyph size={14} />
-            )}
-            <span>{action.id === "copy" && copied ? "Copied!" : action.label}</span>
-          </button>
-        ))}
-      </div>
+      </button>
+
+      {open && (
+        <div
+          id="product-share-popover"
+          role="group"
+          aria-label="Share this product"
+          className="absolute left-0 top-full z-50 mt-2 flex min-w-[190px] flex-col gap-1 rounded-md border border-tertiary bg-white p-1.5 shadow-lg"
+          data-testid="product-share-popover"
+        >
+          {ACTIONS.map(action => (
+            <button
+              key={action.id}
+              type="button"
+              onClick={() => handleAction(action.id)}
+              aria-label={action.label}
+              title={action.label}
+              className={cn(
+                "flex w-full items-center gap-2 rounded-xs px-2 py-1.5 text-left label-sm text-primary transition-colors hover:bg-component-secondary",
+                action.id === "copy" &&
+                  copied &&
+                  "text-positive-on-primary border-positive"
+              )}
+              data-testid={`share-${action.id}`}
+            >
+              {action.id === "copy" ? (
+                <CopyIcon size={14} />
+              ) : action.id === "whatsapp" ? (
+                <WhatsAppGlyph size={14} />
+              ) : (
+                <MessengerGlyph size={14} />
+              )}
+              <span>{action.id === "copy" && copied ? "Copied!" : action.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

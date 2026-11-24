@@ -1,4 +1,5 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
+import type { AiTask } from "@mercurjs/types"
 
 import { sanitizeRichText } from "../utils/sanitize-rich-text"
 import { buildBlogPrompt, BLOG_SYSTEM } from "./prompts"
@@ -24,6 +25,7 @@ export type GenerateBlogDraftInput = {
   length?: "short" | "medium" | "long"
   category?: string | null
   audience?: string | null
+  task?: AiTask
 }
 
 export async function generateBlogDraft(
@@ -32,6 +34,7 @@ export async function generateBlogDraft(
   const { data } = await completeJson(input.container, {
     schema: AiBlogDraftSchema,
     surface: "blog_generation",
+    task: input.task ?? "admin_text",
     max_tokens: 4000,
     temperature: 0.6,
     messages: [

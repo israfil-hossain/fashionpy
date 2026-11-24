@@ -73,6 +73,7 @@ export const POST = async (
     description,
     image_urls: imageUrls,
     language: body.language,
+    task: "admin_text",
   })
 
   res.json({ insights })

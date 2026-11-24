@@ -36,7 +36,11 @@ export const applyActionPermissions = <
     actions: group.actions.map((action) =>
       isPermitted(checks, action.permission, action.requireAll)
         ? action
-        : { ...action, disabled: true, disabledTooltip: deniedTooltip }
+        : {
+            ...action,
+            disabled: true,
+            disabledTooltip: action.disabledTooltip ?? deniedTooltip,
+          }
     ),
   }))
 

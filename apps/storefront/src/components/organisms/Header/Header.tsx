@@ -11,6 +11,8 @@ import { listCategories } from "@/lib/data/categories"
 import { retrieveCustomer } from "@/lib/data/customer"
 import { retrieveStoreSettings } from "@/lib/data/store-settings"
 import { AnnouncementBar } from "../AnnouncementBar/AnnouncementBar"
+import { HeaderShell } from "./HeaderShell"
+import { UtilityBar } from "../UtilityBar/UtilityBar"
 
 const vendorUrl = process.env.NEXT_PUBLIC_VENDOR_URL || "http://localhost:7002"
 
@@ -39,17 +41,15 @@ export const Header = async ({
 
   return (
     <>
-      <header
-        className="sticky top-0 z-50"
-        data-testid="header"
-      >
+      <HeaderShell>
         <AnnouncementBar locale={locale} announcement={announcement} />
+        <UtilityBar />
 
         <div
-          className="bg-[rgb(var(--brand-500))] text-white"
+          className="bg-[rgb(var(--brand-500))] text-white lg:bg-white lg:text-primary"
           data-testid="header-top"
         >
-          <div className="flex h-16 w-full items-center gap-3 px-4 lg:px-16">
+          <div className="flex h-16 w-full items-center gap-4 px-4 lg:px-16">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <div className="lg:hidden">
                 <MobileNavbar
@@ -71,21 +71,21 @@ export const Header = async ({
                   className="h-7 w-auto lg:h-9"
                   priority
                 />
-                <span className="text-base font-bold text-white lg:text-2xl">
+                <span className="text-base font-bold lg:text-2xl lg:text-[rgb(var(--brand-500))]">
                   FashionPy
                 </span>
               </LocalizedClientLink>
             </div>
 
             <div
-              className="hidden w-full max-w-[560px] md:block"
+              className="hidden w-full max-w-[720px] md:block"
               data-testid="navbar-search-desktop"
             >
               <HeaderSearch />
             </div>
 
             <div
-              className="flex flex-1 items-center justify-end gap-3 lg:gap-4"
+              className="flex flex-1 items-center justify-end gap-3 lg:gap-6"
               data-testid="header-actions"
             >
               <LocalizedClientLink
@@ -94,11 +94,11 @@ export const Header = async ({
                 className="md:hidden"
                 data-testid="header-search-link"
               >
-                <SearchIcon size={20} color="#ffffff" />
+                <SearchIcon size={20} color="currentColor" />
               </LocalizedClientLink>
 
               <div
-                className="hidden items-center gap-1.5 md:flex"
+                className="hidden items-center gap-1.5 md:flex lg:hidden"
                 data-testid="header-seller-links"
               >
                 <a
@@ -120,20 +120,25 @@ export const Header = async ({
               <LocalizedClientLink
                 href="/user/wishlist"
                 aria-label="Go to wishlist"
-                className="hidden sm:block"
+                className="hidden flex-col items-center gap-1 sm:flex"
                 data-testid="header-wishlist"
               >
-                <HeartIcon size={20} color="#ffffff" />
+                <HeartIcon size={20} color="currentColor" />
+                <span className="hidden text-[11px] font-medium lg:block">Wishlist</span>
               </LocalizedClientLink>
 
-              <CartDropdown iconColor="#ffffff" />
-              <UserDropdown isLoggedIn={isLoggedIn} iconColor="#ffffff" />
+              <CartDropdown iconColor="currentColor" label="Cart" />
+              <UserDropdown
+                isLoggedIn={isLoggedIn}
+                iconColor="currentColor"
+                label="Profile"
+              />
             </div>
           </div>
         </div>
 
         <Navbar categories={categories} parentCategories={parentCategories} />
-      </header>
+      </HeaderShell>
     </>
   )
 }

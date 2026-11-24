@@ -26,7 +26,11 @@ import { KeyboundForm } from "@components/utilities/keybound-form";
 import { sdk } from "@lib/client";
 import { currencies } from "@lib/data/currencies";
 import { MediaSchema } from "@pages/products/create/constants";
-import { HttpTypes } from "@mercurjs/types";
+import {
+  DELIVERY_PRICING_METADATA_KEY,
+  HttpTypes,
+  readDeliveryPricingOverride,
+} from "@mercurjs/types";
 import { useUpdateSeller } from "@hooks/api";
 
 type EditStoreFormProps = HttpTypes.StoreSellerResponse;
@@ -49,6 +53,8 @@ const EditStoreSchema = zod.object({
     .optional(),
   media: zod.array(MediaSchema).optional(),
   bannerMedia: zod.array(MediaSchema).optional(),
+  delivery_dhaka_base: zod.string().regex(/^\d*$/).optional(),
+  delivery_outside_dhaka_base: zod.string().regex(/^\d*$/).optional(),
 });
 
 const SUPPORTED_FORMATS = [
@@ -96,6 +102,7 @@ const ensureWebsiteProtocol = (url: string): string | null => {
 export const EditStoreForm = ({ seller }: EditStoreFormProps) => {
   const { t } = useTranslation();
   const { handleSuccess } = useRouteModal();
+  const deliveryOverride = readDeliveryPricingOverride(seller.metadata);
 
   const form = useExtendableForm({
     schema: EditStoreSchema,
@@ -111,6 +118,10 @@ export const EditStoreForm = ({ seller }: EditStoreFormProps) => {
       website_url: stripWebsiteProtocol(seller.website_url),
       default_leadtime_to_ship:
         seller.default_leadtime_to_ship?.toString() ?? "",
+      delivery_dhaka_base:
+        deliveryOverride?.dhaka_base?.toString() ?? "",
+      delivery_outside_dhaka_base:
+        deliveryOverride?.outside_dhaka_base?.toString() ?? "",
       media: seller.logo
         ? [
             {
@@ -193,6 +204,21 @@ export const EditStoreForm = ({ seller }: EditStoreFormProps) => {
           : null,
         logo: logoUrl,
         banner: bannerUrl,
+        metadata: {
+          ...(seller.metadata ?? {}),
+          [DELIVERY_PRICING_METADATA_KEY]: {
+            ...(seller.metadata?.[DELIVERY_PRICING_METADATA_KEY] as Record<
+              string,
+              unknown
+            > | undefined),
+            dhaka_base: values.delivery_dhaka_base
+              ? Number(values.delivery_dhaka_base)
+              : null,
+            outside_dhaka_base: values.delivery_outside_dhaka_base
+              ? Number(values.delivery_outside_dhaka_base)
+              : null,
+          },
+        },
         additional_data: values.additional_data,
       },
       {
@@ -374,6 +400,39 @@ export const EditStoreForm = ({ seller }: EditStoreFormProps) => {
               </Form.Item>
             )}
           />
+          <div className="flex flex-col gap-y-4">
+            <Heading level="h2">Delivery charge overrides</Heading>
+            <Form.Field
+              control={form.control}
+              name="delivery_dhaka_base"
+              render={({ field }) => (
+                <Form.Item>
+                  <Form.Label optional>Base charge inside Dhaka (BDT)</Form.Label>
+                  <Form.Control>
+                    <Input type="number" min={0} step={1} {...field} />
+                  </Form.Control>
+                  <Form.Hint>
+                    Leave empty to use the marketplace default of 60 BDT.
+                  </Form.Hint>
+                </Form.Item>
+              )}
+            />
+            <Form.Field
+              control={form.control}
+              name="delivery_outside_dhaka_base"
+              render={({ field }) => (
+                <Form.Item>
+                  <Form.Label optional>Base charge outside Dhaka (BDT)</Form.Label>
+                  <Form.Control>
+                    <Input type="number" min={0} step={1} {...field} />
+                  </Form.Control>
+                  <Form.Hint>
+                    Leave empty to use the marketplace default of 120 BDT.
+                  </Form.Hint>
+                </Form.Item>
+              )}
+            />
+          </div>
           <div className="border-ui-border-base border-t" />
           <div className="flex flex-col gap-y-4">
             <Heading level="h2">{t("store.edit.mediaHeading")}</Heading>

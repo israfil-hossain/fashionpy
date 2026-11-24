@@ -44,7 +44,7 @@ export const POST = async (
     throw new MedusaError(MedusaError.Types.NOT_FOUND, "Conversation not found")
   }
 
-  const runtime = await service.getRuntimeSettings()
+  const runtime = await service.getRuntimeSettings("admin_text")
   if (!runtime.enabled || !runtime.api_key || !runtime.model) {
     throw new MedusaError(
       MedusaError.Types.NOT_ALLOWED,

@@ -5,11 +5,12 @@ import { HttpTypes as MercurHttpTypes, SellerDTO } from "@mercurjs/types";
 import { CORE_LAYOUT_IDS } from "@mercurjs/dashboard-sdk";
 import {
   LayoutComposer,
+  StudioRailSection,
   detailPageDefaultEntries,
   useLinkQuery,
 } from "@mercurjs/dashboard-shared";
 import { TwoColumnPageSkeleton } from "../../../components/common/skeleton";
-import { useProduct } from "../../../hooks/api/products";
+import { useProduct, useUpdateProduct } from "../../../hooks/api/products";
 import { ProductActiveEditSection } from "./components/product-active-edit-section";
 import { ProductActiveRequestSection } from "./components/product-active-request-section";
 import { ProductAttributeSection } from "./components/product-attribute-section";
@@ -39,6 +40,7 @@ export const ProductDetailPage = () => {
   } = useProduct(id!, query, {
     initialData: initialData as unknown as MercurHttpTypes.AdminProductResponse,
   });
+  const { mutateAsync: updateProduct } = useUpdateProduct(id!);
   const product = rawProduct as AdminProductWithSeller | undefined;
 
   if (isLoading || !product) {
@@ -76,6 +78,14 @@ export const ProductDetailPage = () => {
             </LayoutComposer.Entry>
             <LayoutComposer.Entry id="ProductMediaSection">
               <ProductMediaSection product={product} />
+            </LayoutComposer.Entry>
+            <LayoutComposer.Entry id="StudioRailSection">
+              <StudioRailSection
+                product={product}
+                onSave={async (metadata) => {
+                  await updateProduct({ metadata });
+                }}
+              />
             </LayoutComposer.Entry>
             <LayoutComposer.Entry id="ProductVariantSection">
               <ProductVariantSection product={product} />

@@ -11,6 +11,7 @@ import { ProductSearchSidebar } from "./ProductSearchSidebar/ProductSearchSideba
 import { ProductListingActiveFilters } from "./ProductListingActiveFilters/ProductListingActiveFilters"
 import { Header } from "./Header/Header"
 import { AnnouncementBar } from "./AnnouncementBar/AnnouncementBar"
+import { UtilityBar } from "./UtilityBar/UtilityBar"
 import { Footer } from "./Footer/Footer"
 import { Newsletter } from "./Newsletter/Newsletter"
 import { GalleryCarousel } from "./GalleryCarousel/GalleryCarousel"
@@ -41,6 +42,7 @@ export {
   ProductListingActiveFilters,
   Header,
   AnnouncementBar,
+  UtilityBar,
   Footer,
   Newsletter,
   GalleryCarousel,

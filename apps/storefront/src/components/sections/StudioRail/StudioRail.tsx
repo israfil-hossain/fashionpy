@@ -7,6 +7,18 @@ import { listProducts } from '@/lib/data/products';
 import { getProductPrice } from '@/lib/helpers/get-product-price';
 import type { StudioRailGroup, StudioRailItem } from '@/types/studio-rail';
 
+type StudioRailMetadata = {
+  show_in_studio_rail?: unknown;
+  studio_rail_thumbnail?: unknown;
+  studio_rail_front_image?: unknown;
+  studio_rail_back_image?: unknown;
+};
+
+const isEnabled = (value: unknown) => value === true || value === 'true';
+
+const metadataUrl = (value: unknown) =>
+  typeof value === 'string' && value.trim() ? value.trim() : null;
+
 const distinctImages = (product: HttpTypes.StoreProduct): string[] => {
   const seen = new Set<string>();
   const urls: string[] = [];
@@ -26,20 +38,29 @@ const distinctImages = (product: HttpTypes.StoreProduct): string[] => {
 };
 
 const toRailItem = (product: HttpTypes.StoreProduct): StudioRailItem | null => {
-  if (!product.thumbnail) return null;
+  const metadata = (product.metadata ?? {}) as StudioRailMetadata;
+  if (!isEnabled(metadata.show_in_studio_rail)) return null;
 
   const { cheapestPrice } = getProductPrice({ product });
-  const images = distinctImages(product);
-  const thumbnail = product.thumbnail;
+  const gallery = distinctImages(product);
+  const thumbnail = metadataUrl(metadata.studio_rail_thumbnail) ?? product.thumbnail;
+  if (!thumbnail) return null;
 
-  // The rail hangs the thumbnail (the side/on-hanger shot); the quick view and
-  // the hover reveal use the remaining shots — first differing image = front,
-  // the one after it = back, falling back to the thumbnail so two-image
-  // products still offer both views. Single-image products keep the thumbnail.
-  const frontImage = images.find(url => url !== thumbnail) ?? thumbnail;
+  // The dedicated metadata images win when present. Otherwise the gallery
+  // supplies the views: anything that is not the hanging shot becomes the
+  // front, the next distinct shot becomes the back. Products with fewer
+  // images simply reuse the thumbnail so the rail/quick view stay complete.
+  const frontImage =
+    metadataUrl(metadata.studio_rail_front_image) ??
+    gallery.find(url => url !== thumbnail && url !== product.thumbnail) ??
+    thumbnail;
   const backImage =
-    images.find(url => url !== frontImage && url !== thumbnail) ??
-    images.find(url => url !== frontImage);
+    metadataUrl(metadata.studio_rail_back_image) ??
+    gallery.find(
+      url => url !== thumbnail && url !== product.thumbnail && url !== frontImage
+    ) ??
+    gallery.find(url => url !== frontImage) ??
+    null;
 
   return {
     id: product.id,
@@ -92,7 +113,7 @@ export const StudioRail = async ({
                 limit: 12,
                 order: '-created_at',
                 fields:
-                  'id,title,handle,thumbnail,*images,*variants,variants.options.value,variants.options.option.title,variants.calculated_price'
+                  'id,title,handle,thumbnail,metadata,*images,*variants,variants.options.value,variants.options.option.title,variants.calculated_price'
               }
             });
 

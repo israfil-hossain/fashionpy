@@ -39,6 +39,7 @@ export const POST = async (
       image_data_urls,
       source_url,
       hints,
+      task: "vendor_text",
     })
 
     res.json({ product, ai_quota: quota })

@@ -4,6 +4,7 @@ import { HttpTypes as MercurHttpTypes } from "@mercurjs/types"
 
 import { listSellerShippingOptionsForCartWorkflow } from "../../../workflows"
 import { quoteCourierOptionRates } from "../../../utils/courier/live-rates"
+import { quoteBangladeshDelivery } from "../../../utils/delivery-groups"
 
 export const GET = async (
     req: MedusaRequest<{}, HttpTypes.StoreGetShippingOptionList>,
@@ -19,29 +20,55 @@ export const GET = async (
         },
     })
 
-    // Overlay live courier rates (Pathao) onto the response. Steadfast has no
-    // rate API and any failure leaves flat prices untouched — best-effort.
-    const options = (shipping_options ?? []) as unknown as {
-        id: string
-        calculated_price?: { calculated_amount?: number }
-    }[]
+    const options = Object.values(shipping_options ?? {})
+        .flat() as unknown as {
+            id: string
+            amount?: number
+            calculated_price?: { calculated_amount?: number }
+        }[]
 
-    let courierRates: Awaited<ReturnType<typeof quoteCourierOptionRates>> = []
+    let deliveryQuote: Awaited<ReturnType<typeof quoteBangladeshDelivery>> = null
     if (cart_id) {
         try {
-            courierRates = await quoteCourierOptionRates(req.scope, {
+            deliveryQuote = await quoteBangladeshDelivery(req.scope, {
                 cart_id,
                 option_ids: options.map((o) => o.id),
             })
         } catch {
-            courierRates = []
+            deliveryQuote = null
         }
     }
 
-    for (const rate of courierRates) {
-        const option = options.find((o) => o.id === rate.option_id)
-        if (option?.calculated_price) {
-            option.calculated_price.calculated_amount = rate.amount
+    if (deliveryQuote) {
+        for (const option of options) {
+            const amount = deliveryQuote.amountByOption[option.id]
+            if (typeof amount === "number") {
+                option.amount = amount
+                if (option.calculated_price) {
+                    option.calculated_price.calculated_amount = amount
+                }
+            }
+        }
+    } else {
+        // Overlay live courier rates (Pathao) onto the response. Steadfast has no
+        // rate API and any failure leaves flat prices untouched — best-effort.
+        let courierRates: Awaited<ReturnType<typeof quoteCourierOptionRates>> = []
+        if (cart_id) {
+            try {
+                courierRates = await quoteCourierOptionRates(req.scope, {
+                    cart_id,
+                    option_ids: options.map((o) => o.id),
+                })
+            } catch {
+                courierRates = []
+            }
+        }
+
+        for (const rate of courierRates) {
+            const option = options.find((o) => o.id === rate.option_id)
+            if (option?.calculated_price) {
+                option.calculated_price.calculated_amount = rate.amount
+            }
         }
     }
 

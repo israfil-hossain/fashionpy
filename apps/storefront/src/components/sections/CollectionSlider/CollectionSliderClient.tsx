@@ -51,7 +51,7 @@ export const CollectionSliderClient = ({ slides }: { slides: CollectionSlide[] }
 
       <div
         ref={trackRef}
-        className="no-scrollbar flex gap-5 overflow-x-auto scroll-smooth pb-1"
+        className="no-scrollbar flex gap-5 overflow-x-auto overflow-y-hidden scroll-smooth pb-1"
       >
         {slides.map((slide, index) => (
           <ScrollReveal
@@ -63,7 +63,7 @@ export const CollectionSliderClient = ({ slides }: { slides: CollectionSlide[] }
               href={`/collections/${slide.handle}`}
               className="group block"
             >
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100 sm:aspect-[16/9]">
+              <div className="relative h-[220px] overflow-hidden rounded-2xl bg-gray-100 sm:h-[240px] lg:h-[260px] xl:h-[280px]">
                 {slide.image ? (
                   <Image
                     src={slide.image}

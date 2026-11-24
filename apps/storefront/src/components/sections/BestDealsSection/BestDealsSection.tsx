@@ -49,7 +49,6 @@ export const BestDealsSection = async ({
           <ProductCard
             key={product.id}
             product={product}
-            imageAspect="portrait"
           />
         ))}
       </div>

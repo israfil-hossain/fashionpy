@@ -8,6 +8,15 @@ export type AdminUpdateChatbotSettingsType = z.infer<
   typeof AdminUpdateChatbotSettings
 >
 
+const TaskModelConfig = z.object({
+  provider: z.enum(["openrouter", "gemini", "openai_compatible"]).nullable().optional(),
+  base_url: z.string().max(500).nullable().optional(),
+  api_key: z.string().max(500).nullable().optional(),
+  model: z.string().max(200).nullable().optional(),
+  temperature: z.number().min(0).max(2).nullable().optional(),
+  max_tokens: z.number().int().min(64).max(8192).nullable().optional(),
+})
+
 export const AdminUpdateChatbotSettings = z.object({
   enabled: z.boolean().optional(),
   provider: z.enum(["openrouter", "gemini", "openai_compatible"]).optional(),
@@ -15,6 +24,13 @@ export const AdminUpdateChatbotSettings = z.object({
   // Empty string clears the key; undefined leaves it unchanged.
   api_key: z.string().max(500).nullable().optional(),
   model: z.string().max(200).nullable().optional(),
+  task_models: z
+    .object({
+      admin_text: TaskModelConfig.optional(),
+      vendor_text: TaskModelConfig.optional(),
+      vision: TaskModelConfig.optional(),
+    })
+    .optional(),
   stt_provider: z.enum(["openai", "gemini", "none"]).optional(),
   stt_api_key: z.string().max(500).nullable().optional(),
   stt_model: z.string().max(200).nullable().optional(),
@@ -31,6 +47,7 @@ export const AdminTestChatbot = z
     base_url: z.string().max(500).nullable().optional(),
     api_key: z.string().max(500).optional(),
     model: z.string().max(200).optional(),
+    task: z.enum(["admin_text", "vendor_text", "vision"]).optional(),
   })
   .optional()
   .default({})

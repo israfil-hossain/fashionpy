@@ -1,22 +1,18 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { TabsTrigger } from "@/components/atoms/TabsTrigger/TabsTrigger"
 import { cn } from "@/lib/utils"
 
 type TabKey = "about" | "delivery"
 
 const DELIVERY_HASH = "product-delivery-tab"
-
-const tabFromHash = (): TabKey =>
-  typeof window !== "undefined" && window.location.hash === `#${DELIVERY_HASH}`
-    ? "delivery"
-    : "about"
+const ABOUT_HASH = "product-details-section"
 
 /**
- * In-page About / Delivery tabs for the PDP. Local state only — no URL
- * sync (unlike the seller-page TabsList which is route-driven), except
- * `#product-delivery-tab` deep-links (buy-box teaser) which open Delivery.
+ * In-page About / Delivery tabs for the PDP. The description and delivery
+ * teasers deep-link here: the hash selects the tab and the matching section is
+ * scrolled into view below the sticky header.
  */
 export const ProductTabs = ({
   about,
@@ -26,16 +22,46 @@ export const ProductTabs = ({
   delivery: React.ReactNode
 }) => {
   const [activeTab, setActiveTab] = useState<TabKey>("about")
+  const [scrollSignal, setScrollSignal] = useState(0)
+  const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setActiveTab(tabFromHash())
-    const onHash = () => setActiveTab(tabFromHash())
-    window.addEventListener("hashchange", onHash)
-    return () => window.removeEventListener("hashchange", onHash)
+    const applyHash = () => {
+      const hash = window.location.hash
+      if (hash === `#${DELIVERY_HASH}`) {
+        setActiveTab("delivery")
+      } else if (hash === `#${ABOUT_HASH}`) {
+        setActiveTab("about")
+      } else {
+        return
+      }
+      setScrollSignal(signal => signal + 1)
+    }
+
+    applyHash()
+    window.addEventListener("hashchange", applyHash)
+    return () => window.removeEventListener("hashchange", applyHash)
   }, [])
 
+  useEffect(() => {
+    if (!scrollSignal) return
+
+    const frame = window.requestAnimationFrame(() => {
+      const target =
+        activeTab === "delivery"
+          ? rootRef.current
+          : document.getElementById(ABOUT_HASH)
+      target?.scrollIntoView({ behavior: "smooth", block: "start" })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [activeTab, scrollSignal])
+
   return (
-    <div data-testid="product-tabs">
+    <div
+      ref={rootRef}
+      className="scroll-mt-24 lg:scroll-mt-[180px]"
+      data-testid="product-tabs"
+    >
       <div
         className="flex gap-4 border-b"
         role="tablist"

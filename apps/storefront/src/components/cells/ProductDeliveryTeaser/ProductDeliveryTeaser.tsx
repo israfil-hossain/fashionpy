@@ -1,4 +1,5 @@
 import { Card } from "@/components/atoms/Card/Card"
+import { ProductJumpLink } from "@/components/molecules/ProductJumpLink/ProductJumpLink"
 import { TruckIcon } from "@/icons"
 
 /**
@@ -12,24 +13,32 @@ export const ProductDeliveryTeaser = ({
 }) => {
   return (
     <Card
-      className="flex items-start gap-3 py-3"
+      className="overflow-hidden p-0"
       data-testid="product-delivery-teaser"
     >
-      <TruckIcon size={20} className="mt-0.5 shrink-0 text-primary" />
-      <div className="min-w-0">
-        <p className="label-md text-primary">Delivery &amp; returns</p>
-        <p className="label-sm text-secondary">
-          {leadtimeDays
-            ? `Ships in about ${leadtimeDays} business day${leadtimeDays === 1 ? "" : "s"}`
-            : "Lead time set by the seller"}
-        </p>
-        <a
-          href="#product-delivery-tab"
-          className="mt-0.5 inline-block label-sm text-primary underline underline-offset-2"
-          data-testid="product-delivery-teaser-link"
+      <div className="flex items-center gap-3 px-4 py-4">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-component-secondary text-primary">
+          <TruckIcon size={18} color="currentColor" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="label-md font-medium text-primary">
+            Delivery &amp; returns
+          </p>
+          <p className="label-sm mt-0.5 text-secondary">
+            {leadtimeDays
+              ? `Ships in about ${leadtimeDays} business day${leadtimeDays === 1 ? "" : "s"}`
+              : "Lead time set by the seller"}
+          </p>
+        </div>
+      </div>
+      <div className="border-t border-secondary px-4 py-3">
+        <ProductJumpLink
+          hash="product-delivery-tab"
+          className="label-sm font-medium text-primary underline-offset-4 hover:underline"
+          testId="product-delivery-teaser-link"
         >
           View details
-        </a>
+        </ProductJumpLink>
       </div>
     </Card>
   )

@@ -34,6 +34,7 @@ export const POST = async (
       image_data_urls,
       source_url,
       hints,
+      task: "admin_text",
     })
     res.json({ product })
   } catch (error) {

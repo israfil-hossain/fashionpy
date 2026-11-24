@@ -16,7 +16,13 @@ const getItemCount = (cart: HttpTypes.StoreCart | null) => {
   return cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0
 }
 
-export const CartDropdown = ({ iconColor }: { iconColor?: string }) => {
+export const CartDropdown = ({
+  iconColor,
+  label,
+}: {
+  iconColor?: string
+  label?: string
+}) => {
   const { cart } = useCartContext()
   const [open, setOpen] = useState(false)
 
@@ -74,14 +80,21 @@ export const CartDropdown = ({ iconColor }: { iconColor?: string }) => {
     >
       <LocalizedClientLink
         href="/cart"
-        className="relative"
+        className="flex flex-col items-center gap-1"
         aria-label="Go to cart"
       >
-        <CartIcon size={20} color={iconColor} />
-        {Boolean(cartItemsCount) && (
-          <Badge className="absolute -top-2 -right-2 w-4 h-4 p-0">
-            {cartItemsCount}
-          </Badge>
+        <span className="relative">
+          <CartIcon size={20} color={iconColor} />
+          {Boolean(cartItemsCount) && (
+            <Badge className="absolute -top-2 -right-2 w-4 h-4 p-0">
+              {cartItemsCount}
+            </Badge>
+          )}
+        </span>
+        {label && (
+          <span className="hidden text-[11px] font-medium lg:block">
+            {label}
+          </span>
         )}
       </LocalizedClientLink>
       <Dropdown show={open}>

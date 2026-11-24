@@ -54,6 +54,7 @@ medusaIntegrationTestRunner({
     describe("AI product and content routes", () => {
       let container: MedusaContainer
       const originalFetch = global.fetch
+      const completionModels: string[] = []
 
       const mockCompletion = (content: unknown) => {
         global.fetch = (async (
@@ -68,6 +69,16 @@ medusaIntegrationTestRunner({
                 : input.url
 
           if (url.includes("/chat/completions")) {
+            try {
+              const body = JSON.parse(String(init?.body ?? "{}")) as {
+                model?: string
+              }
+              if (body.model) {
+                completionModels.push(body.model)
+              }
+            } catch {
+              // Non-JSON bodies are not relevant to model selection.
+            }
             return new Response(
               JSON.stringify({
                 choices: [
@@ -100,9 +111,27 @@ medusaIntegrationTestRunner({
             api_key: "test-key",
             model: "test-model",
             max_tokens: 2000,
+            task_models: {
+              admin_text: {
+                provider: "openai_compatible",
+                model: "admin-model",
+                api_key: "admin-key",
+              },
+              vendor_text: {
+                provider: "openai_compatible",
+                model: "vendor-model",
+                api_key: "vendor-key",
+              },
+              vision: {
+                provider: "openai_compatible",
+                model: "vision-model",
+                api_key: "vision-key",
+              },
+            },
           },
           adminHeaders
         )
+        completionModels.length = 0
       })
 
       afterEach(() => {
@@ -132,6 +161,7 @@ medusaIntegrationTestRunner({
         })
         expect(product.images).toEqual([])
         expect(product.description).toContain("<p>")
+        expect(completionModels).toEqual(["vision-model"])
       })
 
       it("drafts a product for a seller and records quota usage", async () => {
@@ -155,10 +185,43 @@ medusaIntegrationTestRunner({
           remaining: 19,
         })
         expect(seller.id).toBeTruthy()
+        expect(completionModels).toEqual(["vision-model"])
 
         const quota = await api.get("/vendor/ai/quota", headers)
         expect(quota.status).toEqual(200)
         expect(quota.data).toEqual({ used: 1, quota: 20, remaining: 19 })
+      })
+
+      it("falls back to the seller model when no vision model is configured", async () => {
+        await api.put(
+          "/admin/chatbot/settings",
+          { task_models: { vision: { model: null, api_key: null } } },
+          adminHeaders
+        )
+        const { headers } = await createSellerUser(container, {
+          email: "ai-vendor-fallback-2@test.com",
+          name: "AI Vendor Fallback Two",
+        })
+        mockCompletion(PRODUCT_DRAFT)
+
+        const response = await api.post(
+          "/vendor/products/ai/draft",
+          { image_data_urls: ["data:image/png;base64,AAAA"] },
+          headers
+        )
+
+        expect(response.status).toEqual(200)
+        expect(completionModels).toEqual(["vendor-model"])
+      })
+
+      it("never returns task API keys from the settings endpoint", async () => {
+        const response = await api.get("/admin/chatbot/settings", adminHeaders)
+
+        expect(response.status).toEqual(200)
+        expect(response.data.settings.task_models.admin_text.api_key_set).toBe(true)
+        expect(response.data.settings.task_models.admin_text).not.toHaveProperty(
+          "api_key"
+        )
       })
 
       it("suggests tags, metadata and SEO for catalog insights", async () => {
@@ -172,6 +235,7 @@ medusaIntegrationTestRunner({
 
         expect(response.status).toEqual(200)
         expect(response.data.insights.tags).toEqual(["Summer", "Linen"])
+        expect(completionModels).toEqual(["admin-model"])
         expect(response.data.insights.metadata.material).toEqual("linen")
         expect(response.data.insights.seo.title).toEqual("Linen Summer Shirt")
       })
@@ -193,6 +257,7 @@ medusaIntegrationTestRunner({
 
         expect(response.status).toEqual(200)
         expect(response.data.suggestions.tags).toEqual(["Summer", "Linen"])
+        expect(completionModels).toEqual(["admin-model"])
 
         const refreshed = await api.get(
           `/admin/products/${productId}?fields=id,metadata,tags.id,tags.value`,
@@ -224,6 +289,7 @@ medusaIntegrationTestRunner({
         expect(post.metadata.hashtags).toEqual(["#Linen", "#SummerCare"])
         expect(post.content).toContain("<h2>")
         expect(post.status).toEqual("draft")
+        expect(completionModels).toEqual(["admin-model"])
       })
     })
   },

@@ -49,6 +49,7 @@ export const POST = async (
     length: body.length,
     category,
     audience: body.audience,
+    task: "admin_text",
   })
 
   res.json({

@@ -14,9 +14,11 @@ import { useState } from "react"
 export const UserDropdown = ({
   isLoggedIn,
   iconColor,
+  label,
 }: {
   isLoggedIn: boolean
   iconColor?: string
+  label?: string
 }) => {
   const [open, setOpen] = useState(false)
 
@@ -31,10 +33,15 @@ export const UserDropdown = ({
     >
       <LocalizedClientLink
         href={isLoggedIn ? "/user" : "/login"}
-        className="relative"
+        className="flex flex-col items-center gap-1"
         aria-label="Go to user profile"
       >
         <ProfileIcon size={20} color={iconColor} />
+        {label && (
+          <span className="hidden text-[11px] font-medium lg:block">
+            {label}
+          </span>
+        )}
       </LocalizedClientLink>
       <Dropdown show={open}>
         {isLoggedIn ? (

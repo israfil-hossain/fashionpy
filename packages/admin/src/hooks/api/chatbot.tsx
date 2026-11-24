@@ -1,4 +1,5 @@
 import { ClientError } from "@mercurjs/client"
+import type { AiTask, AiTaskModels, AiTaskModelsDTO } from "@mercurjs/types"
 import {
   useMutation,
   useQuery,
@@ -14,6 +15,7 @@ export type ChatbotSettings = {
   provider: "openrouter" | "gemini" | "openai_compatible"
   base_url: string | null
   model: string | null
+  task_models: AiTaskModelsDTO
   stt_provider: "openai" | "gemini" | "none"
   stt_model: string | null
   system_prompt: string | null
@@ -24,9 +26,11 @@ export type ChatbotSettings = {
 }
 
 export type ChatbotSettingsInput = Partial<
-  Omit<ChatbotSettings, "api_key_set" | "stt_api_key_set"> & {
+  Omit<ChatbotSettings, "api_key_set" | "stt_api_key_set" | "task_models"> & {
     api_key?: string | null
     stt_api_key?: string | null
+    task_models?: Partial<AiTaskModels>
+    task?: AiTask
   }
 >
 

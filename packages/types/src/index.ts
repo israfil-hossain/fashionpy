@@ -15,8 +15,14 @@ export * as HttpTypes from "./http"
 // Payout types
 export * from "./payout"
 
+// Per-task AI model contracts
+export * from "./ai"
+
 // Courier (Pathao/Steadfast) contracts
 export * from "./courier"
+
+// Bangladesh delivery pricing contract
+export * from "./delivery-pricing"
 
 // Offer types
 export * from "./offer"

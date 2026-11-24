@@ -10,11 +10,9 @@ import { Product } from "@/types/product"
 export const ProductCard = ({
   product,
   className,
-  imageAspect = "landscape",
 }: {
   product: HttpTypes.StoreProduct | Product,
   className?: string
-  imageAspect?: "landscape" | "portrait"
 }) => {
   if (!product) {
     return null
@@ -39,20 +37,26 @@ export const ProductCard = ({
 
   const productName = String(product.title || "Product")
 
+  const thumbnail = product.thumbnail ? decodeURIComponent(product.thumbnail) : null
+  const gallery = "images" in product ? product.images ?? [] : []
+  const secondUrl = product.thumbnail
+    ? gallery.map(image => image.url).find(url => url && url !== product.thumbnail)
+    : null
+  const secondImage = secondUrl ? decodeURIComponent(secondUrl) : null
+  const imageSizes =
+    "(min-width: 1280px) 300px, (min-width: 768px) 220px, 50vw"
+
   return (
     <div
       className={cn(
-        "relative w-full rounded-lg p-0 bg-white flex flex-col gap-2",
+        "group relative w-full rounded-lg p-0 bg-white flex flex-col gap-2",
         className
       )}
       data-testid="product-card"
       data-product-handle={product.handle}
     >
       <div
-        className={cn(
-          "relative w-full rounded-t-lg overflow-hidden bg-gray-100",
-          imageAspect === "portrait" ? "aspect-[3/4]" : "aspect-[4/3]"
-        )}
+        className="relative w-full aspect-square rounded-t-lg overflow-hidden bg-gray-100"
         data-testid="product-card-image-container"
       >
         <LocalizedClientLink
@@ -62,25 +66,44 @@ export const ProductCard = ({
           data-testid="product-card-link"
         >
           <div className="absolute inset-0">
-            {product.thumbnail ? (
-              <Image
-                priority
-                fetchPriority="high"
-                src={decodeURIComponent(product.thumbnail)}
-                alt={`${productName} image`}
-                className="object-cover w-full h-full transition-transform duration-300 ease-out hover:scale-110"
-                width={600}
-                height={600}
-              />
+            {thumbnail ? (
+              <>
+                <Image
+                  priority
+                  fetchPriority="high"
+                  src={thumbnail}
+                  alt={`${productName} image`}
+                  fill
+                  sizes={imageSizes}
+                  className={cn(
+                    "object-contain object-center transition-opacity duration-300 ease-out motion-reduce:transition-none",
+                    secondImage &&
+                      "group-hover:opacity-0 group-focus-within:opacity-0"
+                  )}
+                  data-testid="product-card-image"
+                />
+                {secondImage && (
+                  <Image
+                    src={secondImage}
+                    alt=""
+                    aria-hidden="true"
+                    fill
+                    sizes={imageSizes}
+                    className="object-contain object-center opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none"
+                    data-testid="product-card-image-hover"
+                  />
+                )}
+              </>
             ) : (
               <Image
                 priority
                 fetchPriority="high"
                 src="/images/placeholder.svg"
                 alt={`${productName} image placeholder`}
-                className="object-cover w-full h-full"
-                width={600}
-                height={600}
+                fill
+                sizes={imageSizes}
+                className="object-contain object-center"
+                data-testid="product-card-image"
               />
             )}
           </div>
