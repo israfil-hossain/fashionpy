@@ -78,19 +78,29 @@ export const ProductBuyBox = ({
 
   const hasAnyPrice = cheapestPrice !== null && cheapestVariant !== null
 
-  const selectedVariant = hasAnyPrice
+  const requiredOptionKeys = (product.options ?? [])
+    .map((option) => option.title?.toLowerCase())
+    .filter((key): key is string => !!key)
+  const onlyVariant =
+    product.variants?.length === 1 ? product.variants[0] : undefined
+
+  const selectedVariant = onlyVariant
     ? {
-        ...optionsAsKeymap(cheapestVariant.options ?? null),
+        ...optionsAsKeymap(onlyVariant.options ?? null),
         ...allSearchParams,
       }
     : allSearchParams
 
+  const isSelectionMissing =
+    requiredOptionKeys.length > 0 &&
+    !onlyVariant &&
+    !requiredOptionKeys.every((key) => !!allSearchParams[key])
+
   const variantId =
     product.variants?.find(({ options }: { options: any }) =>
       options?.every((option: any) =>
-        selectedVariant[option.option?.title.toLowerCase() || ""]?.includes(
-          option.value
-        )
+        selectedVariant[option.option?.title.toLowerCase() || ""] ===
+        option.value
       )
     )?.id || ""
 
@@ -145,7 +155,13 @@ export const ProductBuyBox = ({
   const isStockMaxLimitReached = quantityInCart >= offerStock
 
   const isAddToCartDisabled =
-    !hasOffer || !offerStock || isStockMaxLimitReached
+    !hasOffer || !offerStock || isStockMaxLimitReached || isSelectionMissing
+
+  const ctaLabel = isSelectionMissing
+    ? "Select options"
+    : offerStock
+    ? "Add to cart"
+    : "Out of stock"
 
   const maxQuantity = Math.max(1, Math.min(99, offerStock - quantityInCart))
   const selectedQuantity = Math.min(quantity, maxQuantity)
@@ -229,7 +245,24 @@ export const ProductBuyBox = ({
           )}
         </div>
       )}
-      {!hasOffer ? (
+      {isSelectionMissing ? (
+        <div
+          className="mb-4 flex items-start gap-3 rounded-sm border border-warning-secondary bg-warning-secondary/60 p-4"
+          data-testid="product-selection-notice"
+        >
+          <span className="mt-0.5 shrink-0 text-warning">
+            <InfoIcon size={18} color="currentColor" />
+          </span>
+          <div className="min-w-0">
+            <p className="label-md font-medium text-primary">
+              Select {requiredOptionKeys.join(" and ")} to continue
+            </p>
+            <p className="label-sm mt-1 text-secondary">
+              Choose your options to see price and availability.
+            </p>
+          </div>
+        </div>
+      ) : !hasOffer ? (
         <div
           className="mb-4 flex items-start gap-3 rounded-sm border border-warning-secondary bg-warning-secondary/60 p-4"
           data-testid="product-unavailable-notice"
@@ -318,7 +351,7 @@ export const ProductBuyBox = ({
         </div>
       )}
 
-      {hasOffer ? (
+      {hasOffer || isSelectionMissing ? (
         <div className="mb-4 flex gap-2">
           <div
             aria-label="Item quantity"
@@ -365,7 +398,7 @@ export const ProductBuyBox = ({
             size="large"
             data-testid="product-add-to-cart-button"
           >
-            {offerStock ? "ADD TO CART" : "OUT OF STOCK"}
+            {ctaLabel}
           </Button>
         </div>
       ) : (
@@ -466,7 +499,7 @@ export const ProductBuyBox = ({
             className="h-11 shrink-0 rounded-full bg-gradient-to-r from-[rgb(var(--brand-500))] to-[#e2578c] px-4 text-xs font-semibold uppercase tracking-wide text-white shadow-lg transition-all hover:brightness-105"
             data-testid="product-mobile-add-to-cart-button"
           >
-            {offerStock ? "Add to cart" : "Out of stock"}
+            {ctaLabel}
           </Button>
         </div>
       </div>

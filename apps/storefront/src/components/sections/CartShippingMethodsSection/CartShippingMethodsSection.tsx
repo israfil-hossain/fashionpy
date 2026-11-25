@@ -137,13 +137,7 @@ const CartShippingMethodsSection: FC<ShippingProps> = ({ cart, availableShipping
       acc[sellerId] = [];
     }
 
-    const amount = Number(
-      method.price_type === 'flat' ? method.amount : calculatedPricesMap[method.id]
-    );
-
-    if (!isNaN(amount)) {
-      acc[sellerId]?.push(method);
-    }
+    acc[sellerId]?.push(method);
 
     return acc;
   }, {});
@@ -153,9 +147,7 @@ const CartShippingMethodsSection: FC<ShippingProps> = ({ cart, availableShipping
   };
   const isEditEnabled = !isOpen && !!cart?.shipping_methods?.length;
 
-  const filteredGroupedBySellerId = Object.keys(groupedBySellerId || {}).filter(
-    key => groupedBySellerId?.[key]?.[0]?.seller_name
-  );
+  const filteredGroupedBySellerId = Object.keys(groupedBySellerId || {});
 
   // The shipping method a seller currently has selected in the cart, matched by
   // the option ids that belong to that seller.
@@ -219,7 +211,7 @@ const CartShippingMethodsSection: FC<ShippingProps> = ({ cart, availableShipping
                           level="h3"
                           className="mb-2"
                         >
-                          {groupedBySellerId[key][0].seller_name}
+                          {groupedBySellerId[key][0].seller_name ?? 'Delivery'}
                         </Heading>
                         <Listbox
                           value={selectedMethod?.shipping_option_id ?? null}

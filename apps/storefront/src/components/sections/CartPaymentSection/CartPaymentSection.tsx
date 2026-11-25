@@ -136,7 +136,13 @@ const CartPaymentSection = ({
       </div>
       <div>
         <div className={isOpen ? 'block' : 'hidden'}>
-          {!paidByGiftcard && availablePaymentMethods?.length && (
+          {!paidByGiftcard && !availablePaymentMethods?.length && (
+            <Text className="label-md text-secondary" data-testid="checkout-no-payment-methods">
+              No payment methods are configured for this region. Please use another region or contact support.
+            </Text>
+          )}
+
+          {!paidByGiftcard && !!availablePaymentMethods?.length && (
             <>
               <RadioGroup
                 value={selectedPaymentMethod}

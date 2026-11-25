@@ -6,6 +6,7 @@ import {
 } from "@medusajs/framework/utils";
 import {
   AttributeType,
+  DEFAULT_DELIVERY_PRICING,
   MercurModules,
   ProductStatus,
   type CreateOfferDTO,
@@ -147,6 +148,29 @@ export default async function seedDemoData({ container }: ExecArgs) {
       },
     });
   }
+
+  const seededStoreMetadata = (store.metadata ?? {}) as Record<string, unknown>
+  const savedDeliveryPricing = seededStoreMetadata.delivery_pricing as
+    | Record<string, unknown>
+    | undefined
+  if (!savedDeliveryPricing || savedDeliveryPricing.dhaka_base === 60) {
+    await updateStoresWorkflow(container).run({
+      input: {
+        selector: { id: store.id },
+        update: {
+          metadata: {
+            ...seededStoreMetadata,
+            delivery_pricing: {
+              ...DEFAULT_DELIVERY_PRICING,
+              ...(savedDeliveryPricing ?? {}),
+              dhaka_base: DEFAULT_DELIVERY_PRICING.dhaka_base,
+            },
+          },
+        },
+      },
+    });
+  }
+
     logger.info("Seeding region data...");
   const regionModuleService = container.resolve(Modules.REGION);
 

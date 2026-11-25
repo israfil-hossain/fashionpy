@@ -53,10 +53,10 @@ describe("delivery pricing resolver", () => {
   })
 
   describe("charge calculation", () => {
-    it("uses the default 60 inside Dhaka and 120 outside", () => {
+    it("uses the default 80 inside Dhaka and 120 outside", () => {
       expect(calculateDeliveryCharge({ city: "Dhaka", weight_kg: 0.3 })).toMatchObject({
-        amount: 60,
-        base: 60,
+        amount: 80,
+        base: 80,
         weight_increment: 0,
         zone: "dhaka",
       })

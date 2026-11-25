@@ -45,6 +45,28 @@ export async function retrieveCart(cartId?: string) {
     });
 }
 
+const resolveDefaultSalesChannelId = async (
+  headers: Record<string, string>
+): Promise<string | undefined> => {
+  try {
+    const storeSettings = (
+      sdk.store as unknown as {
+        storeSettings: {
+          query: (input: Record<string, unknown>) => Promise<{
+            default_sales_channel_id?: string | null
+          }>
+        }
+      }
+    ).storeSettings
+    const settings = await storeSettings.query({
+      fetchOptions: { headers, cache: 'no-store' }
+    })
+    return settings?.default_sales_channel_id ?? undefined
+  } catch {
+    return undefined
+  }
+}
+
 export async function getOrSetCart(countryCode: string) {
   const region = await getRegion(countryCode);
 
@@ -58,26 +80,9 @@ export async function getOrSetCart(countryCode: string) {
     ...(await getAuthHeaders())
   };
 
-  if (!cart) {
-    let salesChannelId: string | undefined;
-    try {
-      const storeSettings = (
-        sdk.store as unknown as {
-          storeSettings: {
-            query: (input: Record<string, unknown>) => Promise<{
-              default_sales_channel_id?: string | null
-            }>
-          }
-        }
-      ).storeSettings;
-      const settings = await storeSettings.query({
-        fetchOptions: { headers, cache: 'no-store' }
-      });
-      salesChannelId = settings?.default_sales_channel_id ?? undefined;
-    } catch {
-      salesChannelId = undefined;
-    }
+  const salesChannelId = await resolveDefaultSalesChannelId(headers)
 
+  if (!cart) {
     let cartResp;
     try {
       cartResp = await sdk.store.carts.mutate({
@@ -102,14 +107,23 @@ export async function getOrSetCart(countryCode: string) {
     revalidateTag(cartCacheTag, "max");
   }
 
-  if (cart && cart?.region_id !== region.id) {
+  const needsSalesChannel =
+    !!cart && !cart.sales_channel_id && !!salesChannelId
+  if (cart && (cart.region_id !== region.id || needsSalesChannel)) {
     await sdk.store.carts.$id.mutate({
       $id: cart.id,
       region_id: region.id,
+      ...(needsSalesChannel ? { sales_channel_id: salesChannelId } : {}),
       fetchOptions: { headers }
     });
     const cartCacheTag = await getCacheTag('carts');
     revalidateTag(cartCacheTag, "max");
+
+    cart = {
+      ...cart,
+      region_id: region.id,
+      ...(needsSalesChannel ? { sales_channel_id: salesChannelId } : {}),
+    };
   }
 
   return cart;

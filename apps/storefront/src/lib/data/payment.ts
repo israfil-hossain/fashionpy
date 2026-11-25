@@ -3,20 +3,19 @@
 import { HttpTypes } from '@medusajs/types';
 
 import { sdk } from '../client';
-import { getAuthHeaders, getCacheOptions } from './cookies';
+import { getAuthHeaders } from './cookies';
 
 export const listCartPaymentMethods = async (regionId: string) => {
-  const next = {
-    ...(await getCacheOptions('payment_providers'))
-  };
+  if (!regionId) {
+    return null;
+  }
 
   return (sdk.store.paymentProviders
     .query({
       region_id: regionId,
       fetchOptions: {
         headers: { ...(await getAuthHeaders()) },
-        next,
-        cache: 'force-cache'
+        cache: 'no-store'
       }
     } as never) as unknown as Promise<HttpTypes.StorePaymentProviderListResponse>)
     .then(({ payment_providers }) =>
@@ -24,7 +23,8 @@ export const listCartPaymentMethods = async (regionId: string) => {
         return a.id > b.id ? 1 : -1;
       })
     )
-    .catch(() => {
+    .catch(error => {
+      console.error('[checkout] failed to list payment providers:', error);
       return null;
     });
 };

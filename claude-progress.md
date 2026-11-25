@@ -4,6 +4,34 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — PDP options, 80 BDT Dhaka, checkout fixes (2026-11-25), `main`
+
+Four reported issues:
+
+- **Variant selection**: `ProductBuyBox` no longer preselects the cheapest
+  variant. Multi-option products start with pills unselected, show a
+  "Select color and size and condition to continue" notice, and disable Add to
+  cart / Buy now until every option is chosen; single-variant products stay
+  purchasable on a clean URL. Variant matching now uses strict equality.
+- **Delivery pricing**: platform default inside Dhaka is now 80 BDT (outside
+  stays 120). Updated the vendor hint, unit/integration expectations, spec and
+  seed; the seed backfills old `dhaka_base: 60` store metadata on boot.
+- **Checkout logo**: the deleted `/Logo.svg` references now use the existing
+  `/fashionpy.svg` wordmark (checkout header + seller-avatar fallbacks).
+- **Checkout options**: carts without a sales channel now get the store default
+  backfilled (needed by the seller shipping-options workflow), shipping groups
+  are no longer dropped for missing `seller_name`/unresolved calculated price,
+  failures are logged, payment providers are read uncached with an explicit
+  empty state. Seller fulfillment configuration is still required for real
+  options to exist; local data has no service zone for the FashionPy seller.
+
+- Evidence: lint 0; delivery unit 32/32; types/core/vendor/storefront builds
+  pass; api tsc clean; storefront tsc at the 138-line baseline. Playwright: PDP
+  clean URL disabled with selection notice, `?size=40&color=Multicolor&
+  condition=New` enables Add; checkout logo loads (naturalWidth 2000). Local
+  checkout still reports no shipping options because the seller has no
+  fulfillment set — not a code regression. Temp inventory row removed.
+
 ## Session — Mobile cart/profile sheet dismissal (2026-11-25), `main`
 
 The cart sheet had a 2s auto-close timer and touch could trigger
@@ -196,7 +224,7 @@ to global → panel slot; storefront chat/STT stay on the global model.
 ## Session — Bangladesh delivery charges (2026-11-24), `main`
 
 SPEC-016 (`docs/specs/SPEC-016-bangladesh-delivery-charges.md`, `in_progress`).
-Implementing the Bangladesh delivery-charge rules: 60 BDT inside Dhaka / 120
+Implementing the Bangladesh delivery-charge rules: 80 BDT inside Dhaka / 120
 outside, weight increments on top in both zones, seller + offer base overrides,
 one charge per platform-warehouse shipment vs per seller store, a separate
 platform order for the warehouse charge, and an admin-configurable 12 BDT

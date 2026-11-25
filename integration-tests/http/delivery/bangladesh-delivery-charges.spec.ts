@@ -267,7 +267,7 @@ medusaIntegrationTestRunner({
         })
 
         await setDeliveryConfig({
-          dhaka_base: 60,
+          dhaka_base: 80,
           outside_dhaka_base: 120,
           extra_kg_increment: 15,
           warehouse_fee: 12,
@@ -337,7 +337,7 @@ medusaIntegrationTestRunner({
           dhakaCart.id,
           seller.shippingOptionId
         )
-        expect(Number(dhakaMethods[0].amount)).toBe(60)
+        expect(Number(dhakaMethods[0].amount)).toBe(80)
 
         const outsideCart = await createCart("Sylhet")
         await api.post(

@@ -412,7 +412,7 @@ export const EditStoreForm = ({ seller }: EditStoreFormProps) => {
                     <Input type="number" min={0} step={1} {...field} />
                   </Form.Control>
                   <Form.Hint>
-                    Leave empty to use the marketplace default of 60 BDT.
+                    Leave empty to use the marketplace default of 80 BDT.
                   </Form.Hint>
                 </Form.Item>
               )}

@@ -28,7 +28,7 @@ export interface DeliveryPricingOverride {
 }
 
 export const DEFAULT_DELIVERY_PRICING: DeliveryPricingConfig = {
-  dhaka_base: 60,
+  dhaka_base: 80,
   outside_dhaka_base: 120,
   weight_bands: [
     { up_to_kg: 0.5, increment: 0 },

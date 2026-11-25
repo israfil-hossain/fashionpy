@@ -43,7 +43,7 @@ describe("Bangladesh delivery grouping", () => {
     default_location_id: "sloc_default",
     metadata: {
       delivery_pricing: {
-        dhaka_base: 60,
+        dhaka_base: 80,
         outside_dhaka_base: 120,
         extra_kg_increment: 15,
         weight_bands: [
@@ -187,8 +187,8 @@ describe("Bangladesh delivery grouping", () => {
     expect(quote?.groups).toHaveLength(1)
     expect(quote?.groups[0].type).toBe("platform_warehouse")
     expect(quote?.groups[0].weight_kg).toBe(1)
-    expect(quote?.groups[0].charge.amount).toBe(70)
-    expect(quote?.amountByOption).toEqual({ opt_1: 70, opt_2: 0 })
+    expect(quote?.groups[0].charge.amount).toBe(90)
+    expect(quote?.amountByOption).toEqual({ opt_1: 90, opt_2: 0 })
     expect(quote?.carrierByGroup.platform_warehouse).toBe("opt_1")
   })
 
