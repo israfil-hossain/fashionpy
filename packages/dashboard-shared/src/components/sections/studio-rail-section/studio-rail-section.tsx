@@ -5,10 +5,10 @@ import {
   Button,
   Container,
   Heading,
-  Input,
   Switch,
   Text,
   toast,
+  clx,
 } from "@medusajs/ui"
 
 export const STUDIO_RAIL_KEYS = {
@@ -23,6 +23,8 @@ type StudioRailMetadata = Record<string, unknown>
 type StudioRailProduct = {
   id: string
   metadata?: StudioRailMetadata | null
+  images?: { id?: string; url: string }[] | null
+  thumbnail?: string | null
 }
 
 export type StudioRailSectionProps = {
@@ -34,39 +36,104 @@ const readFlag = (value: unknown) => value === true || value === "true"
 
 const readUrl = (value: unknown) => (typeof value === "string" ? value : "")
 
-const UrlField = ({
+export const getStudioRailImageOptions = (product: StudioRailProduct) => {
+  const options: { url: string; label: string }[] = []
+
+  const add = (url: unknown, label: string) => {
+    if (typeof url !== "string" || !url.trim()) return
+    const existing = options.find(option => option.url === url)
+    if (existing) {
+      existing.label = label
+      return
+    }
+    options.push({ url, label })
+  }
+
+  product.images?.forEach((image, index) => add(image?.url, `Image ${index + 1}`))
+  add(product.thumbnail, "Thumbnail")
+
+  return options
+}
+
+const ImagePicker = ({
   label,
   hint,
   value,
+  options,
   onChange,
+  testId,
 }: {
   label: string
   hint: string
   value: string
+  options: { url: string; label: string }[]
   onChange: (value: string) => void
-}) => (
-  <div className="flex flex-col gap-y-1">
-    <Text size="small" weight="plus" leading="compact">
-      {label}
-    </Text>
-    <Input
-      value={value}
-      onChange={(event) => {
-        onChange(event.target.value)
-      }}
-      placeholder="https://..."
-    />
-    <Text size="small" leading="compact" className="text-ui-fg-subtle">
-      {hint}
-    </Text>
-  </div>
-)
+  testId: string
+}) => {
+  const choices = value && !options.some(option => option.url === value)
+    ? [{ url: value, label: "Current image" }, ...options]
+    : options
+
+  return (
+    <div className="flex flex-col gap-y-2">
+      <Text size="small" weight="plus" leading="compact">
+        {label}
+      </Text>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          aria-pressed={!value}
+          onClick={() => onChange("")}
+          className={clx(
+            "border-ui-border-base text-ui-fg-subtle rounded-md border px-3 py-2 text-xs",
+            !value && "border-ui-border-interactive bg-ui-bg-base text-ui-fg-base"
+          )}
+          data-testid={`${testId}-none`}
+        >
+          None
+        </button>
+        {choices.map(option => (
+          <button
+            key={option.url}
+            type="button"
+            aria-pressed={value === option.url}
+            aria-label={option.label}
+            title={option.url}
+            onClick={() => onChange(option.url)}
+            className={clx(
+              "border-ui-border-base relative size-16 overflow-hidden rounded-md border",
+              value === option.url &&
+                "border-ui-border-interactive ring-ui-bg-interactive ring-2 ring-inset"
+            )}
+            data-testid={`${testId}-option`}
+            data-selected={value === option.url ? "true" : "false"}
+          >
+            <img
+              src={option.url}
+              alt={option.label}
+              className="size-full object-cover"
+            />
+          </button>
+        ))}
+      </div>
+      <Text size="small" leading="compact" className="text-ui-fg-subtle">
+        {hint}
+      </Text>
+      {!choices.length && (
+        <Text size="small" leading="compact" className="text-ui-fg-muted">
+          Upload images in the product media section to select them here.
+        </Text>
+      )}
+    </div>
+  )
+}
 
 export const StudioRailSection = ({
   product,
   onSave,
 }: StudioRailSectionProps) => {
   const metadata = product.metadata ?? {}
+  const imageOptions = getStudioRailImageOptions(product)
 
   const [enabled, setEnabled] = useState(() => readFlag(metadata[STUDIO_RAIL_KEYS.enabled]))
   const [thumbnail, setThumbnail] = useState(() =>
@@ -149,23 +216,29 @@ export const StudioRailSection = ({
           </div>
         </div>
 
-        <UrlField
+        <ImagePicker
           label="Studio rail thumbnail"
           hint="The hanging/side photo shown when the garment is at rest. Leave blank to use the product thumbnail."
           value={thumbnail}
+          options={imageOptions}
           onChange={change(setThumbnail)}
+          testId="studio-rail-thumbnail"
         />
-        <UrlField
+        <ImagePicker
           label="Front image"
           hint="The photo the garment turns to on hover. Leave blank to use the first product image."
           value={front}
+          options={imageOptions}
           onChange={change(setFront)}
+          testId="studio-rail-front"
         />
-        <UrlField
+        <ImagePicker
           label="Back image"
           hint="Shown on the Back tab of the quick view. Leave blank to use the next product image."
           value={back}
+          options={imageOptions}
           onChange={change(setBack)}
+          testId="studio-rail-back"
         />
       </div>
     </Container>

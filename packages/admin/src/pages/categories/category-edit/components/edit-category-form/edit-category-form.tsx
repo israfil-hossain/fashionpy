@@ -1,4 +1,4 @@
-import { Button, Input, Select, Textarea, toast } from "@medusajs/ui"
+import { Button, Input, Select, Switch, Text, Textarea, toast } from "@medusajs/ui"
 import i18n from "i18next"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
@@ -21,7 +21,12 @@ const EditCategorySchema = z.object({
   description: z.string().optional(),
   status: z.enum(["active", "inactive"]),
   visibility: z.enum(["public", "internal"]),
+  showInStudioRail: z.boolean().optional(),
 })
+
+const STUDIO_RAIL_CATEGORY_KEY = "show_in_studio_rail"
+
+const readFlag = (value: unknown) => value === true || value === "true"
 
 type EditCategoryFormProps = {
   category: HttpTypes.AdminProductCategory
@@ -42,6 +47,7 @@ export const EditCategoryForm = ({ category }: EditCategoryFormProps) => {
       description: category.description || "",
       status: category.is_active ? "active" : "inactive",
       visibility: category.is_internal ? "internal" : "public",
+      showInStudioRail: readFlag(category.metadata?.[STUDIO_RAIL_CATEGORY_KEY]),
     },
   })
 
@@ -54,6 +60,10 @@ export const EditCategoryForm = ({ category }: EditCategoryFormProps) => {
         handle: data.handle,
         is_active: data.status === "active",
         is_internal: data.visibility === "internal",
+        metadata: {
+          ...(category.metadata ?? {}),
+          [STUDIO_RAIL_CATEGORY_KEY]: Boolean(data.showInStudioRail),
+        },
       },
       {
         onSuccess: () => {
@@ -190,6 +200,30 @@ export const EditCategoryForm = ({ category }: EditCategoryFormProps) => {
                 }}
               />
             </div>
+            <Form.Field
+              control={form.control}
+              name="showInStudioRail"
+              render={({ field }) => (
+                <Form.Item>
+                  <div className="flex items-start gap-x-3">
+                    <Switch
+                      dir="ltr"
+                      checked={Boolean(field.value)}
+                      onCheckedChange={field.onChange}
+                      data-testid="category-studio-rail-switch"
+                    />
+                    <div className="flex flex-col gap-y-1">
+                      <Form.Label>
+                        {t("categories.fields.studioRail.label")}
+                      </Form.Label>
+                      <Text size="small" className="text-ui-fg-subtle">
+                        {t("categories.fields.studioRail.hint")}
+                      </Text>
+                    </div>
+                  </div>
+                </Form.Item>
+              )}
+            />
             <FormExtensionZone
               model="category"
               zone="edit"

@@ -87,8 +87,8 @@ export const listCategoryTree = async (): Promise<CategoryTreeNode[]> => {
 };
 
 /**
- * Flat list of every category (id, handle, name, ancestry) used by the Studio
- * Rail to resolve its Men/Women/Baby tabs and to gate category pages.
+ * Flat list of every category (id, handle, name, ancestry, metadata) used by
+ * the Studio Rail to resolve its tabs and to gate category pages.
  */
 export const listAllCategories = async (): Promise<
   HttpTypes.StoreProductCategory[]

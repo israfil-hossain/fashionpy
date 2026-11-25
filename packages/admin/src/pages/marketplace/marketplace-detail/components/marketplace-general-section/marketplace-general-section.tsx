@@ -7,7 +7,7 @@ import { getMarketplaceDefaultLeadtime } from "@mercurjs/types"
 
 import { Link } from "react-router-dom"
 import { ActionMenu } from "../../../../../components/common/action-menu"
-import { useSalesChannel, useStockLocation } from "../../../../../hooks/api"
+import { useSalesChannel, useStockLocations } from "../../../../../hooks/api"
 import { useRegion } from "../../../../../hooks/api/regions"
 
 type MarketplaceGeneralSectionProps = {
@@ -33,15 +33,17 @@ export const MarketplaceGeneralSection = ({ store }: MarketplaceGeneralSectionPr
     enabled: !!store.default_sales_channel_id && canViewSalesChannels,
   })
 
-  const { stock_location } = useStockLocation(
-    store.default_location_id!,
+  const { stock_locations } = useStockLocations(
     {
+      id: store.default_location_id!,
       fields: "id,name",
     },
     {
       enabled: !!store.default_location_id && canViewLocations,
     }
   )
+
+  const stock_location = stock_locations?.[0]
 
   return (
     <Container className="divide-y p-0" data-testid="store-general-section-container">

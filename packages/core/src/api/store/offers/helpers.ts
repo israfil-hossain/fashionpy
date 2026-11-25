@@ -216,6 +216,25 @@ export const wrapOffersWithTaxPrices = async (
   })
 }
 
+export const resolveSalesChannelIdsForInventory = (
+  requestedIds: string[],
+  publishableKeyIds: string[]
+): string[] => {
+  if (publishableKeyIds.length === 1) {
+    return publishableKeyIds
+  }
+  if (requestedIds.length === 1) {
+    return requestedIds
+  }
+  if (publishableKeyIds.length > 1) {
+    return [...new Set(publishableKeyIds)]
+  }
+  throw new MedusaError(
+    MedusaError.Types.INVALID_DATA,
+    `Inventory availability cannot be calculated in the given context. Provide a sales channel id or configure one in the publishable key`
+  )
+}
+
 export const wrapOffersWithInventoryQuantityForSalesChannel = async (
   req: MedusaStoreRequest<unknown>,
   offers: EnrichableOffer[]
@@ -227,25 +246,17 @@ export const wrapOffersWithInventoryQuantityForSalesChannel = async (
   const salesChannelIds = transformAndValidateSalesChannelIds(req)
   const publishableApiKeySalesChannelIds =
     req.publishable_key_context?.sales_channel_ids ?? []
-
-  let channelToUse: string
-  if (publishableApiKeySalesChannelIds.length === 1) {
-    channelToUse = publishableApiKeySalesChannelIds[0]
-  } else if (salesChannelIds.length === 1) {
-    channelToUse = salesChannelIds[0]
-  } else {
-    throw new MedusaError(
-      MedusaError.Types.INVALID_DATA,
-      `Inventory availability cannot be calculated in the given context. Either provide a single sales channel id or configure a single sales channel in the publishable key`
-    )
-  }
+  const channelIds = resolveSalesChannelIdsForInventory(
+    salesChannelIds,
+    publishableApiKeySalesChannelIds
+  )
 
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
   const { data: channels } = await query.graph(
     {
       entity: "sales_channel",
       fields: ["stock_locations.id"],
-      filters: { id: channelToUse },
+      filters: { id: channelIds },
     },
     {
       cache: {
@@ -258,8 +269,11 @@ export const wrapOffersWithInventoryQuantityForSalesChannel = async (
   )
 
   const channelLocationIds = new Set<string>(
-    (channels[0]?.stock_locations ?? [])
-      .map((l: { id?: string }) => l.id)
+    channels
+      .flatMap((channel: { stock_locations?: { id?: string }[] | null }) =>
+        channel.stock_locations ?? []
+      )
+      .map((location: { id?: string }) => location.id)
       .filter((id: string | undefined): id is string => Boolean(id))
   )
 

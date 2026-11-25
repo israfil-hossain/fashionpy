@@ -5,7 +5,6 @@ import { Autoplay, Pagination, EffectFade } from "swiper/modules"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRightIcon } from "@/icons"
-import { SearchBar } from "@/components/molecules/SearchBar/SearchBar"
 
 import "swiper/css"
 import "swiper/css/pagination"
@@ -103,15 +102,6 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
         ))}
       </Swiper>
 
-      <div
-        className="absolute inset-x-0 bottom-4 z-10 flex justify-center px-4 md:bottom-8"
-        data-testid="hero-search"
-      >
-        <div className="w-full max-w-[560px] md:max-w-[720px]">
-          <SearchBar size="large" />
-        </div>
-      </div>
-
       <style jsx global>{`
         .hero-swiper .swiper-pagination-bullet {
           width: 12px;
@@ -123,13 +113,6 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
         .hero-swiper .swiper-pagination-bullet-active {
           opacity: 1;
           background: white;
-        }
-
-        @media (max-width: 767px) {
-          .hero-swiper {
-            --swiper-pagination-top: auto;
-            --swiper-pagination-bottom: 64px;
-          }
         }
 
         @keyframes fadeInUp {

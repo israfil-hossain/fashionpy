@@ -9,10 +9,7 @@ import LocalizedClientLink from '@/components/molecules/LocalizedLink/LocalizedL
 import { ArrowLeftIcon, ArrowRightIcon } from '@/icons';
 import type { StudioRailGroup, StudioRailItem } from '@/types/studio-rail';
 
-import { HangerFrame } from './HangerFrame';
 import { StudioRailQuickView } from './StudioRailQuickView';
-
-const HANG_STEPS = [0, 6, 3];
 
 const RailItem = ({
   item,
@@ -26,8 +23,7 @@ const RailItem = ({
   onOpen: (item: StudioRailItem, index: number) => void;
 }) => {
   const style = {
-    '--sway-delay': `${(index % 5) * -1.1}s`,
-    '--hang-step': `${HANG_STEPS[index % 3]}px`
+    '--sway-delay': `${(index % 5) * -1.1}s`
   } as React.CSSProperties;
 
   const thumbnail = decodeURIComponent(item.thumbnail as string);
@@ -64,7 +60,6 @@ const RailItem = ({
       >
         <div className="studio-rail__tilt">
           <div className="studio-rail__sway">
-            <HangerFrame className="studio-rail__hanger" />
             <div className="studio-rail__garment">
               <Image
                 src={thumbnail}
@@ -244,10 +239,6 @@ export const StudioRailClient = ({
         id={`studio-rail-panel-${group.key}`}
         aria-labelledby={`studio-rail-tab-${group.key}`}
       >
-        <div
-          className="studio-rail__bar"
-          aria-hidden="true"
-        />
         <div
           className="studio-rail__viewport"
           ref={emblaRef}

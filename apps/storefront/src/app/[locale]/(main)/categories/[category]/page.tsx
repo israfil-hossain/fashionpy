@@ -109,8 +109,8 @@ async function Category({
   // product in its sub-categories, not just products attached to the parent.
   const categoryIds = await collectCategorySubtreeIds(category)
 
-  // Clothing categories (Men/Women/Baby, incl. descendants) also get the
-  // Studio Rail showcase above the listing; everything else renders nothing.
+  // Categories configured for the Studio Rail (incl. descendants) get the
+  // showcase above the listing; everything else renders nothing.
   let studioRailKey: string | null = null
   try {
     studioRailKey = getStudioRailKey(category, await listAllCategories())

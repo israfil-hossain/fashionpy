@@ -1,3 +1,4 @@
+import { ClientError } from "@mercurjs/client"
 import { QueryClient } from "@tanstack/react-query"
 
 export const queryClient = new QueryClient({
@@ -5,7 +6,10 @@ export const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       staleTime: 90000,
-      retry: 1,
+      retry: (failureCount, error) =>
+        error instanceof ClientError && error.status === 404
+          ? false
+          : failureCount < 1,
     },
   },
 })

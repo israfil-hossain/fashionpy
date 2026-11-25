@@ -4,6 +4,85 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Offer availability with multi-channel key (2026-11-25), `main`
+
+SPEC-022 (`docs/specs/SPEC-022-multi-channel-offer-availability.md`,
+`passing`) — user asked why a product with valid offers still shows NOT
+AVAILABLE. Data check on the affected DB showed 4 live BDT-750 offers, 200
+units stocked, seller/region links intact; the publishable key, however, is
+attached to two sales channels. `wrapOffersWithInventoryQuantityForSalesChannel`
+threw on that ambiguity, the storefront swallowed the 500 as `offers: []`, and
+the buy box had no winner. Fixed by resolving all key channels and unioning
+their stock locations (keeping the single-channel paths unchanged), and by
+logging storefront offer-fetch failures.
+
+- Deliberately did NOT remove the extra sales channel from the key: it holds
+  vendor stock locations, so removing it would hide those products.
+- Evidence: new resolver unit spec 4/4; lint clean; core tsc clean; core and
+  storefront builds pass. Live API re-test needs a restart of the running
+  `medusa develop` process, so it was left for deploy.
+
+## Session — Hero search removed (2026-11-25), `main`
+
+Removed the `SearchBar` overlay from `HeroCarousel.tsx` (import, bottom
+overlay and the mobile pagination offset that made room for it). No other
+hero/section uses it. Lint, storefront tsc (touched file) and storefront build
+pass.
+
+## Session — Studio Rail controls (2026-11-25), `main`
+
+SPEC-021 (`docs/specs/SPEC-021-studio-rail-controls.md`, `passing`) — three
+user-reported Studio Rail issues:
+
+- Removed the drawn SVG hanger everywhere (component, render, CSS, rail bar,
+  hanger hover/reduced-motion rules and mobile sizing). Uploaded product
+  photos keep their own hanger.
+- The shared admin/vendor Studio Rail section now offers a thumbnail picker
+  backed by the product's own media (gallery + thumbnail) for the resting,
+  front and back images, with a "None" fallback. Legacy external URLs stay
+  selectable as "Current image".
+- Categories are configurable: an admin "Show in Studio Rail" switch writes
+  `metadata.show_in_studio_rail`, and flagged active categories become their
+  own storefront tabs (`category:<id>`). Legacy Men/Women/Baby matching still
+  works, flagged legacy categories aren't duplicated, and category-page
+  gating still walks ancestors.
+
+- Evidence: lint clean; new vitest suites 8/8; tsc clean in touched files;
+  dashboard-shared/admin/vendor/storefront builds all pass. Local browser
+  check unavailable (the seeded studio-rail product has no local sales
+  channel/price so the store endpoint returns no products).
+
+## Session — Dashboard console errors (2026-11-25), `main`
+
+SPEC-020 (`docs/specs/SPEC-020-dashboard-console-errors.md`, `passing`) — user
+reported console errors from the admin panel. Two real app bugs were behind
+them:
+
+- **Region seller removal 400 / uncaught promise**: the region detail page let
+  an admin unassign a store from its only region; the backend correctly refused
+  with 400 and `mutateAsync` rejected unhandled. The row action is now disabled
+  with a tooltip when the seller has one region, bulk removal skips those
+  sellers with a warning, and both region/store detail pages catch mutation
+  failures and toast a translated message instead of leaking a rejection.
+  Sellers are now fetched with `regions.id` so the guard has data.
+- **Stock location 404s**: the marketplace store row still references a
+  soft-deleted `sloc_…`; `GET /admin/stock-locations/:id` 404s for it (verified
+  live). `MarketplaceGeneralSection` now resolves the default location through
+  the list endpoint (`?id=…`), which returns 200 with an empty list. A
+  subscriber on `stock_location.stock-location.deleted` clears
+  `store.default_location_id` for future deletions; both query clients no
+  longer retry 404s.
+- Also silenced the JSON drawer `DialogContent` accessibility warning (admin +
+  vendor) and the React Router `HydrateFallback` warning via root-route
+  fallbacks.
+
+- Evidence: `bun run lint` clean; subscriber unit 3/3; removal-helper vitest
+  4/4; core tsc clean, admin/vendor tsc clean in touched files; core/admin/
+  vendor builds pass individually (repo-wide build timed out under heavy host
+  load); live API probe confirmed detail 404 vs list 200 for the deleted
+  location. Existing stale production row still needs clearing in store
+  settings.
+
 ## Session — Per-task AI models (2026-11-24), `main`
 
 SPEC-017 (`docs/specs/SPEC-017-per-task-ai-models.md`, `in_progress`).

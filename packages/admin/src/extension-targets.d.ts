@@ -185,6 +185,7 @@ declare module "@mercurjs/dashboard-sdk" {
     "core:ProductMediaSection": true
     "core:ProductOrganizationSection": true
     "core:ProductVariantSection": true
+    "core:StudioRailSection": true
   }
 
   interface NavItemRegistry {

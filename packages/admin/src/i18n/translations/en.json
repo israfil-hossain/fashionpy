@@ -1112,6 +1112,10 @@
       },
       "new": {
         "label": "New"
+      },
+      "studioRail": {
+        "label": "Show in Studio Rail",
+        "hint": "Adds a tab for this category to the storefront Studio Rail. Add products with Studio Rail enabled to the category."
       }
     }
   },
@@ -3507,11 +3511,14 @@
       "empty": "No stores are assigned to this region.",
       "noSellersToAdd": "There are no stores to add.",
       "alreadyAssigned": "This store is already assigned to the region.",
+      "lastRegion": "A store must stay assigned to at least one region.",
+      "skippedLastRegion": "Stores assigned to only this region were skipped.",
       "removeWarning_one": "You are about to remove {{count}} store from this region. The store will no longer be able to price offers or shipping in it.",
       "removeWarning_other": "You are about to remove {{count}} stores from this region. They will no longer be able to price offers or shipping in it.",
       "toast": {
         "added": "Stores added to region successfully",
-        "removed": "Stores removed from region successfully"
+        "removed": "Stores removed from region successfully",
+        "removeFailed": "Failed to remove stores from the region."
       }
     }
   },
@@ -4605,7 +4612,8 @@
       "removeWarning": "You are about to remove the region {{name}} from this seller. The seller will no longer be able to price offers or shipping in it.",
       "toast": {
         "added": "Regions added successfully",
-        "removed": "Region removed successfully"
+        "removed": "Region removed successfully",
+        "removeFailed": "Failed to remove the region."
       },
       "hint": "Assigned regions decide which currencies this store can price in. The default region is assigned on creation.",
       "lastRegion": "A store must stay assigned to at least one region."

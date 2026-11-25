@@ -17,6 +17,7 @@ import { useSellers } from "../../../../../hooks/api/sellers"
 import { useSellersTableColumns } from "../../../../../hooks/table/columns/use-seller-table-columns"
 import { useSellersTableQuery } from "../../../../../hooks/table/query"
 import { useDataTable } from "../../../../../hooks/use-data-table"
+import { getRemovableSellers } from "./removable-sellers"
 
 type RegionSellerSectionProps = {
   region: HttpTypes.AdminRegion
@@ -24,6 +25,7 @@ type RegionSellerSectionProps = {
 
 const PREFIX = "rs"
 const PAGE_SIZE = 10
+const SELLER_FIELDS = "id,name,email,status,is_premium,created_at,regions.id"
 
 export const RegionSellerSection = ({ region }: RegionSellerSectionProps) => {
   const { t } = useTranslation()
@@ -37,7 +39,7 @@ export const RegionSellerSection = ({ region }: RegionSellerSectionProps) => {
   })
 
   const { sellers, count, isPending, isError, error } = useSellers(
-    { ...searchParams, region_id: region.id },
+    { ...searchParams, region_id: region.id, fields: SELLER_FIELDS },
     { placeholderData: keepPreviousData }
   )
 
@@ -66,10 +68,21 @@ export const RegionSellerSection = ({ region }: RegionSellerSectionProps) => {
   const handleRemoveSellers = async () => {
     const ids = Object.keys(rowSelection).filter((k) => rowSelection[k])
 
+    if (!ids.length) {
+      return
+    }
+
+    const { removable, blocked } = getRemovableSellers(ids, sellers ?? [])
+
+    if (!removable.length) {
+      toast.warning(t("regions.sellers.lastRegion"))
+      return
+    }
+
     const res = await prompt({
       title: t("general.areYouSure"),
       description: t("regions.sellers.removeWarning", {
-        count: ids.length,
+        count: removable.length,
       }),
       cancelText: t("actions.cancel"),
       confirmText: t("actions.remove"),
@@ -79,18 +92,16 @@ export const RegionSellerSection = ({ region }: RegionSellerSectionProps) => {
       return
     }
 
-    await mutateAsync(
-      { remove: ids },
-      {
-        onSuccess: () => {
-          toast.success(t("regions.sellers.toast.removed"))
-          setRowSelection({})
-        },
-        onError: (e) => {
-          toast.error(e.message)
-        },
+    try {
+      await mutateAsync({ remove: removable })
+      toast.success(t("regions.sellers.toast.removed"))
+      setRowSelection({})
+      if (blocked.length) {
+        toast.warning(t("regions.sellers.skippedLastRegion"))
       }
-    )
+    } catch {
+      toast.error(t("regions.sellers.toast.removeFailed"))
+    }
   }
 
   if (isError) {
@@ -156,15 +167,22 @@ export const RegionSellerSection = ({ region }: RegionSellerSectionProps) => {
 const SellerActions = ({
   seller,
   regionId,
+  isLastRegion,
 }: {
   seller: SellerDTO
   regionId: string
+  isLastRegion: boolean
 }) => {
   const { t } = useTranslation()
   const prompt = usePrompt()
   const { mutateAsync } = useBatchRegionSellers(regionId)
 
   const handleRemove = async () => {
+    if (isLastRegion) {
+      toast.warning(t("regions.sellers.lastRegion"))
+      return
+    }
+
     const res = await prompt({
       title: t("general.areYouSure"),
       description: t("regions.sellers.removeWarning", { count: 1 }),
@@ -176,17 +194,12 @@ const SellerActions = ({
       return
     }
 
-    await mutateAsync(
-      { remove: [seller.id] },
-      {
-        onSuccess: () => {
-          toast.success(t("regions.sellers.toast.removed"))
-        },
-        onError: (e) => {
-          toast.error(e.message)
-        },
-      }
-    )
+    try {
+      await mutateAsync({ remove: [seller.id] })
+      toast.success(t("regions.sellers.toast.removed"))
+    } catch {
+      toast.error(t("regions.sellers.toast.removeFailed"))
+    }
   }
 
   return (
@@ -199,6 +212,8 @@ const SellerActions = ({
               permission: "regions:edit",
               label: t("actions.remove"),
               onClick: handleRemove,
+              disabled: isLastRegion,
+              disabledTooltip: t("regions.sellers.lastRegion"),
             },
           ],
         },
@@ -246,8 +261,17 @@ const useColumns = () => {
         id: "actions",
         cell: ({ row, table }) => {
           const { regionId } = table.options.meta as { regionId: string }
+          const isLastRegion = row.original.regions
+            ? row.original.regions.length <= 1
+            : false
 
-          return <SellerActions seller={row.original} regionId={regionId} />
+          return (
+            <SellerActions
+              seller={row.original}
+              regionId={regionId}
+              isLastRegion={isLastRegion}
+            />
+          )
         },
       }),
     ],

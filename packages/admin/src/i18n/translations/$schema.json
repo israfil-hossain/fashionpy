@@ -4393,6 +4393,22 @@
                 "label"
               ],
               "additionalProperties": false
+            },
+            "studioRail": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "hint": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "label",
+                "hint"
+              ],
+              "additionalProperties": false
             }
           },
           "required": [
@@ -4400,7 +4416,8 @@
             "status",
             "path",
             "children",
-            "new"
+            "new",
+            "studioRail"
           ],
           "additionalProperties": false
         }
@@ -12877,6 +12894,12 @@
             "alreadyAssigned": {
               "type": "string"
             },
+            "lastRegion": {
+              "type": "string"
+            },
+            "skippedLastRegion": {
+              "type": "string"
+            },
             "removeWarning_one": {
               "type": "string"
             },
@@ -12891,11 +12914,15 @@
                 },
                 "removed": {
                   "type": "string"
+                },
+                "removeFailed": {
+                  "type": "string"
                 }
               },
               "required": [
                 "added",
-                "removed"
+                "removed",
+                "removeFailed"
               ],
               "additionalProperties": false
             }
@@ -12907,6 +12934,8 @@
             "empty",
             "noSellersToAdd",
             "alreadyAssigned",
+            "lastRegion",
+            "skippedLastRegion",
             "removeWarning_one",
             "removeWarning_other",
             "toast"
@@ -17381,11 +17410,15 @@
                 },
                 "removed": {
                   "type": "string"
+                },
+                "removeFailed": {
+                  "type": "string"
                 }
               },
               "required": [
                 "added",
-                "removed"
+                "removed",
+                "removeFailed"
               ],
               "additionalProperties": false
             },

@@ -95,17 +95,12 @@ const RegionRow = ({
       return;
     }
 
-    await mutateAsync(
-      { remove: [region.id] },
-      {
-        onSuccess: () => {
-          toast.success(t("stores.regions.toast.removed"));
-        },
-        onError: (e) => {
-          toast.error(e.message);
-        },
-      },
-    );
+    try {
+      await mutateAsync({ remove: [region.id] });
+      toast.success(t("stores.regions.toast.removed"));
+    } catch {
+      toast.error(t("stores.regions.toast.removeFailed"));
+    }
   };
 
   return (

@@ -48,6 +48,7 @@ export const JsonViewSection = ({ data }: JsonViewSectionProps) => {
         </Drawer.Trigger>
         <Drawer.Content
           dir="ltr"
+          aria-describedby={undefined}
           className="bg-ui-contrast-bg-base text-ui-code-fg-subtle !shadow-elevation-commandbar overflow-hidden border border-none max-md:inset-x-2 max-md:max-w-[calc(100%-16px)]"
         >
           <div className="bg-ui-code-bg-base flex items-center justify-between px-6 py-4">

@@ -57,7 +57,13 @@ export const listOffers = async ({
     } as never) as unknown as Promise<{ offers: OfferDTO[]; count: number }>
   )
     .then(({ offers, count }) => ({ offers, count }))
-    .catch(() => ({ offers: [], count: 0 }));
+    .catch((error) => {
+      console.warn(
+        `[offers] list failed (product=${productId ?? "-"}, seller=${sellerId ?? "-"})`,
+        error
+      );
+      return { offers: [], count: 0 };
+    });
 };
 
 export const retrieveOffer = async (
@@ -83,5 +89,8 @@ export const retrieveOffer = async (
     } as never) as unknown as Promise<{ offer: OfferDTO }>
   )
     .then(({ offer }) => offer)
-    .catch(() => null);
+    .catch((error) => {
+      console.warn(`[offers] retrieve failed (${id})`, error);
+      return null;
+    });
 };

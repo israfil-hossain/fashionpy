@@ -68,6 +68,7 @@ export function getRouteMap({
     {
       element: <ProtectedRoute />,
       errorElement: <ErrorBoundary />,
+      HydrateFallback: () => null,
       children: [
         {
           element: <MainLayout />,

@@ -12,7 +12,10 @@ export type StudioRailCategoryNode = {
   parent_category_id?: string | null;
   rank?: number | null;
   is_active?: boolean;
+  metadata?: Record<string, unknown> | null;
 };
+
+export const STUDIO_RAIL_CATEGORY_KEY = 'show_in_studio_rail';
 
 export const STUDIO_RAIL_TABS: StudioRailTab[] = [
   {
@@ -57,6 +60,24 @@ export const matchesStudioRail = (
   return matchers.some(matcher => tokens.has(matcher));
 };
 
+const readFlag = (value: unknown): boolean => value === true || value === 'true';
+
+const legacyTabFor = (category: StudioRailCategoryNode | null | undefined) =>
+  category ? STUDIO_RAIL_TABS.find(tab => matchesStudioRail(category, tab.matches)) : undefined;
+
+export const isStudioRailCategory = (
+  category: StudioRailCategoryNode | null | undefined
+): boolean => {
+  if (!category) return false;
+  return (
+    readFlag(category.metadata?.[STUDIO_RAIL_CATEGORY_KEY]) ||
+    Boolean(legacyTabFor(category))
+  );
+};
+
+const railKeyFor = (category: StudioRailCategoryNode): string =>
+  legacyTabFor(category)?.key ?? `category:${category.id}`;
+
 export const getStudioRailKey = (
   category: (StudioRailCategoryNode & { id: string }) | null | undefined,
   allCategories: StudioRailCategoryNode[]
@@ -69,8 +90,9 @@ export const getStudioRailKey = (
 
   while (current && !visited.has(current.id)) {
     visited.add(current.id);
-    const tab = STUDIO_RAIL_TABS.find(candidate => matchesStudioRail(current, candidate.matches));
-    if (tab) return tab.key;
+    if (isStudioRailCategory(current)) {
+      return railKeyFor(current);
+    }
     current = current.parent_category_id ? byId.get(current.parent_category_id) : undefined;
   }
 
@@ -79,12 +101,13 @@ export const getStudioRailKey = (
 
 export const resolveStudioRailCategories = (
   categories: StudioRailCategoryNode[]
-): { tab: StudioRailTab; category: StudioRailCategoryNode }[] =>
-  STUDIO_RAIL_TABS.map(tab => {
-    const candidates = categories.filter(
-      category => category.is_active !== false && matchesStudioRail(category, tab.matches)
-    );
-    if (!candidates.length) return null;
+): { tab: StudioRailTab; category: StudioRailCategoryNode }[] => {
+  const active = categories.filter(category => category.is_active !== false);
+  const entries: { tab: StudioRailTab; category: StudioRailCategoryNode }[] = [];
+
+  for (const tab of STUDIO_RAIL_TABS) {
+    const candidates = active.filter(category => matchesStudioRail(category, tab.matches));
+    if (!candidates.length) continue;
 
     const score = (category: StudioRailCategoryNode) => {
       if (category.handle === tab.handle) return -1;
@@ -101,7 +124,31 @@ export const resolveStudioRailCategories = (
       return (a.rank ?? 0) - (b.rank ?? 0);
     })[0];
 
-    return { tab, category: best };
-  }).filter((entry): entry is { tab: StudioRailTab; category: StudioRailCategoryNode } =>
-    Boolean(entry)
-  );
+    entries.push({ tab, category: best });
+  }
+
+  const flagged = active
+    .filter(
+      category =>
+        readFlag(category.metadata?.[STUDIO_RAIL_CATEGORY_KEY]) &&
+        !legacyTabFor(category)
+    )
+    .sort(
+      (a, b) =>
+        (a.rank ?? 0) - (b.rank ?? 0) || a.name.localeCompare(b.name)
+    );
+
+  for (const category of flagged) {
+    entries.push({
+      tab: {
+        key: `category:${category.id}`,
+        label: category.name,
+        handle: category.handle,
+        matches: []
+      },
+      category
+    });
+  }
+
+  return entries;
+};
