@@ -24,6 +24,7 @@ export const listOffers = async ({
   regionId,
   limit,
   offset,
+  order,
 }: {
   productId?: string;
   sellerId?: string;
@@ -31,6 +32,7 @@ export const listOffers = async ({
   regionId?: string;
   limit?: number;
   offset?: number;
+  order?: string;
 }): Promise<{ offers: OfferDTO[]; count: number }> => {
   const region = regionId
     ? { id: regionId }
@@ -46,6 +48,7 @@ export const listOffers = async ({
       country_code: countryCode,
       limit,
       offset,
+      order,
       fields: OFFER_FIELDS,
       fetchOptions: {
         headers: { ...(await getAuthHeaders()) },

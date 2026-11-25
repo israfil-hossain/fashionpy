@@ -28,6 +28,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[]> = {
   "/payouts": "payouts:view",
 
   "/settings/store": "store:view",
+  "/settings/store/storefront-design": "store:edit",
   "/settings/users": "members:view",
   "/settings/locations": "stock_locations:view",
   "/settings/courier": "courier_accounts:view",

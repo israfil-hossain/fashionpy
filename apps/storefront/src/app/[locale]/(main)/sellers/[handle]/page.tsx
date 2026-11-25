@@ -2,8 +2,13 @@ import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
 import { RouteFallback } from "@/components/molecules/RouteFallback/RouteFallback"
-import { SellerTabs } from '@/components/organisms/SellerTabs/SellerTabs';
 import { SellerPageHeader } from '@/components/sections/SellerPageHeader/SellerPageHeader';
+import { SellerSections } from '@/components/sections/SellerSections/SellerSections';
+import {
+  decodeSellerStorefrontLayout,
+  normalizeSellerStorefrontLayout,
+  SELLER_STOREFRONT_LAYOUT_KEY,
+} from '@mercurjs/types';
 import { retrieveCustomer } from "@/lib/data/customer"
 import { listRegions } from "@/lib/data/regions"
 import { getSellerByHandle } from "@/lib/data/seller"
@@ -79,7 +84,10 @@ export default function SellerPage(props: PageProps<"/[locale]/sellers/[handle]"
 
 async function SellerContent({ params, searchParams }: PageProps<"/[locale]/sellers/[handle]">) {
   const { handle, locale } = await params
-  const { page } = await searchParams
+  const { page, layout } = (await searchParams) as {
+    page?: string
+    layout?: string
+  }
 
   const [seller, user] = await Promise.all([
     getSellerByHandle(handle),
@@ -92,15 +100,22 @@ async function SellerContent({ params, searchParams }: PageProps<"/[locale]/sell
 
   const pageNumber = typeof page === "string" ? parseInt(page, 10) || 1 : 1
 
+  const sections =
+    decodeSellerStorefrontLayout(layout) ??
+    normalizeSellerStorefrontLayout(
+      (seller.metadata as Record<string, unknown> | null)?.[
+        SELLER_STOREFRONT_LAYOUT_KEY
+      ] ?? null
+    )
+
   return (
     <>
       <SellerPageHeader header seller={seller} user={user} />
-      <SellerTabs
-        tab="offers"
-        seller_id={seller.id}
-        seller_handle={seller.handle}
+      <SellerSections
+        seller={seller}
         locale={locale}
         page={pageNumber}
+        sections={sections}
       />
     </>
   )

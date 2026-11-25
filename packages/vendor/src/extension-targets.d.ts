@@ -171,6 +171,7 @@ declare module "@mercurjs/dashboard-sdk" {
     "settings/product-types": true
     "settings/profile": true
     "settings/store": true
+    "settings/store/storefront-design": true
     "settings/users": true
   }
 

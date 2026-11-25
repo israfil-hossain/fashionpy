@@ -13791,6 +13791,79 @@
             "invalid"
           ],
           "additionalProperties": false
+        },
+        "storefrontDesign": {
+          "type": "object",
+          "properties": {
+            "navLabel": {
+              "type": "string"
+            },
+            "header": {
+              "type": "string"
+            },
+            "subtitle": {
+              "type": "string"
+            },
+            "sections": {
+              "type": "object",
+              "properties": {
+                "featured_products": {
+                  "type": "string"
+                },
+                "new_arrivals": {
+                  "type": "string"
+                },
+                "all_products": {
+                  "type": "string"
+                },
+                "reviews": {
+                  "type": "string"
+                },
+                "contact": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "featured_products",
+                "new_arrivals",
+                "all_products",
+                "reviews",
+                "contact"
+              ],
+              "additionalProperties": false
+            },
+            "previewHint": {
+              "type": "string"
+            },
+            "refreshPreview": {
+              "type": "string"
+            },
+            "openPreview": {
+              "type": "string"
+            },
+            "previewTitle": {
+              "type": "string"
+            },
+            "toast_update": {
+              "type": "string"
+            },
+            "toast_error": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "navLabel",
+            "header",
+            "subtitle",
+            "sections",
+            "previewHint",
+            "refreshPreview",
+            "openPreview",
+            "previewTitle",
+            "toast_update",
+            "toast_error"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -13832,7 +13905,8 @@
         "professionalDetails",
         "timeOff",
         "toast",
-        "leadtime"
+        "leadtime",
+        "storefrontDesign"
       ],
       "additionalProperties": false
     },

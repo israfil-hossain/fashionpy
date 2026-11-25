@@ -4,6 +4,27 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Seller storefront design (2026-11-25), `main`
+
+SPEC-023 (`docs/specs/SPEC-023-seller-storefront-design.md`, `in_progress`) —
+sellers can now arrange their own customer storefront from the vendor panel and
+preview it live:
+
+- Shared contract `packages/types/src/seller-storefront.ts` stores the layout in
+  `seller.metadata.storefront_layout` (the single global Medusa store belongs to
+  the admin homepage editor). Five seller blocks: featured products, new
+  arrivals, all products, reviews, contact.
+- Storefront `/{locale}/sellers/{handle}` now renders `SellerSections` in the
+  saved order; a URL-encoded `?layout=` draft override makes the vendor iframe
+  preview use the exact same renderer as the customer page.
+- Vendor panel gained Settings → Storefront design (plus a Store header action):
+  drag-to-reorder + enable switches, Save via `useUpdateSeller`, and a live
+  iframe. Storefront URL/locale are Vite defines with localhost/bd defaults.
+- Evidence: lint 0; new unit spec 5/5; storefront + vendor builds pass; tsc has
+  no new errors in touched files; translation schema check only the two known
+  pre-existing missing keys. New integration spec added but not run locally
+  (no test DB); browser smoke pending. SPEC stays `in_progress` until then.
+
 ## Session — Offer availability with multi-channel key (2026-11-25), `main`
 
 SPEC-022 (`docs/specs/SPEC-022-multi-channel-offer-availability.md`,

@@ -1,5 +1,5 @@
 import { Children, ReactNode } from "react";
-import { CheckCircleSolid, PencilSquare } from "@medusajs/icons";
+import { CheckCircleSolid, Eye, PencilSquare } from "@medusajs/icons";
 import { Avatar, Heading, StatusBadge, Tooltip } from "@medusajs/ui";
 import { useTranslation } from "react-i18next";
 
@@ -78,6 +78,12 @@ export const StoreDetailEditButton = () => {
               permission: "store:edit",
               label: t("actions.edit"),
               to: "edit",
+            },
+            {
+              icon: <Eye />,
+              permission: "store:edit",
+              label: t("store.storefrontDesign.navLabel"),
+              to: "storefront-design",
             },
           ],
         },

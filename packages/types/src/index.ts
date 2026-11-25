@@ -30,6 +30,9 @@ export * from "./offer"
 // Home-page section layout contract (admin editor + storefront renderer)
 export * from "./home-layout"
 
+// Per-seller storefront layout contract (seller panel editor + store renderer)
+export * from "./seller-storefront"
+
 // Promotion cost types
 export * from "./promotion-cost"
 

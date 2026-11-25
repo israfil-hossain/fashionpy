@@ -26,9 +26,11 @@ export type StoreReview = {
 export const ProductReviews = ({
   reviews = [],
   seller,
+  heading = "Reviews for this item",
 }: {
   reviews?: StoreReview[]
   seller?: { name?: string } | null
+  heading?: string
 }) => {
   const published = reviews.filter((r) => r.status === "published")
   const count = published.length
@@ -40,7 +42,7 @@ export const ProductReviews = ({
     <section data-testid="product-reviews-section">
       <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
         <h2 className="heading-md" data-testid="product-reviews-heading">
-          Reviews for this item
+          {heading}
         </h2>
         {count > 0 && (
           <div

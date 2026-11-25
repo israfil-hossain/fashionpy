@@ -13,6 +13,14 @@ export default defineConfig(({ mode }) => {
     env.VITE_MERCUR_BACKEND_URL ||
     env.MERCUR_BACKEND_URL ||
     process.env.MERCUR_BACKEND_URL
+  const storefrontUrl =
+    env.VITE_STOREFRONT_URL ||
+    env.MERCUR_STOREFRONT_URL ||
+    process.env.MERCUR_STOREFRONT_URL
+  const storefrontLocale =
+    env.VITE_STOREFRONT_LOCALE ||
+    env.MERCUR_STOREFRONT_LOCALE ||
+    process.env.MERCUR_STOREFRONT_LOCALE
 
   return {
     // Production builds served by the backend under a sub-path (e.g. /seller)
@@ -22,6 +30,8 @@ export default defineConfig(({ mode }) => {
     // User-level define — the plugin's config() define was not reaching output.
     define: {
       __BACKEND_URL__: JSON.stringify(backendUrl || 'http://localhost:9000'),
+      __STOREFRONT_URL__: JSON.stringify(storefrontUrl || 'http://localhost:3000'),
+      __STOREFRONT_LOCALE__: JSON.stringify(storefrontLocale || 'bd'),
     },
     resolve: {
       alias: {

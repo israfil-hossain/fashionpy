@@ -3532,6 +3532,24 @@
       "days_one": "{{count}} business day",
       "days_other": "{{count}} business days",
       "invalid": "Enter a whole number of days"
+    },
+    "storefrontDesign": {
+      "navLabel": "Storefront design",
+      "header": "Storefront design",
+      "subtitle": "Arrange the blocks your customers see on your store page. Drag to reorder, switch blocks on or off, then save.",
+      "sections": {
+        "featured_products": "Featured products",
+        "new_arrivals": "New arrivals",
+        "all_products": "All products",
+        "reviews": "Reviews",
+        "contact": "Contact"
+      },
+      "previewHint": "Preview uses the unsaved arrangement. It matches exactly what customers see after saving.",
+      "refreshPreview": "Refresh",
+      "openPreview": "Open in new tab",
+      "previewTitle": "Live storefront preview",
+      "toast_update": "Storefront arrangement saved",
+      "toast_error": "Failed to save storefront arrangement"
     }
   },
   "regions": {

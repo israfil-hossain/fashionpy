@@ -1391,6 +1391,12 @@ export function getRouteMap({
                         lazy: () =>
                           import("./pages/settings/store/store-closure"),
                       },
+                      {
+                        path: "storefront-design",
+                        handle: { permissions: "store:edit" },
+                        lazy: () =>
+                          import("./pages/settings/store/storefront-design"),
+                      },
                     ],
                   },
                 ],

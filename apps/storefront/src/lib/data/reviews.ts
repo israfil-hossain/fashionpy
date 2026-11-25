@@ -55,6 +55,29 @@ export const listProductReviews = async (
   }
 };
 
+export const listSellerReviews = async (
+  sellerId: string
+): Promise<StoreReview[]> => {
+  if (!sellerId) return []
+
+  try {
+    const headers = await getAuthHeaders()
+    const { reviews } = await reviewRoutes.reviews.query({
+      seller_id: sellerId,
+      status: 'published',
+      limit: 50,
+      fetchOptions: {
+        headers,
+        ...getCatalogFetchOptions(CACHE_TAGS.products),
+      },
+    })
+
+    return Array.isArray(reviews) ? (reviews as StoreReview[]) : []
+  } catch {
+    return []
+  }
+};
+
 /**
  * The signed-in customer's own reviews. `GET /store/reviews` without a
  * product/seller filter scopes to the session customer (auth required).
