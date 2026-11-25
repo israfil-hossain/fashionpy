@@ -4,6 +4,23 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Mobile PDP sticky buy bar (2026-11-25), `main`
+
+Product pages now show a fixed bottom purchase bar below `lg`: price (with
+strikethrough original), a tonal "Buy now" pill and a gradient "Add to cart"
+pill, with safe-area padding and a blurred white surface. The inline Add button
+is hidden on mobile, the page has bottom padding so content isn't covered, and
+the chatbot launcher is lifted above the bar via a `:has()` CSS rule. "Buy now"
+adds the selected offer then routes to `/{locale}/checkout`; the shared add
+helper no longer opens the cart drawer for that path.
+
+- Evidence: Playwright at 375px: bar spans x=0..375 at y=745..812, both CTAs
+  visible/fit (`scrollWidth === innerWidth`), hidden at 1280px; add updates the
+  cart drawer with the confirmed line/subtotal, Buy now navigates to
+  `/bd/checkout`; lint 0; storefront build passes; tsc back to the 138-line
+  baseline with no errors in touched files. Temp inventory rows used for the
+  browser check were removed.
+
 ## Session — Add to cart with multi-channel key (2026-11-25), `main`
 
 Root cause of "add to cart does nothing": the production publishable key is

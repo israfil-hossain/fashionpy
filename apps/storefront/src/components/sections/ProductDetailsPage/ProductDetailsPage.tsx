@@ -133,7 +133,7 @@ export const ProductDetailsPage = async ({
       </div>
 
       <div
-        className="flex flex-col gap-6 lg:flex-row lg:gap-8"
+        className="flex flex-col gap-6 pb-28 lg:flex-row lg:gap-8 lg:pb-0"
         data-testid="product-details-page"
       >
         <div

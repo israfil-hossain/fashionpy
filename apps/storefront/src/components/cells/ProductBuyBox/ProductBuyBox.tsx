@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from '@/components/atoms/Button/Button';
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
@@ -64,6 +65,7 @@ export const ProductBuyBox = ({
   const { addToCart, cart, isAddingItem } = useCartContext()
   const { allSearchParams } = useGetAllSearchParams()
   const { openDrawer } = useCartDrawer()
+  const router = useRouter()
   const [isCompareOpen, setIsCompareOpen] = useState(false)
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false)
   const [quantity, setQuantity] = useState(1)
@@ -153,8 +155,8 @@ export const ProductBuyBox = ({
     seller?.default_leadtime_to_ship ??
     null
 
-  const handleAddToCart = async () => {
-    if (!winnerOffer || isAddToCartDisabled) return
+  const addSelectedOffer = async (showCartDrawer: boolean) => {
+    if (!winnerOffer || isAddToCartDisabled) return false
 
     const total = offerAmount as number
     const subtotal =
@@ -173,7 +175,9 @@ export const ProductBuyBox = ({
       metadata: { offer_id: winnerOffer.id },
     }
 
-    openDrawer()
+    if (showCartDrawer) {
+      openDrawer()
+    }
     setQuantity(1)
 
     try {
@@ -183,11 +187,20 @@ export const ProductBuyBox = ({
         countryCode: locale,
         optimisticItem: { item: storeCartLineItem, currencyCode: offerCurrency },
       })
-    } catch (error) {
+      return true
+    } catch {
       toast.error({
         title: "Error adding to cart",
         description: "This offer does not have the required inventory",
       })
+      return false
+    }
+  }
+
+  const handleBuyNow = async () => {
+    const added = await addSelectedOffer(false)
+    if (added) {
+      router.push(`/${locale}/checkout`)
     }
   }
 
@@ -345,10 +358,10 @@ export const ProductBuyBox = ({
             </button>
           </div>
           <Button
-            onClick={handleAddToCart}
+            onClick={() => addSelectedOffer(true)}
             disabled={isAddToCartDisabled}
             loading={isAddingItem}
-            className="flex w-full justify-center py-3 uppercase"
+            className="hidden w-full justify-center py-3 uppercase lg:flex"
             size="large"
             data-testid="product-add-to-cart-button"
           >
@@ -359,7 +372,7 @@ export const ProductBuyBox = ({
         <div className="mb-4">
           <Button
             disabled
-            className="flex w-full justify-center py-3"
+            className="hidden w-full justify-center py-3 lg:flex"
             size="large"
             data-testid="product-add-to-cart-button"
           >
@@ -414,6 +427,49 @@ export const ProductBuyBox = ({
       )}
 
       <ProductDeliveryTeaser leadtimeDays={leadtimeDays} />
+
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-100 bg-white/95 px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-3 shadow-[0_-10px_30px_rgba(0,0,0,0.1)] backdrop-blur-md lg:hidden"
+        data-testid="product-mobile-buy-bar"
+      >
+        <div className="mx-auto flex max-w-[520px] items-center gap-2.5">
+          <div className="min-w-0 flex-1">
+            <p className="label-sm uppercase tracking-wide text-secondary">
+              Price
+            </p>
+            <div className="flex items-baseline gap-1.5">
+              <span className="truncate text-lg font-semibold tabular-nums text-[rgb(var(--brand-600))]">
+                {displayPrice ?? "—"}
+              </span>
+              {originalPriceLabel && (
+                <span className="label-sm shrink-0 text-secondary line-through">
+                  {originalPriceLabel}
+                </span>
+              )}
+            </div>
+          </div>
+          <Button
+            variant="tonal"
+            size="large"
+            onClick={handleBuyNow}
+            disabled={isAddToCartDisabled || isAddingItem}
+            className="h-11 shrink-0 rounded-full border border-[rgb(var(--brand-200))] bg-white px-4 text-xs font-semibold uppercase tracking-wide text-[rgb(var(--brand-600))] shadow-sm transition-all hover:bg-[rgb(var(--brand-50))]"
+            data-testid="product-buy-now-button"
+          >
+            Buy now
+          </Button>
+          <Button
+            size="large"
+            onClick={() => addSelectedOffer(true)}
+            disabled={isAddToCartDisabled}
+            loading={isAddingItem}
+            className="h-11 shrink-0 rounded-full bg-gradient-to-r from-[rgb(var(--brand-500))] to-[#e2578c] px-4 text-xs font-semibold uppercase tracking-wide text-white shadow-lg transition-all hover:brightness-105"
+            data-testid="product-mobile-add-to-cart-button"
+          >
+            {offerStock ? "Add to cart" : "Out of stock"}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
