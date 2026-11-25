@@ -70,7 +70,7 @@ const RENDERERS: Record<
 }
 
 const WRAPPERS: Record<HomeSectionId, string | null> = {
-  hero: null,
+  hero: PLAIN_WRAPPER,
   categories: "pt-3",
   trust_bar: "px-4 pt-3 lg:px-16",
   collection_slider: PLAIN_WRAPPER,

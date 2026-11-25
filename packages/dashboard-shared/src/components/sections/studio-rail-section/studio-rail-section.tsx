@@ -1,5 +1,7 @@
 import { useState } from "react"
 
+import { ChevronDownMini } from "@medusajs/icons"
+
 import {
   Badge,
   Button,
@@ -12,7 +14,7 @@ import {
 } from "@medusajs/ui"
 
 import {
-  STUDIO_RAIL_IMAGE_PROMPT,
+  STUDIO_RAIL_IMAGE_PROMPTS,
   STUDIO_RAIL_PROMPT_STEPS,
 } from "./image-prompt"
 
@@ -148,15 +150,18 @@ export const StudioRailSection = ({
   const [back, setBack] = useState(() => readUrl(metadata[STUDIO_RAIL_KEYS.back]))
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [promptOpen, setPromptOpen] = useState(false)
+  const [openPromptKey, setOpenPromptKey] = useState<string | null>(null)
 
   const change = <T,>(setter: (value: T) => void) => (value: T) => {
     setter(value)
     setDirty(true)
   }
 
-  const handleCopyPrompt = async () => {
+  const handleCopyPrompt = async (value: string) => {
     try {
-      await navigator.clipboard.writeText(STUDIO_RAIL_IMAGE_PROMPT)
+      await navigator.clipboard.writeText(value)
       toast.success("Studio Rail prompt copied")
     } catch {
       toast.error("Could not copy the prompt. Select the text and copy it manually.")
@@ -200,19 +205,31 @@ export const StudioRailSection = ({
             {enabled ? "On" : "Off"}
           </Badge>
         </div>
-        <Button
-          size="small"
-          variant="secondary"
-          onClick={handleSave}
-          disabled={!dirty || saving}
-          isLoading={saving}
-          data-testid="studio-rail-save"
-        >
-          Save
-        </Button>
+        <div className="flex items-center gap-x-2">
+          <Button
+            type="button"
+            size="small"
+            variant="secondary"
+            onClick={() => setOpen(value => !value)}
+            data-testid="studio-rail-toggle"
+          >
+            {open ? "Hide" : "View"}
+            <ChevronDownMini className={clx({ "rotate-180": open })} />
+          </Button>
+          <Button
+            size="small"
+            variant="secondary"
+            onClick={handleSave}
+            disabled={!dirty || saving}
+            isLoading={saving}
+            data-testid="studio-rail-save"
+          >
+            Save
+          </Button>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-y-5 px-6 py-4">
+      {open && <div className="flex flex-col gap-y-5 px-6 py-4">
         <div className="bg-ui-bg-component flex items-start gap-x-3 rounded-lg p-3">
           <Switch
             dir="ltr"
@@ -234,41 +251,93 @@ export const StudioRailSection = ({
           <div className="flex items-center justify-between gap-x-4">
             <div>
               <Text size="small" weight="plus" leading="compact">
-                Standard image prompt
+                Standard image prompts
               </Text>
               <Text size="small" leading="compact" className="text-ui-fg-subtle">
-                Use the same prompt for every product so all studio rail images match.
+                Use these prompts for every product so all studio rail images match.
               </Text>
             </div>
-            <Button
-              type="button"
-              size="small"
-              variant="secondary"
-              onClick={handleCopyPrompt}
-              data-testid="studio-rail-copy-prompt"
-            >
-              Copy prompt
-            </Button>
+            <div className="flex items-center gap-x-2">
+              <Button
+                type="button"
+                size="small"
+                variant="secondary"
+                onClick={() => setPromptOpen(value => !value)}
+                data-testid="studio-rail-prompt-toggle"
+              >
+                {promptOpen ? "Hide prompts" : "View prompts"}
+                <ChevronDownMini className={clx({ "rotate-180": promptOpen })} />
+              </Button>
+            </div>
           </div>
-          <pre
-            className="text-ui-fg-subtle bg-ui-bg-component max-h-56 overflow-auto whitespace-pre-wrap rounded-md p-3 text-xs"
-            data-testid="studio-rail-prompt"
-          >
-            {STUDIO_RAIL_IMAGE_PROMPT}
-          </pre>
-          <div className="flex flex-col gap-y-2">
-            <Text size="small" weight="plus" leading="compact">
-              How to generate and use the images
-            </Text>
-            <ol className="text-ui-fg-subtle list-decimal space-y-1 pl-5 text-xs">
-              {STUDIO_RAIL_PROMPT_STEPS.map(step => (
-                <li key={step.title}>
-                  <span className="text-ui-fg-base font-medium">{step.title}:</span>{" "}
-                  {step.body}
-                </li>
-              ))}
-            </ol>
-          </div>
+          {promptOpen && (
+            <>
+              <Text size="small" leading="compact" className="text-ui-fg-subtle">
+                Generate one image at a time with the matching prompt below. Never put all three views in a single file.
+              </Text>
+              {STUDIO_RAIL_IMAGE_PROMPTS.map(item => {
+                const expanded = openPromptKey === item.key
+                return (
+                  <div
+                    key={item.key}
+                    className="border-ui-border-base flex flex-col gap-y-2 rounded-md border p-3"
+                  >
+                    <div className="flex items-center justify-between gap-x-2">
+                      <Text size="small" weight="plus" leading="compact">
+                        {item.title}
+                      </Text>
+                      <div className="flex items-center gap-x-2">
+                        <Button
+                          type="button"
+                          size="small"
+                          variant="secondary"
+                          onClick={() =>
+                            setOpenPromptKey(expanded ? null : item.key)
+                          }
+                          data-testid={`studio-rail-prompt-toggle-${item.key}`}
+                        >
+                          {expanded ? "Hide" : "View"}
+                          <ChevronDownMini
+                            className={clx({ "rotate-180": expanded })}
+                          />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="small"
+                          variant="secondary"
+                          onClick={() => handleCopyPrompt(item.prompt)}
+                          data-testid={`studio-rail-copy-prompt-${item.key}`}
+                        >
+                          Copy prompt
+                        </Button>
+                      </div>
+                    </div>
+                    {expanded && (
+                      <pre
+                        className="text-ui-fg-subtle bg-ui-bg-component max-h-56 overflow-auto whitespace-pre-wrap rounded-md p-3 text-xs"
+                        data-testid={`studio-rail-prompt-${item.key}`}
+                      >
+                        {item.prompt}
+                      </pre>
+                    )}
+                  </div>
+                )
+              })}
+              <div className="flex flex-col gap-y-2">
+                <Text size="small" weight="plus" leading="compact">
+                  How to generate and use the images
+                </Text>
+                <ol className="text-ui-fg-subtle list-decimal space-y-1 pl-5 text-xs">
+                  {STUDIO_RAIL_PROMPT_STEPS.map(step => (
+                    <li key={step.title}>
+                      <span className="text-ui-fg-base font-medium">{step.title}:</span>{" "}
+                      {step.body}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </>
+          )}
         </div>
 
         <ImagePicker
@@ -296,6 +365,7 @@ export const StudioRailSection = ({
           testId="studio-rail-back"
         />
       </div>
+      }
     </Container>
   )
 }

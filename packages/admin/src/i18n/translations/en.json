@@ -3216,6 +3216,7 @@
       "image": "Image",
       "ctaText": "CTA text",
       "ctaLink": "CTA link",
+      "ctaLinkHint": "Opens the whole hero image when clicked. Leave the CTA inactive to hide the button.",
       "ctaActive": "CTA button active",
       "textPosition": "Text position",
       "slot": "Slot",

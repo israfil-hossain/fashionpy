@@ -11,6 +11,7 @@ import "swiper/css/pagination"
 import "swiper/css/effect-fade"
 
 import type { HeroBannerSlide } from "@/lib/data/hero-banners"
+import { hasHeroText } from "@/lib/helpers/hero-slide"
 
 type Slide = HeroBannerSlide
 
@@ -33,11 +34,16 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
           pauseOnMouseEnter: true,
         }}
         loop={visibleSlides.length > 1}
-        className="hero-swiper"
+        className="hero-swiper overflow-hidden rounded-2xl"
       >
-        {visibleSlides.map((slide, i) => (
-          <SwiperSlide key={slide.id}>
-            <div className="relative w-full h-[240px] md:h-[360px] lg:h-[420px]">
+        {visibleSlides.map((slide, i) => {
+          const showText = hasHeroText(slide)
+          const showButton =
+            slide.ctaActive && Boolean(slide.ctaText || slide.ctaLink)
+          const showOverlay = showText || showButton
+
+          const content = (
+            <>
               <Image
                 src={slide.image}
                 alt={slide.title ?? ""}
@@ -47,59 +53,83 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
                 quality={90}
                 sizes="100vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
-
-              <div className="absolute inset-0 flex items-center">
-                <div
-                  className={`container mx-auto px-4 lg:px-8 ${
-                    slide.textPosition === "center"
-                      ? "text-center"
-                      : slide.textPosition === "right"
-                        ? "text-right ml-auto"
-                        : ""
-                  }`}
-                >
+              {showOverlay && (
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+              )}
+              {showOverlay && (
+                <div className="absolute inset-0 flex items-center">
                   <div
-                    className={`max-w-2xl ${
+                    className={`container mx-auto px-4 lg:px-8 ${
                       slide.textPosition === "center"
-                        ? "mx-auto"
+                        ? "text-center"
                         : slide.textPosition === "right"
-                          ? "ml-auto"
+                          ? "text-right ml-auto"
                           : ""
                     }`}
                   >
-                    <div className="animate-fade-in-up">
-                      <p className="text-white/90 text-xs md:text-sm font-medium mb-2 uppercase tracking-wider">
-                        {slide.subtitle ?? ""}
-                      </p>
-                      {slide.title ? (
-                        <h1 className="text-white text-2xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight">
-                          {slide.title}
-                        </h1>
-                      ) : null}
-                      <p className="hidden md:block text-white/90 text-base mb-5 max-w-xl">
-                        {slide.description ?? ""}
-                      </p>
-                      {slide.ctaActive ? (
-                        <Link
-                          href={slide.ctaLink ?? "/categories"}
-                          className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 text-xs rounded-full md:gap-3 md:px-6 md:py-3 md:rounded-sm md:text-sm font-bold uppercase hover:bg-black hover:text-white transition-all duration-300 group"
-                          data-testid="hero-cta"
-                        >
-                          {slide.ctaText ?? "Shop Now"}
-                          <ArrowRightIcon
-                            size={20}
-                            className="group-hover:translate-x-1 transition-transform"
-                          />
-                        </Link>
-                      ) : null}
+                    <div
+                      className={`max-w-2xl ${
+                        slide.textPosition === "center"
+                          ? "mx-auto"
+                          : slide.textPosition === "right"
+                            ? "ml-auto"
+                            : ""
+                      }`}
+                    >
+                      <div className="animate-fade-in-up">
+                        {slide.subtitle ? (
+                          <p className="text-white/90 text-xs md:text-sm font-medium mb-2 uppercase tracking-wider">
+                            {slide.subtitle}
+                          </p>
+                        ) : null}
+                        {slide.title ? (
+                          <h1 className="text-white text-2xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight">
+                            {slide.title}
+                          </h1>
+                        ) : null}
+                        {slide.description ? (
+                          <p className="hidden md:block text-white/90 text-base mb-5 max-w-xl">
+                            {slide.description}
+                          </p>
+                        ) : null}
+                        {showButton && (
+                          <span
+                            className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 text-xs rounded-full md:gap-3 md:px-6 md:py-3 md:rounded-sm md:text-sm font-bold uppercase group"
+                            data-testid="hero-cta"
+                          >
+                            {slide.ctaText ?? "Shop Now"}
+                            <ArrowRightIcon
+                              size={20}
+                              className="group-hover:translate-x-1 transition-transform"
+                            />
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </SwiperSlide>
-        ))}
+              )}
+            </>
+          )
+
+          return (
+            <SwiperSlide key={slide.id}>
+              {slide.ctaLink ? (
+                <Link
+                  href={slide.ctaLink}
+                  className="relative block h-[240px] w-full md:h-[360px] lg:h-[420px]"
+                  data-testid="hero-image-link"
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div className="relative h-[240px] w-full md:h-[360px] lg:h-[420px]">
+                  {content}
+                </div>
+              )}
+            </SwiperSlide>
+          )
+        })}
       </Swiper>
 
       <style jsx global>{`

@@ -174,6 +174,9 @@ export const BannerForm = ({
           <Form.Item>
             <Form.Label>{t("marketplace.banners.ctaLink")}</Form.Label>
             <Form.Control><Input {...field} value={field.value ?? ""} /></Form.Control>
+            <Text size="small" className="text-ui-fg-subtle">
+              {t("marketplace.banners.ctaLinkHint")}
+            </Text>
           </Form.Item>
         )} />
         <Form.Field control={form.control} name="cta_active" render={({ field }) => (

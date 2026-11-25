@@ -242,6 +242,10 @@ button:disabled svg path {
   position: relative;
   width: 100%;
   overflow: hidden;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 24px 26px 16px;
 }
 
 .studio-rail__header {
@@ -250,7 +254,7 @@ button:disabled svg path {
   align-items: flex-end;
   gap: 16px;
   flex-wrap: wrap;
-  padding: 26px 26px 6px;
+  padding: 0 0 6px;
 }
 
 .studio-rail__subline {
@@ -358,7 +362,7 @@ button:disabled svg path {
 .studio-rail__sway {
   position: relative;
   transform-origin: 50% 0;
-  animation: studio-rail-sway 6.5s ease-in-out infinite;
+  animation: studio-rail-sway var(--sway-duration, 8s) ease-in-out infinite;
   animation-delay: var(--sway-delay, 0s);
   perspective: 900px;
   perspective-origin: 50% 28%;
@@ -490,10 +494,11 @@ button:disabled svg path {
     --garment-w: 158px;
     --rail-y: 18px;
     --track-pad: 18px;
+    padding: 16px 12px 12px;
   }
 
   .studio-rail__header {
-    padding: 20px 16px 4px;
+    padding: 0 0 4px;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
@@ -541,11 +546,23 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
 
 @keyframes studio-rail-sway {
   0%,
+  14%,
+  42%,
+  76%,
   100% {
-    transform: rotate(-1.3deg);
+    transform: rotate(var(--sway-rest, 0deg));
   }
-  50% {
-    transform: rotate(1.3deg);
+  22% {
+    transform: rotate(calc(var(--sway-rest, 0deg) + 1.6deg));
+  }
+  30% {
+    transform: rotate(calc(var(--sway-rest, 0deg) - 0.9deg));
+  }
+  84% {
+    transform: rotate(calc(var(--sway-rest, 0deg) - 1.3deg));
+  }
+  91% {
+    transform: rotate(calc(var(--sway-rest, 0deg) + 0.6deg));
   }
 }
 
@@ -568,7 +585,6 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
 .studio-rail__image--front {
   z-index: 1;
   opacity: 0;
-  mix-blend-mode: normal;
   transform: rotateY(180deg);
   transition: opacity 0.4s ease;
 }
@@ -599,7 +615,7 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
   position: fixed;
   inset: 0;
   z-index: 60;
-  animation: studio-qv-in 0.28s ease;
+  animation: studio-qv-in 0.45s ease both;
 }
 
 @keyframes studio-qv-in {
@@ -615,6 +631,7 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
   position: absolute;
   inset: 0;
   background: rgb(var(--neutral-0));
+  animation: studio-qv-in 0.45s ease both;
 }
 
 .studio-qv__panel {
@@ -624,8 +641,21 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
   grid-template-columns: 1fr;
   width: 100%;
   max-width: 1440px;
+  max-height: 100dvh;
   margin: 0 auto;
   overflow-y: auto;
+  animation: studio-qv-panel-in 0.55s cubic-bezier(0.22, 0.8, 0.24, 1) both;
+}
+
+@keyframes studio-qv-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .studio-qv__close {
@@ -829,6 +859,62 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
   }
 }
 
+@media (max-width: 639px) {
+  .studio-qv__panel {
+    height: 100dvh;
+  }
+
+  .studio-qv__close {
+    top: 12px;
+    right: 12px;
+  }
+
+  .studio-qv__media {
+    min-height: 36vh;
+    padding: 60px 16px 4px;
+  }
+
+  .studio-qv__glow {
+    width: 84%;
+    height: 84%;
+  }
+
+  .studio-qv__info {
+    padding: 12px 20px 32px;
+  }
+
+  .studio-qv__title {
+    margin-top: 8px;
+    font-size: 22px;
+    line-height: 28px;
+  }
+
+  .studio-qv__tabs {
+    gap: 18px;
+    margin-top: 18px;
+  }
+
+  .studio-qv__option-group {
+    margin-top: 18px;
+  }
+
+  .studio-qv__option {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+  }
+
+  .studio-qv__cta {
+    margin-top: 22px;
+  }
+
+  .studio-qv__footer {
+    flex-wrap: wrap;
+    margin-top: 24px;
+    padding-top: 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .studio-rail__garment,
   .studio-rail__shadow,
@@ -849,7 +935,10 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
     transform: none;
   }
 
-  .studio-qv {
+  .studio-qv,
+  .studio-qv__backdrop,
+  .studio-qv__panel,
+  .studio-rail__sway {
     animation: none;
   }
 }

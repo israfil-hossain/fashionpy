@@ -23,7 +23,9 @@ const RailItem = ({
   onOpen: (item: StudioRailItem, index: number) => void;
 }) => {
   const style = {
-    '--sway-delay': `${(index % 5) * -1.1}s`
+    '--sway-delay': `${(index % 5) * -1.7}s`,
+    '--sway-duration': `${7 + (index % 3) * 1.2}s`,
+    '--sway-rest': `${index % 2 === 0 ? '-0.4deg' : '0.3deg'}`
   } as React.CSSProperties;
 
   const thumbnail = decodeURIComponent(item.thumbnail as string);
