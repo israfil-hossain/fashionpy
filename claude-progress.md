@@ -4,6 +4,18 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Mobile cart/profile sheet dismissal (2026-11-25), `main`
+
+The cart sheet had a 2s auto-close timer and touch could trigger
+`onPointerLeave`, so mobile sheets disappeared on their own. Removed the timer,
+restricted pointer-leave closing to mouse pointers, and added a shared
+`useDismissOnOutside` hook (pointerdown outside the wrapper + Escape) used by
+both cart and profile headers.
+
+- Evidence: Playwright at 375px — both sheets stay open after 5s, close on an
+  outside tap, and close on Escape; lint 0; storefront build passes; tsc back
+  to the 138-line baseline with no new errors in touched files.
+
 ## Session — Mobile PDP sticky buy bar (2026-11-25), `main`
 
 Product pages now show a fixed bottom purchase bar below `lg`: price (with

@@ -8,9 +8,10 @@ import { CartIcon, CollapseIcon } from "@/icons"
 import { convertToLocale } from "@/lib/helpers/money"
 import { filterValidCartItems } from "@/lib/helpers/filter-valid-cart-items"
 import { HttpTypes } from "@medusajs/types"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import { useCartContext } from "@/components/providers"
+import { useDismissOnOutside } from "@/hooks/useDismissOnOutside"
 
 const getItemCount = (cart: HttpTypes.StoreCart | null) => {
   return cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0
@@ -25,6 +26,9 @@ export const CartDropdown = ({
 }) => {
   const { cart } = useCartContext()
   const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useDismissOnOutside(containerRef, open, () => setOpen(false))
 
   const previousItemCount = usePrevious(getItemCount(cart))
   const cartItemsCount = (cart && getItemCount(cart)) || 0
@@ -53,16 +57,6 @@ export const CartDropdown = ({
   })
 
   useEffect(() => {
-    if (open) {
-      const timeout = setTimeout(() => {
-        setOpen(false)
-      }, 2000)
-
-      return () => clearTimeout(timeout)
-    }
-  }, [open])
-
-  useEffect(() => {
     if (
       previousItemCount !== undefined &&
       cartItemsCount > previousItemCount &&
@@ -74,6 +68,7 @@ export const CartDropdown = ({
 
   return (
     <div
+      ref={containerRef}
       className="relative"
       onPointerOver={(event) => {
         if (
@@ -83,7 +78,11 @@ export const CartDropdown = ({
           setOpen(true)
         }
       }}
-      onPointerLeave={() => setOpen(false)}
+      onPointerLeave={(event) => {
+        if (event.pointerType === "mouse") {
+          setOpen(false)
+        }
+      }}
       onFocus={(event) => {
         if (!(event.target as HTMLElement).closest("[data-dropdown-toggle]")) {
           setOpen(true)

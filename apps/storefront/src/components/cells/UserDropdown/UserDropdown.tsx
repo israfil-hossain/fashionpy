@@ -9,7 +9,8 @@ import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedL
 import { CollapseIcon, ProfileIcon } from "@/icons"
 import { HttpTypes } from "@medusajs/types"
 import { useMessagesUnread } from "@/lib/hooks/useMessagesUnread"
-import { useState } from "react"
+import { useDismissOnOutside } from "@/hooks/useDismissOnOutside"
+import { useRef, useState } from "react"
 
 export const UserDropdown = ({
   isLoggedIn,
@@ -21,11 +22,15 @@ export const UserDropdown = ({
   label?: string
 }) => {
   const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useDismissOnOutside(containerRef, open, () => setOpen(false))
 
   const unreadCount = useMessagesUnread()
 
   return (
     <div
+      ref={containerRef}
       className="relative"
       onPointerOver={(event) => {
         if (
@@ -35,7 +40,11 @@ export const UserDropdown = ({
           setOpen(true)
         }
       }}
-      onPointerLeave={() => setOpen(false)}
+      onPointerLeave={(event) => {
+        if (event.pointerType === "mouse") {
+          setOpen(false)
+        }
+      }}
       onFocus={(event) => {
         if (!(event.target as HTMLElement).closest("[data-dropdown-toggle]")) {
           setOpen(true)
