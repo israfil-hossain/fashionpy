@@ -160,7 +160,13 @@ export function CartProvider({ cartPromise, children }: CartProviderProps) {
         type: 'add'
       },
       getOfferPendingKey(offerId),
-      () => apiAddToCart({ countryCode, offerId, quantity })
+      async () => {
+        const result = await apiAddToCart({ countryCode, offerId, quantity });
+        if (!result.ok) {
+          throw new Error(result.error);
+        }
+        return retrieveCart();
+      }
     );
 
   const updateCartItem: CartContextValue['updateCartItem'] = (seededCart, lineId, quantity) =>

@@ -235,8 +235,10 @@ button:disabled svg path {
 
 /* Studio Rail — clothing rack showcase */
 .studio-rail {
+  --rail-y: 12px;
   --track-pad: 10px;
   --garment-w: 210px;
+  --hanger-w: var(--garment-w);
   --rail-tilt: 0deg;
   position: relative;
   width: 100%;
@@ -316,6 +318,24 @@ button:disabled svg path {
   background: linear-gradient(270deg, #ffffff 12%, rgba(255, 255, 255, 0));
 }
 
+.studio-rail__bar {
+  position: absolute;
+  top: calc(var(--rail-y) - 3px);
+  left: 0;
+  right: 0;
+  height: 6px;
+  z-index: 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    #fbfbf9 0%,
+    #c3c3bb 40%,
+    #77776f 56%,
+    #dcdcd5 100%
+  );
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 .studio-rail__viewport {
   position: relative;
   z-index: 1;
@@ -370,6 +390,17 @@ button:disabled svg path {
   will-change: transform;
 }
 
+.studio-rail__hanger {
+  position: absolute;
+  top: calc(var(--rail-y) - var(--track-pad) - 11 * var(--hanger-w) / 210);
+  left: calc((var(--garment-w) - var(--hanger-w)) / 2);
+  width: var(--hanger-w);
+  height: auto;
+  z-index: 3;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+  transform-origin: 50% 0;
+  transition: transform 0.6s cubic-bezier(0.34, 1.32, 0.64, 1);
+}
 
 .studio-rail__garment {
   position: relative;
@@ -510,6 +541,8 @@ button:disabled svg path {
 @media (max-width: 767px) {
   .studio-rail {
     --garment-w: 158px;
+    --hanger-w: calc(var(--garment-w) * 1.16);
+    --rail-y: 10px;
     --track-pad: 8px;
   }
 
@@ -611,6 +644,11 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
 .studio-rail__slide[data-has-front="true"]:hover .studio-rail__image--front,
 .studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__image--front {
   opacity: 1;
+}
+
+.studio-rail__slide[data-has-front="true"]:hover .studio-rail__hanger,
+.studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__hanger {
+  transform: rotate(-2.5deg);
 }
 
 .studio-rail__slide[data-has-front="true"]:hover .studio-rail__shadow,
@@ -856,6 +894,7 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
 
 @media (prefers-reduced-motion: reduce) {
   .studio-rail__garment,
+  .studio-rail__hanger,
   .studio-rail__shadow,
   .studio-rail__image--back,
   .studio-rail__image--front {
@@ -865,7 +904,9 @@ html[data-reveal-ready] .studio-reveal[data-revealed="true"] {
   .studio-rail__image--back,
   .studio-rail__image--front,
   .studio-rail__slide[data-has-front="true"]:hover .studio-rail__garment,
-  .studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__garment {
+  .studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__garment,
+  .studio-rail__slide[data-has-front="true"]:hover .studio-rail__hanger,
+  .studio-rail__slide[data-has-front="true"]:focus-within .studio-rail__hanger {
     transform: none;
   }
 

@@ -6,9 +6,17 @@ export default function medusaError(error: any): never {
     console.error("Status code:", error.response.status)
     console.error("Headers:", error.response.headers)
 
-    const message = error.response.data.message || error.response.data
+    const data = error.response.data
+    const raw =
+      typeof data === "string"
+        ? data
+        : typeof data?.message === "string"
+        ? data.message
+        : typeof data?.message === "object" && typeof data.message.message === "string"
+        ? data.message.message
+        : "The request could not be completed"
 
-    throw new Error(message.charAt(0).toUpperCase() + message.slice(1) + ".")
+    throw new Error(raw.charAt(0).toUpperCase() + raw.slice(1) + ".")
   } else if (error.request) {
     throw new Error("No response received: " + error.request)
   } else {

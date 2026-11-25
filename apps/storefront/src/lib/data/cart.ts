@@ -105,6 +105,13 @@ export async function updateCart(data: HttpTypes.StoreUpdateCart) {
     .catch(medusaError);
 }
 
+const revalidateCartCache = async () => {
+  const tag = await getCacheTag('carts');
+  if (tag) {
+    revalidateTag(tag, 'max');
+  }
+};
+
 export async function addToCart({
   offerId,
   quantity,
@@ -113,58 +120,57 @@ export async function addToCart({
   offerId: string;
   quantity: number;
   countryCode: string;
-}) {
-  if (!offerId) {
-    throw new Error('Missing offer ID when adding to cart');
-  }
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    if (!offerId) {
+      return { ok: false, error: 'Missing offer ID when adding to cart' };
+    }
 
-  const cart = await getOrSetCart(countryCode);
+    const cart = await getOrSetCart(countryCode);
 
-  if (!cart) {
-    throw new Error('Error retrieving or creating cart');
-  }
+    if (!cart) {
+      return { ok: false, error: 'Error retrieving or creating cart' };
+    }
 
-  const headers = {
-    ...(await getAuthHeaders())
-  };
+    const headers = {
+      ...(await getAuthHeaders())
+    };
 
-  // Line items are offer-scoped: the same variant sold by two sellers are two
-  // distinct offers and two distinct lines. Dedup by the offer stamped on
-  // `metadata.offer_id` (requested by `retrieveCart`).
-  const currentItem = cart.items?.find(
-    item => item.metadata?.offer_id === offerId
-  );
+    // Line items are offer-scoped: the same variant sold by two sellers are two
+    // distinct offers and two distinct lines. Dedup by the offer stamped on
+    // `metadata.offer_id` (requested by `retrieveCart`).
+    const currentItem = cart.items?.find(
+      item => item.metadata?.offer_id === offerId
+    );
 
-  if (currentItem) {
-    await sdk.store.carts.$id.lineItems.$lineId
-      .mutate({
-        $id: cart.id,
-        $lineId: currentItem.id,
-        quantity: currentItem.quantity + quantity,
-        fetchOptions: { headers }
-      })
-      .catch(medusaError)
-      .finally(async () => {
-        const cartCacheTag = await getCacheTag('carts');
-        revalidateTag(cartCacheTag, "max");
-      });
-  } else {
-    await (sdk.store.carts.$id.lineItems
-      .mutate({
-        $id: cart.id,
-        offer_id: offerId,
-        quantity,
-        fetchOptions: { headers }
-      } as never) as unknown as Promise<{ cart: HttpTypes.StoreCart }>)
-      .then(async () => {
-        const cartCacheTag = await getCacheTag('carts');
-        revalidateTag(cartCacheTag, "max");
-      })
-      .catch(medusaError)
-      .finally(async () => {
-        const cartCacheTag = await getCacheTag('carts');
-        revalidateTag(cartCacheTag, "max");
-      });
+    if (currentItem) {
+      await sdk.store.carts.$id.lineItems.$lineId
+        .mutate({
+          $id: cart.id,
+          $lineId: currentItem.id,
+          quantity: currentItem.quantity + quantity,
+          fetchOptions: { headers }
+        })
+        .catch(medusaError);
+    } else {
+      await (sdk.store.carts.$id.lineItems
+        .mutate({
+          $id: cart.id,
+          offer_id: offerId,
+          quantity,
+          fetchOptions: { headers }
+        } as never) as unknown as Promise<{ cart: HttpTypes.StoreCart }>)
+        .catch(medusaError);
+    }
+
+    await revalidateCartCache();
+    return { ok: true };
+  } catch (error) {
+    console.error('[cart] addToCart failed:', error);
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Failed to add item to cart'
+    };
   }
 }
 
