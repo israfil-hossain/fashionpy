@@ -6,7 +6,7 @@ import { LogoutButton } from '@/components/atoms/LogoutButton/LogoutButton';
 import { NavigationItem } from '@/components/atoms/NavigationItem/NavigationItem';
 import { Dropdown } from '@/components/molecules/Dropdown/Dropdown';
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
-import { ProfileIcon } from "@/icons"
+import { CollapseIcon, ProfileIcon } from "@/icons"
 import { HttpTypes } from "@medusajs/types"
 import { useMessagesUnread } from "@/lib/hooks/useMessagesUnread"
 import { useState } from "react"
@@ -27,22 +27,58 @@ export const UserDropdown = ({
   return (
     <div
       className="relative"
-      onMouseOver={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-      onFocus={() => setOpen(true)}
+      onPointerOver={(event) => {
+        if (
+          event.pointerType === "mouse" &&
+          !(event.target as HTMLElement).closest("[data-dropdown-toggle]")
+        ) {
+          setOpen(true)
+        }
+      }}
+      onPointerLeave={() => setOpen(false)}
+      onFocus={(event) => {
+        if (!(event.target as HTMLElement).closest("[data-dropdown-toggle]")) {
+          setOpen(true)
+        }
+      }}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setOpen(false)
+        }
+      }}
     >
-      <LocalizedClientLink
-        href={isLoggedIn ? "/user" : "/login"}
-        className="flex flex-col items-center gap-1"
-        aria-label="Go to user profile"
-      >
-        <ProfileIcon size={20} color={iconColor} />
-        {label && (
-          <span className="hidden text-[11px] font-medium lg:block">
-            {label}
-          </span>
-        )}
-      </LocalizedClientLink>
+      <div className="flex items-center gap-1">
+        <LocalizedClientLink
+          href={isLoggedIn ? "/user" : "/login"}
+          className="flex flex-col items-center gap-1"
+          aria-label="Go to user profile"
+        >
+          <ProfileIcon size={20} color={iconColor} />
+          {label && (
+            <span className="hidden text-[11px] font-medium lg:block">
+              {label}
+            </span>
+          )}
+        </LocalizedClientLink>
+        <button
+          type="button"
+          className="flex h-6 w-5 items-center justify-center sm:hidden"
+          aria-label={open ? "Close profile menu" : "Open profile menu"}
+          aria-expanded={open}
+          data-dropdown-toggle=""
+          data-testid="user-dropdown-toggle"
+          onClick={(event) => {
+            event.preventDefault()
+            setOpen((value) => !value)
+          }}
+        >
+          <CollapseIcon
+            size={16}
+            color={iconColor ?? "currentColor"}
+            className={open ? "rotate-180" : ""}
+          />
+        </button>
+      </div>
       <Dropdown show={open}>
         {isLoggedIn ? (
           <div className="p-1">
@@ -55,7 +91,7 @@ export const UserDropdown = ({
             <NavigationItem href="/user/messages" className="relative">
               Messages
               {unreadCount > 0 && (
-                <Badge className="absolute top-3 left-24 w-4 h-4 p-0">
+                <Badge className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 p-0">
                   {unreadCount}
                 </Badge>
               )}

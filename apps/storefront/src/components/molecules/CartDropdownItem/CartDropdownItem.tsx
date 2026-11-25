@@ -21,14 +21,14 @@ export const CartDropdownItem = ({
 
   return (
     <div className="border rounded-sm p-1 flex gap-2 mb-4">
-      <div className="w-[100px] h-[132px] flex items-center justify-center">
+      <div className="flex h-[96px] w-[72px] shrink-0 items-center justify-center sm:h-[132px] sm:w-[100px]">
         {item.thumbnail ? (
           <Image
             src={decodeURIComponent(item.thumbnail)}
             alt={item.product_title || ""}
             width={80}
             height={90}
-            className="w-[80px] h-[90px] object-cover rounded-xs"
+            className="h-[84px] w-[64px] rounded-xs object-cover sm:h-[90px] sm:w-[80px]"
             priority
           />
         ) : (
@@ -42,8 +42,8 @@ export const CartDropdownItem = ({
         )}
       </div>
 
-      <div className="py-2">
-        <h4 className="heading-xs">{item.product_title}</h4>
+      <div className="min-w-0 flex-1 py-2">
+        <h4 className="heading-xs break-words">{item.product_title}</h4>
         <div className="label-md text-secondary">
           {Object.entries(item.variant_option_values ?? {}).map(([title, value]) => (
             <p key={title}>

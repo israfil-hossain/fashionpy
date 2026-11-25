@@ -4,6 +4,23 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Mobile header dropdowns (2026-11-25), `main`
+
+Cart and profile hover panels overflowed narrow viewports (`Dropdown.tsx` used
+`absolute -right-2 w-max` anchored to the icon). On mobile the shared panel is
+now a viewport-anchored bottom sheet (`fixed inset-x-2 bottom-2 max-h-[70dvh]`,
+scrollable); at `sm+` it keeps the original icon-anchored dropdown. Added
+mobile-only chevron toggles on both header icons, ignored hover/focus from the
+toggle so taps open reliably, and tightened cart-item imagery/text plus the
+messages unread badge for narrow panels.
+
+- Evidence: `bun run lint` 0; storefront build passes; Playwright at 320/375/
+  640/1024/1440px: panels stay inside the viewport (e.g. 375px → left 8/right
+  367, `scrollWidth === innerWidth`) and desktop hover positioning is unchanged;
+  tap-toggle verified from a fresh page on both icons.
+- Storefront `tsc` still has only the baseline errors (CartDropdown lines 29/30
+  pre-existing; no new errors in touched files).
+
 ## Session — Seller storefront design (2026-11-25), `main`
 
 SPEC-023 (`docs/specs/SPEC-023-seller-storefront-design.md`, `in_progress`) —
