@@ -3,7 +3,11 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 
 export const GET = async (
   req: MedusaRequest,
-  res: MedusaResponse<{ announcement: unknown; home_layout: unknown }>
+  res: MedusaResponse<{
+    announcement: unknown
+    home_layout: unknown
+    default_sales_channel_id: string | null
+  }>
 ) => {
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
@@ -12,13 +16,14 @@ export const GET = async (
   // included) silently resolve to null.
   const { data } = await query.graph({
     entity: "store",
-    fields: ["id", "name", "metadata"],
+    fields: ["id", "name", "metadata", "default_sales_channel_id"],
   })
 
   const store = (
     data as Array<{
       id?: string
       metadata?: Record<string, unknown> | null
+      default_sales_channel_id?: string | null
     }>
   )[0]
   const metadata = store?.metadata ?? {}
@@ -33,5 +38,6 @@ export const GET = async (
   res.json({
     announcement: metadata.announcement ?? null,
     home_layout: metadata.home_layout ?? null,
+    default_sales_channel_id: store?.default_sales_channel_id ?? null,
   })
 }

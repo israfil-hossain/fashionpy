@@ -59,10 +59,41 @@ export async function getOrSetCart(countryCode: string) {
   };
 
   if (!cart) {
-    const cartResp = await sdk.store.carts.mutate({
-      region_id: region.id,
-      fetchOptions: { headers }
-    });
+    let salesChannelId: string | undefined;
+    try {
+      const storeSettings = (
+        sdk.store as unknown as {
+          storeSettings: {
+            query: (input: Record<string, unknown>) => Promise<{
+              default_sales_channel_id?: string | null
+            }>
+          }
+        }
+      ).storeSettings;
+      const settings = await storeSettings.query({
+        fetchOptions: { headers, cache: 'no-store' }
+      });
+      salesChannelId = settings?.default_sales_channel_id ?? undefined;
+    } catch {
+      salesChannelId = undefined;
+    }
+
+    let cartResp;
+    try {
+      cartResp = await sdk.store.carts.mutate({
+        region_id: region.id,
+        ...(salesChannelId ? { sales_channel_id: salesChannelId } : {}),
+        fetchOptions: { headers }
+      });
+    } catch (error) {
+      if (!salesChannelId) {
+        throw error;
+      }
+      cartResp = await sdk.store.carts.mutate({
+        region_id: region.id,
+        fetchOptions: { headers }
+      });
+    }
     cart = cartResp.cart;
 
     await setCartId(cart.id);

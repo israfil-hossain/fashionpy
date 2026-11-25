@@ -57,6 +57,27 @@ medusaIntegrationTestRunner({
         expect(response.data.home_layout).toEqual(layout)
       })
 
+      it("exposes the default sales channel needed to create carts", async () => {
+        const settings = await api.get("/store/store-settings", storeHeaders)
+        expect(settings.status).toEqual(200)
+        expect(settings.data.default_sales_channel_id).toBeTruthy()
+
+        const regions = await api.get("/store/regions", storeHeaders)
+        const cart = await api.post(
+          "/store/carts",
+          {
+            region_id: regions.data.regions[0].id,
+            sales_channel_id: settings.data.default_sales_channel_id,
+          },
+          storeHeaders
+        )
+
+        expect(cart.status).toEqual(200)
+        expect(cart.data.cart.sales_channel_id).toEqual(
+          settings.data.default_sales_channel_id
+        )
+      })
+
       it("keeps unrelated metadata keys when the layout is replaced", async () => {
         await api.post(
           `/admin/stores/${storeId}`,

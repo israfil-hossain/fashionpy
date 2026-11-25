@@ -137,11 +137,11 @@ export function CartProvider({ cartPromise, children }: CartProviderProps) {
 
         try {
           const cart = await mutation();
-          start(() => setConfirmedCart(cart));
+          setConfirmedCart(cart);
           resolve();
         } catch (error) {
           const cart = await retrieveCart().catch(() => null);
-          start(() => setConfirmedCart(cart));
+          setConfirmedCart(cart);
           reject(error);
         }
       });

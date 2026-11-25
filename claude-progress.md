@@ -4,6 +4,28 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Add to cart with multi-channel key (2026-11-25), `main`
+
+Root cause of "add to cart does nothing": the production publishable key is
+associated with two sales channels. `getOrSetCart` created carts with only
+`region_id`, so Medusa rejected them with *"Cannot assign sales channel to cart
+… provide a sales channel ID in the request body"* and the UI showed the
+generic inventory toast. Reproduced locally by attaching a second sales channel
+to the dev key.
+
+- `/store/store-settings` now returns `default_sales_channel_id`; the storefront
+  sends it when creating a cart (no-store read, safe fallback to a channel-less
+  create), plus a new integration test.
+- `CartProvider.mutate` no longer nests `setConfirmedCart` in a second
+  transition — that left `isUpdating` stuck forever ("Updating…" in the cart
+  drawer after every add).
+- Verified in the browser with the two-channel key: fresh add from a seller
+  storefront creates the cart cookie, shows the confirmed line + subtotal, and
+  survives reload; add from seller/PDP works. Lint 0, core + storefront builds
+  pass, storefront tsc back to the 138-line baseline. Integration spec added
+  but not run locally (no test DB). Temporary DB rows used for reproduction
+  were removed.
+
 ## Session — Mobile header dropdowns (2026-11-25), `main`
 
 Cart and profile hover panels overflowed narrow viewports (`Dropdown.tsx` used
