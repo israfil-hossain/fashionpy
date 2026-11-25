@@ -11,6 +11,11 @@ import {
   clx,
 } from "@medusajs/ui"
 
+import {
+  STUDIO_RAIL_IMAGE_PROMPT,
+  STUDIO_RAIL_PROMPT_STEPS,
+} from "./image-prompt"
+
 export const STUDIO_RAIL_KEYS = {
   enabled: "show_in_studio_rail",
   thumbnail: "studio_rail_thumbnail",
@@ -149,6 +154,15 @@ export const StudioRailSection = ({
     setDirty(true)
   }
 
+  const handleCopyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(STUDIO_RAIL_IMAGE_PROMPT)
+      toast.success("Studio Rail prompt copied")
+    } catch {
+      toast.error("Could not copy the prompt. Select the text and copy it manually.")
+    }
+  }
+
   const handleSave = async () => {
     setSaving(true)
 
@@ -213,6 +227,47 @@ export const StudioRailSection = ({
             <Text size="small" leading="compact" className="text-ui-fg-subtle">
               When on, this product appears on the storefront studio rail.
             </Text>
+          </div>
+        </div>
+
+        <div className="border-ui-border-base flex flex-col gap-y-3 rounded-lg border p-4">
+          <div className="flex items-center justify-between gap-x-4">
+            <div>
+              <Text size="small" weight="plus" leading="compact">
+                Standard image prompt
+              </Text>
+              <Text size="small" leading="compact" className="text-ui-fg-subtle">
+                Use the same prompt for every product so all studio rail images match.
+              </Text>
+            </div>
+            <Button
+              type="button"
+              size="small"
+              variant="secondary"
+              onClick={handleCopyPrompt}
+              data-testid="studio-rail-copy-prompt"
+            >
+              Copy prompt
+            </Button>
+          </div>
+          <pre
+            className="text-ui-fg-subtle bg-ui-bg-component max-h-56 overflow-auto whitespace-pre-wrap rounded-md p-3 text-xs"
+            data-testid="studio-rail-prompt"
+          >
+            {STUDIO_RAIL_IMAGE_PROMPT}
+          </pre>
+          <div className="flex flex-col gap-y-2">
+            <Text size="small" weight="plus" leading="compact">
+              How to generate and use the images
+            </Text>
+            <ol className="text-ui-fg-subtle list-decimal space-y-1 pl-5 text-xs">
+              {STUDIO_RAIL_PROMPT_STEPS.map(step => (
+                <li key={step.title}>
+                  <span className="text-ui-fg-base font-medium">{step.title}:</span>{" "}
+                  {step.body}
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
 

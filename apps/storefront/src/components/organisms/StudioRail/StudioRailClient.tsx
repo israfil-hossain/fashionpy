@@ -9,7 +9,6 @@ import LocalizedClientLink from '@/components/molecules/LocalizedLink/LocalizedL
 import { ArrowLeftIcon, ArrowRightIcon } from '@/icons';
 import type { StudioRailGroup, StudioRailItem } from '@/types/studio-rail';
 
-import { HangerFrame } from './HangerFrame';
 import { StudioRailQuickView } from './StudioRailQuickView';
 
 const RailItem = ({
@@ -61,7 +60,6 @@ const RailItem = ({
       >
         <div className="studio-rail__tilt">
           <div className="studio-rail__sway">
-            <HangerFrame className="studio-rail__hanger" />
             <div className="studio-rail__garment">
               <Image
                 src={thumbnail}
@@ -265,10 +263,6 @@ export const StudioRailClient = ({
             ))}
           </ul>
         </div>
-        <div
-          className="studio-rail__floor"
-          aria-hidden="true"
-        />
 
         <button
           type="button"
