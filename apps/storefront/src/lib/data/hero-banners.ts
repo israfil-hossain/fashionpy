@@ -11,12 +11,13 @@ export type HeroBannerSlot =
 
 export type HeroBannerSlide = {
   id: string
-  title: string
+  title: string | null
   subtitle: string | null
   description: string | null
   image: string
   ctaText: string | null
   ctaLink: string | null
+  ctaActive: boolean
   textPosition: "left" | "center" | "right"
   slot: HeroBannerSlot
   startsAt?: string | null
@@ -48,6 +49,7 @@ const listBannersForSlot = async (slot: HeroBannerSlot): Promise<HeroBannerSlide
         image: b.image_url,
         ctaText: b.cta_text ?? null,
         ctaLink: b.cta_link ?? null,
+        ctaActive: b.cta_active !== false,
         textPosition: (b.text_position ?? "left") as "left" | "center" | "right",
         slot: (b.slot ?? slot) as HeroBannerSlot,
         startsAt: b.starts_at ?? null,

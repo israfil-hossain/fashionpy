@@ -3212,6 +3212,7 @@
       "image": "Image",
       "ctaText": "CTA text",
       "ctaLink": "CTA link",
+      "ctaActive": "CTA button active",
       "textPosition": "Text position",
       "slot": "Slot",
       "slotAll": "All slots",

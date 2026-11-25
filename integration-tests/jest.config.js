@@ -60,5 +60,6 @@ if (process.env.TEST_TYPE === "integration:http") {
     "**/packages/core/src/**/__tests__/**/*.unit.spec.[jt]s",
     "**/packages/providers/**/src/**/__tests__/**/*.unit.spec.[jt]s",
     "**/apps/api/src/**/__tests__/**/*.unit.spec.[jt]s",
+    "**/integration-tests/unit/**/*.unit.spec.[jt]s",
   ]
 }

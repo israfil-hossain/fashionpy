@@ -23,12 +23,13 @@ export const SLOT_VALUES = [
 ] as const
 
 const Schema = z.object({
-  title: z.string().min(1),
+  title: z.string(),
   subtitle: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
   image_url: z.string().url(),
   cta_text: z.string().optional().nullable(),
   cta_link: z.string().optional().nullable(),
+  cta_active: z.boolean().default(true),
   text_position: z.enum(["left", "center", "right"]).default("left"),
   slot: z.enum(SLOT_VALUES).default("hero"),
   is_active: z.boolean().default(true),
@@ -44,6 +45,7 @@ const empty: BannerFormValues = {
   image_url: "",
   cta_text: "",
   cta_link: "",
+  cta_active: true,
   text_position: "left",
   slot: "hero",
   is_active: true,
@@ -72,6 +74,7 @@ export const BannerForm = ({
           image_url: initial.image_url ?? "",
           cta_text: initial.cta_text ?? "",
           cta_link: initial.cta_link ?? "",
+          cta_active: initial.cta_active ?? true,
           text_position: initial.text_position ?? "left",
           slot: initial.slot ?? "hero",
           is_active: initial.is_active ?? true,
@@ -99,12 +102,13 @@ export const BannerForm = ({
   const onSubmit = form.handleSubmit(async (values) => {
     try {
       const payload = {
-        title: values.title,
+        title: values.title || null,
         subtitle: values.subtitle || null,
         description: values.description || null,
         image_url: values.image_url,
         cta_text: values.cta_text || null,
         cta_link: values.cta_link || null,
+        cta_active: values.cta_active,
         text_position: values.text_position,
         slot: values.slot,
         is_active: values.is_active,
@@ -170,6 +174,20 @@ export const BannerForm = ({
           <Form.Item>
             <Form.Label>{t("marketplace.banners.ctaLink")}</Form.Label>
             <Form.Control><Input {...field} value={field.value ?? ""} /></Form.Control>
+          </Form.Item>
+        )} />
+        <Form.Field control={form.control} name="cta_active" render={({ field }) => (
+          <Form.Item>
+            <Form.Label>{t("marketplace.banners.ctaActive")}</Form.Label>
+            <Form.Control>
+              <Select value={field.value ? "true" : "false"} onValueChange={(v) => field.onChange(v === "true")}>
+                <Select.Trigger><Select.Value /></Select.Trigger>
+                <Select.Content>
+                  <Select.Item value="true">Yes</Select.Item>
+                  <Select.Item value="false">No</Select.Item>
+                </Select.Content>
+              </Select>
+            </Form.Control>
           </Form.Item>
         )} />
         <Form.Field control={form.control} name="text_position" render={({ field }) => (

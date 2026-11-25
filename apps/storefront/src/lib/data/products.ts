@@ -11,7 +11,7 @@ import { CACHE_TAGS, getCatalogFetchOptions } from './cache-tags';
 import { getRegion, retrieveRegion } from './regions';
 
 const PRODUCT_LIST_FIELDS =
-  '*variants.calculated_price,+variants.inventory_quantity,*variants.options,*attribute_values,*attribute_values.attribute,*categories';
+  '*variants.calculated_price,+variants.inventory_quantity,*variants.options,*attribute_values,*attribute_values.attribute,*categories,+metadata';
 
 export type SearchFacetBucket = { value: string; count: number };
 

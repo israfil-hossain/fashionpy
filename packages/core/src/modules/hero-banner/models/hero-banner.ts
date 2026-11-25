@@ -12,12 +12,13 @@ const HeroBanner = model.define(
   { tableName: "hero_banner", name: "HeroBanner" },
   {
     id: model.id({ prefix: "hbnr" }).primaryKey(),
-    title: model.text(),
+    title: model.text().nullable(),
     subtitle: model.text().nullable(),
     description: model.text().nullable(),
     image_url: model.text(),
     cta_text: model.text().nullable(),
     cta_link: model.text().nullable(),
+    cta_active: model.boolean().default(true),
     text_position: model.enum(["left", "center", "right"]).default("left"),
     slot: model
       .enum(["hero", "shop_collection", "company_1", "company_2", "offer_price"])

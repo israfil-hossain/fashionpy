@@ -62,6 +62,24 @@ medusaIntegrationTestRunner({
         await api.delete(`/admin/hero-banners/${bannerId}`, adminHeaders)
       })
 
+      it("creates a banner without a title and with the CTA disabled", async () => {
+        const response = await api.post(
+          "/admin/hero-banners",
+          {
+            image_url: "http://example.com/no-title.png",
+            cta_active: false,
+          },
+          adminHeaders
+        )
+
+        expect(response.status).toEqual(201)
+        const banner = response.data.hero_banner
+        expect(banner.title).toBeNull()
+        expect(banner.cta_active).toEqual(false)
+
+        await api.delete(`/admin/hero-banners/${banner.id}`, adminHeaders)
+      })
+
       it("rejects an unknown slot value", async () => {
         const response = await api
           .post(

@@ -2,12 +2,13 @@ export type HeroBannerTextPosition = "left" | "center" | "right"
 
 export interface HeroBannerDTO {
   id: string
-  title: string
+  title: string | null
   subtitle: string | null
   description: string | null
   image_url: string
   cta_text: string | null
   cta_link: string | null
+  cta_active: boolean
   text_position: HeroBannerTextPosition
   is_active: boolean
   rank: number

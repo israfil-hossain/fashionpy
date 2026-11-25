@@ -24,6 +24,8 @@ import { useCartContext } from "@/components/providers"
 import { useCartDrawer } from "@/components/providers/Cart/drawer"
 import { InfoIcon, MinusThinIcon, PlusIcon } from "@/icons"
 import { ProductDeliveryTeaser } from "@/components/cells/ProductDeliveryTeaser/ProductDeliveryTeaser"
+import { SizeGuideDrawer } from "@/components/molecules/SizeGuideDrawer/SizeGuideDrawer"
+import { getSizeChart } from "@/lib/helpers/get-size-chart"
 
 const optionsAsKeymap = (
   variantOptions: HttpTypes.StoreProductVariant["options"]
@@ -63,7 +65,10 @@ export const ProductBuyBox = ({
   const { allSearchParams } = useGetAllSearchParams()
   const { openDrawer } = useCartDrawer()
   const [isCompareOpen, setIsCompareOpen] = useState(false)
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false)
   const [quantity, setQuantity] = useState(1)
+
+  const sizeChart = getSizeChart(product.metadata)
 
   const { cheapestVariant, cheapestPrice } = getProductPrice({
     product,
@@ -287,6 +292,19 @@ export const ProductBuyBox = ({
         <ProductVariants product={product} selectedVariant={selectedVariant} />
       )}
 
+      {sizeChart && (
+        <div className="mb-4 flex justify-end">
+          <button
+            type="button"
+            onClick={() => setIsSizeGuideOpen(true)}
+            className="rounded-xs bg-[rgba(var(--brand-25))] px-3 py-1.5 label-md cursor-pointer text-[rgba(var(--brand-500))]"
+            data-testid="size-guide-trigger"
+          >
+            Size Guide
+          </button>
+        </div>
+      )}
+
       {hasOffer ? (
         <div className="mb-4 flex gap-2">
           <div
@@ -370,6 +388,19 @@ export const ProductBuyBox = ({
             undefined
           }
           onClose={() => setIsCompareOpen(false)}
+        />
+      )}
+
+      {sizeChart && (
+        <SizeGuideDrawer
+          open={isSizeGuideOpen}
+          onClose={() => setIsSizeGuideOpen(false)}
+          title={product.title}
+          thumbnail={product.thumbnail}
+          priceLabel={hasOffer ? displayPrice : variantPrice?.calculated_price}
+          originalPriceLabel={originalPriceLabel}
+          stock={hasOffer ? offerStock : undefined}
+          sizeChart={sizeChart}
         />
       )}
 

@@ -20,7 +20,7 @@ export const CompanyBannerSlot = async ({
         <div className="relative aspect-[16/9] w-full md:aspect-[16/5]">
           <Image
             src={banner.image}
-            alt={banner.title}
+            alt={banner.title ?? ""}
             fill
             sizes="(min-width: 1024px) 90vw, 100vw"
             className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"

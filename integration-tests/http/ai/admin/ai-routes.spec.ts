@@ -271,6 +271,51 @@ medusaIntegrationTestRunner({
         )
       })
 
+      it("surfaces an upstream rate limit on enrich instead of a blank 500", async () => {
+        const created = await api.post(
+          "/admin/products",
+          { title: "Rate Limited Product", status: "published" },
+          adminHeaders
+        )
+
+        global.fetch = (async () =>
+          new Response(
+            JSON.stringify({
+              error: {
+                message: "Provider returned error",
+                code: 429,
+                metadata: {
+                  raw: "test-model is temporarily rate-limited upstream",
+                },
+              },
+            }),
+            {
+              status: 429,
+              headers: {
+                "content-type": "application/json",
+                "retry-after": "0",
+              },
+            }
+          )) as typeof fetch
+
+        const response = await api
+          .post(
+            `/admin/products/${created.data.product.id}/ai/enrich`,
+            {},
+            adminHeaders
+          )
+          .catch(
+            (error: {
+              response: { status: number; data: { message?: string } }
+            }) => error.response
+          )
+
+        expect(response.status).toEqual(400)
+        expect(response.data.message).toContain(
+          "temporarily rate-limited upstream"
+        )
+      })
+
       it("generates a blog draft with hashtags and SEO metadata", async () => {
         mockCompletion(BLOG_DRAFT)
 

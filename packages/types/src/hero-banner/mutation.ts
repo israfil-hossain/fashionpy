@@ -1,12 +1,13 @@
 import { HeroBannerTextPosition } from "./common"
 
 export interface CreateHeroBannerDTO {
-  title: string
+  title?: string | null
   subtitle?: string | null
   description?: string | null
   image_url: string
   cta_text?: string | null
   cta_link?: string | null
+  cta_active?: boolean
   text_position?: HeroBannerTextPosition
   is_active?: boolean
   rank?: number
@@ -16,12 +17,13 @@ export interface CreateHeroBannerDTO {
 }
 
 export interface UpdateHeroBannerDTO {
-  title?: string
+  title?: string | null
   subtitle?: string | null
   description?: string | null
   image_url?: string
   cta_text?: string | null
   cta_link?: string | null
+  cta_active?: boolean
   text_position?: HeroBannerTextPosition
   is_active?: boolean
   rank?: number

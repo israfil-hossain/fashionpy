@@ -4,6 +4,8 @@
  * transient upstream failures free-tier gateways return (429/502/503/504).
  */
 
+import { MedusaError } from "@medusajs/framework/utils"
+
 export type SleepFn = (ms: number) => Promise<void>
 
 export const defaultSleep: SleepFn = (ms) =>
@@ -91,6 +93,22 @@ export function formatProviderHttpError(
 
 export function isRetryableProviderError(err: unknown): boolean {
   return err instanceof ProviderHttpError && RETRYABLE_STATUSES.has(err.status)
+}
+
+/**
+ * Medusa masks unknown errors as "An unknown error occurred". Translate
+ * provider HTTP failures so their actionable message survives the error
+ * handler instead of surfacing as a blank 500 in admin toasts.
+ */
+export function toMedusaProviderError(err: unknown): unknown {
+  if (!(err instanceof ProviderHttpError)) return err
+
+  return new MedusaError(
+    err.status === 429
+      ? MedusaError.Types.NOT_ALLOWED
+      : MedusaError.Types.UNEXPECTED_STATE,
+    err.message
+  )
 }
 
 /**

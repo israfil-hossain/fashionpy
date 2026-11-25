@@ -32,12 +32,13 @@ export const AdminGetHeroBannersParams = createFindParams({
 export type AdminCreateHeroBannerType = z.infer<typeof AdminCreateHeroBanner>
 export const AdminCreateHeroBanner = z
   .object({
-    title: z.string().min(1),
+    title: z.string().nullable().optional(),
     subtitle: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
     image_url: z.string().url(),
     cta_text: z.string().nullable().optional(),
     cta_link: z.string().nullable().optional(),
+    cta_active: z.boolean().optional(),
     text_position: z.enum(["left", "center", "right"]).optional(),
     slot: z
       .enum(["hero", "shop_collection", "company_1", "company_2", "offer_price"])
@@ -53,12 +54,13 @@ export const AdminCreateHeroBanner = z
 export type AdminUpdateHeroBannerType = z.infer<typeof AdminUpdateHeroBanner>
 export const AdminUpdateHeroBanner = z
   .object({
-    title: z.string().min(1).optional(),
+    title: z.string().nullable().optional(),
     subtitle: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
     image_url: z.string().url().optional(),
     cta_text: z.string().nullable().optional(),
     cta_link: z.string().nullable().optional(),
+    cta_active: z.boolean().optional(),
     text_position: z.enum(["left", "center", "right"]).optional(),
     slot: z
       .enum(["hero", "shop_collection", "company_1", "company_2", "offer_price"])

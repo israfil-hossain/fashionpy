@@ -53,8 +53,26 @@ medusaIntegrationTestRunner({
         expect(visible).toBeDefined()
         expect(visible.title).toEqual("Store visible slide")
         expect(visible.is_active).toEqual(true)
+        expect(visible.cta_active).toEqual(true)
         expect(visible).toHaveProperty("starts_at")
         expect(visible).toHaveProperty("ends_at")
+
+        await api.delete(`/admin/hero-banners/${banner.id}`, adminHeaders)
+      })
+
+      it("keeps a banner visible when only its CTA is disabled", async () => {
+        const banner = await createBanner({ cta_active: false })
+
+        const response = await api.get(
+          "/store/hero-banners?slot=hero",
+          storeHeaders
+        )
+
+        const visible = response.data.hero_banners.find(
+          (b: { id: string }) => b.id === banner.id
+        )
+        expect(visible).toBeDefined()
+        expect(visible.cta_active).toEqual(false)
 
         await api.delete(`/admin/hero-banners/${banner.id}`, adminHeaders)
       })

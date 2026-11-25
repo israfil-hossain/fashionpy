@@ -41,7 +41,7 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
             <div className="relative w-full h-[240px] md:h-[360px] lg:h-[420px]">
               <Image
                 src={slide.image}
-                alt={slide.title}
+                alt={slide.title ?? ""}
                 fill
                 className="object-cover"
                 priority={i === 0}
@@ -73,22 +73,27 @@ export const HeroCarousel = ({ slides }: { slides: Slide[] }) => {
                       <p className="text-white/90 text-xs md:text-sm font-medium mb-2 uppercase tracking-wider">
                         {slide.subtitle ?? ""}
                       </p>
-                      <h1 className="text-white text-2xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight">
-                        {slide.title}
-                      </h1>
+                      {slide.title ? (
+                        <h1 className="text-white text-2xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight">
+                          {slide.title}
+                        </h1>
+                      ) : null}
                       <p className="hidden md:block text-white/90 text-base mb-5 max-w-xl">
                         {slide.description ?? ""}
                       </p>
-                      <Link
-                        href={slide.ctaLink ?? "/categories"}
-                        className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 text-xs rounded-full md:gap-3 md:px-6 md:py-3 md:rounded-sm md:text-sm font-bold uppercase hover:bg-black hover:text-white transition-all duration-300 group"
-                      >
-                        {slide.ctaText ?? "Shop Now"}
-                        <ArrowRightIcon
-                          size={20}
-                          className="group-hover:translate-x-1 transition-transform"
-                        />
-                      </Link>
+                      {slide.ctaActive ? (
+                        <Link
+                          href={slide.ctaLink ?? "/categories"}
+                          className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 text-xs rounded-full md:gap-3 md:px-6 md:py-3 md:rounded-sm md:text-sm font-bold uppercase hover:bg-black hover:text-white transition-all duration-300 group"
+                          data-testid="hero-cta"
+                        >
+                          {slide.ctaText ?? "Shop Now"}
+                          <ArrowRightIcon
+                            size={20}
+                            className="group-hover:translate-x-1 transition-transform"
+                          />
+                        </Link>
+                      ) : null}
                     </div>
                   </div>
                 </div>

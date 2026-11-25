@@ -3,6 +3,8 @@
  * user-visible errors, 429s surface the upstream detail, and transient
  * statuses are retried with a short backoff.
  */
+import { MedusaError } from "@medusajs/framework/utils"
+
 import { OpenAICompatibleProvider } from "../providers/openai-compatible"
 import {
   ProviderHttpError,
@@ -10,6 +12,7 @@ import {
   isRetryableProviderError,
   looksLikeHtml,
   parseRetryAfterMs,
+  toMedusaProviderError,
   withTransientRetries,
 } from "../providers/http"
 
@@ -222,6 +225,29 @@ describe("OpenAICompatibleProvider", () => {
     expect((err as Error).message).toContain("temporarily rate-limited upstream")
     expect((err as Error).message).not.toContain('{"error"')
     expect(calls).toBe(3)
+  })
+
+  test("provider HTTP errors keep their message when mapped for Medusa", () => {
+    const limited = toMedusaProviderError(
+      new ProviderHttpError("Chat provider 429: slow down", 429)
+    )
+
+    expect(limited).toBeInstanceOf(MedusaError)
+    expect((limited as MedusaError).type).toBe(MedusaError.Types.NOT_ALLOWED)
+    expect((limited as MedusaError).message).toContain("Chat provider 429")
+
+    const failed = toMedusaProviderError(
+      new ProviderHttpError("Chat provider 502: gateway down", 502)
+    )
+    expect((failed as MedusaError).type).toBe(
+      MedusaError.Types.UNEXPECTED_STATE
+    )
+    expect((failed as MedusaError).message).toContain("gateway down")
+  })
+
+  test("non-provider errors are left untouched", () => {
+    const err = new Error("unrelated")
+    expect(toMedusaProviderError(err)).toBe(err)
   })
 
   test("test() passes a bounded timeout and does not retry timeouts", async () => {

@@ -6,6 +6,7 @@ export const defaultAdminHeroBannerFields = [
   "image_url",
   "cta_text",
   "cta_link",
+  "cta_active",
   "text_position",
   "slot",
   "is_active",

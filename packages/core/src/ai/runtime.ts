@@ -7,11 +7,13 @@ import { z } from "zod"
 import type { AiTask } from "@mercurjs/types"
 
 import {
+  ChatCompletionResult,
   ChatMessage,
   ChatProviderConfig,
   ChatUsage,
   resolveProvider,
 } from "../chatbot/providers"
+import { toMedusaProviderError } from "../chatbot/providers/http"
 import { CHATBOT_MODULE } from "../modules/chatbot"
 import type ChatbotModuleService from "../modules/chatbot/service"
 import { AiResponseError, parseJsonResponse } from "./json"
@@ -110,11 +112,16 @@ export async function completeJson<T>(
   const runtime = await loadAiRuntime(container, input.task, input.fallback_task)
   const provider = resolveProvider(runtime.config)
 
-  const completion = await provider.complete(input.messages, [], {
-    ...runtime.config,
-    max_tokens: input.max_tokens ?? runtime.config.max_tokens,
-    temperature: input.temperature ?? runtime.config.temperature,
-  })
+  let completion: ChatCompletionResult
+  try {
+    completion = await provider.complete(input.messages, [], {
+      ...runtime.config,
+      max_tokens: input.max_tokens ?? runtime.config.max_tokens,
+      temperature: input.temperature ?? runtime.config.temperature,
+    })
+  } catch (error) {
+    throw toMedusaProviderError(error)
+  }
 
   if (!completion.content) {
     throw new MedusaError(
