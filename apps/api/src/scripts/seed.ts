@@ -86,7 +86,9 @@ export default async function seedDemoData({ container }: ExecArgs) {
   const BDT_SCALE = 130;
 
   logger.info("Seeding store data...");
-  const [store] = await storeModuleService.listStores();
+  const [store] = await storeModuleService.listStores({}, {
+    relations: ["supported_currencies"],
+  });
   let defaultSalesChannel = await salesChannelModuleService.listSalesChannels({
     name: "Default Sales Channel",
   });
@@ -106,23 +108,27 @@ export default async function seedDemoData({ container }: ExecArgs) {
     defaultSalesChannel = salesChannelResult;
   }
 
-  await updateStoreCurrencies(container).run({
-    input: {
-      store_id: store.id,
-      supported_currencies: [
-        {
-          currency_code: "bdt",
-          is_default: true,
-        },
-        {
-          currency_code: "eur",
-        },
-        {
-          currency_code: "usd",
-        },
-      ],
-    },
-  });
+  // Seed currencies only on a fresh store. Admin-added currencies (e.g. qar/aed)
+  // must survive a container restart, since this script runs on every boot.
+  if (!store.supported_currencies?.length) {
+    await updateStoreCurrencies(container).run({
+      input: {
+        store_id: store.id,
+        supported_currencies: [
+          {
+            currency_code: "bdt",
+            is_default: true,
+          },
+          {
+            currency_code: "eur",
+          },
+          {
+            currency_code: "usd",
+          },
+        ],
+      },
+    });
+  }
 
   // Demo presentation: seed once, so admin edits (store name, announcement)
   // survive re-seeding — the container runs this script on every boot.
@@ -194,6 +200,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
   };
 
   let region;
+  let seededRegionCreated = false;
   if (unassignedCountries.length === 0) {
     region = existingRegions.find(r =>
       r.countries?.some(c => countries.includes(c.iso_2))
@@ -212,6 +219,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
       },
     });
     region = regionResult[0];
+    seededRegionCreated = true;
   } else {
     const { result: regionResult } = await createRegionsWorkflow(container).run({
       input: {
@@ -224,11 +232,13 @@ export default async function seedDemoData({ container }: ExecArgs) {
       },
     });
     region = regionResult[0];
+    seededRegionCreated = true;
   }
 
   // Older seeds created the bd region as Europe/eur; the storefront resolves
-  // the default region as bd, so normalize name and currency in place.
-  if (region && (region.currency_code !== "bdt" || region.name !== "Bangladesh")) {
+  // the default region as bd, so normalize name and currency in place. Only do
+  // this for a region this seed just created so admin edits survive a restart.
+  if (seededRegionCreated && region && (region.currency_code !== "bdt" || region.name !== "Bangladesh")) {
     await updateRegionsWorkflow(container).run({
       input: {
         selector: { id: region.id },

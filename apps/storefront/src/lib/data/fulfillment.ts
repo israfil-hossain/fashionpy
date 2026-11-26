@@ -27,7 +27,13 @@ export const listCartShippingMethods = async (cartId: string, is_return: boolean
         | StoreCardShippingMethod[]
         | null;
     }>)
-    .then(({ shipping_options }) => flattenSellerShippingOptions(shipping_options))
+    .then(({ shipping_options }) => {
+      const methods = flattenSellerShippingOptions(shipping_options)
+      if (!methods?.length) {
+        console.warn(`[checkout] no shipping options for cart ${cartId}`)
+      }
+      return methods
+    })
     .catch(error => {
       console.error('[checkout] failed to list shipping options:', error);
       return null;

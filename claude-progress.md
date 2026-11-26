@@ -168,6 +168,27 @@ preview it live:
   pre-existing missing keys. New integration spec added but not run locally
   (no test DB); browser smoke pending. SPEC stays `in_progress` until then.
 
+## Session — Production BD checkout shipping (2026-11-25), `main`
+
+SPEC-023 (`docs/specs/SPEC-023-bangladesh-checkout-shipping.md`, `passing`).
+Production BD checkout showed "No shipping options available" and an apparently
+empty payment section. Root cause was data: carts use the store's
+`default_sales_channel_id` (`sc_01M6NM18…`), but the cart seller's only stock
+location (FashionPy Warehouse, the only one with a live BD shipping option)
+was linked to the other sales channel, so the workflow's channel/location
+intersection was empty. Payment data was fine (`pp_cod` linked to the BD
+region); the payment section only opens at `?step=payment`, unreachable
+without shipping.
+
+- Fixed production data: linked the warehouse to the default channel and
+  cleared the stale `default_location_id` (soft-deleted location).
+- Hardened: region edit form requires ≥1 payment provider; seed no longer
+  resets admin-added currencies or renames an existing region; empty shipping
+  results now log a warning.
+- Evidence: DB verified after fix; lint clean; admin tsc clean; admin and
+  storefront builds pass. Running API needs a restart to clear the cached
+  channel→location lookup.
+
 ## Session — Offer availability with multi-channel key (2026-11-25), `main`
 
 SPEC-022 (`docs/specs/SPEC-022-multi-channel-offer-availability.md`,

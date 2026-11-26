@@ -30,7 +30,7 @@ type EditRegionFormProps = {
 const EditRegionSchema = zod.object({
   name: zod.string().min(1),
   currency_code: zod.string(),
-  payment_providers: zod.array(zod.string()),
+  payment_providers: zod.array(zod.string()).min(1),
   automatic_taxes: zod.boolean(),
   is_tax_inclusive: zod.boolean(),
 });
