@@ -20,7 +20,11 @@ export function Chip({
   "data-testid": dataTestId,
 }: ChipProps) {
   const baseClasses = 'chip-wrapper';
-  const selectedClasses = selected ? 'border-primary' : '';
+  const selectedClasses = selected
+    ? color
+      ? 'border-[rgb(var(--brand-500))] ring-2 ring-[rgb(var(--brand-500))] ring-offset-1'
+      : 'border-[rgb(var(--brand-500))] bg-[rgb(var(--brand-50))] font-semibold text-[rgb(var(--brand-600))]'
+    : '';
   const hoverClasses =
     !disabled && !selected ? 'hover:bg-gray-200' : '';
   const disabledClasses = disabled
@@ -33,6 +37,8 @@ export function Chip({
   return (
     <div
       data-disabled={disabled}
+      data-active={selected}
+      aria-pressed={!!selected}
       className={cn(
         baseClasses,
         colorClasses,

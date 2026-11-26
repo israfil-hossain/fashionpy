@@ -4,6 +4,18 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Visible active attribute chips (2026-11-25), `main`
+
+Selected product-option chips were technically marked with `border-primary`,
+but that token resolves to the same grey as an unselected border, so clicking a
+size/colour showed the new value in the label without any visible active state.
+`Chip` now uses a brand-coloured border + tinted background for text options and
+a brand ring for colour swatches, and exposes `data-active`/`aria-pressed`.
+
+- Evidence: Playwright on a product with all options selected — selected chips
+  compute a `rgb(183, 1, 107)` border while unselected chips stay `rgb(238,
+  238, 238)`; lint 0; storefront build passes; tsc at the 136-line baseline.
+
 ## Session — Primary checkout logo + cart delete persistence (2026-11-25), `main`
 
 - Checkout header now mirrors the storefront header brand: `/f_logo.svg` icon
