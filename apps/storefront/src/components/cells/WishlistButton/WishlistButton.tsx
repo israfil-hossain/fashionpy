@@ -7,6 +7,7 @@ import { HttpTypes } from '@medusajs/types'
 
 import { Button } from '@/components/atoms'
 import { useWishlistContext } from '@/components/providers'
+import { useLocale } from '@/components/providers/Locale/LocaleProvider'
 import { HeartFilledIcon, HeartIcon } from '@/icons'
 import { addWishlistItem, removeWishlistItem } from '@/lib/data/wishlist'
 import { cn } from '@/lib/utils'
@@ -24,6 +25,7 @@ export const WishlistButton = ({
   className?: string
 }) => {
   const router = useRouter()
+  const locale = useLocale()
   const context = useWishlistContext()
   const [isWishlistAdding, setIsWishlistAdding] = useState(false)
   const [localWishlisted, setLocalWishlisted] = useState<boolean | undefined>(
@@ -48,13 +50,16 @@ export const WishlistButton = ({
     event.preventDefault()
     event.stopPropagation()
 
+    if (!usesProps && !context?.loaded) return
+
     if (!hasUser) {
-      router.push('/login')
+      router.push(`/${locale}/login`)
       return
     }
 
     if (!usesProps) {
-      await context?.toggle(productId)
+      if (!context?.loaded) return
+      await context.toggle(productId)
       return
     }
 
@@ -63,13 +68,16 @@ export const WishlistButton = ({
       if (isWishlisted) {
         await removeWishlistItem({ reference_id: productId })
         setLocalWishlisted(false)
+        context?.setWishlisted(productId, false)
       } else {
         await addWishlistItem({
           reference_id: productId,
           reference: 'product',
         })
         setLocalWishlisted(true)
+        context?.setWishlisted(productId, true)
       }
+      router.refresh()
     } catch (error) {
       console.error(error)
     } finally {

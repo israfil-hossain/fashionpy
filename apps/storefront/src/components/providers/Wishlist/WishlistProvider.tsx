@@ -11,6 +11,8 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { useLocale } from '@/components/providers/Locale/LocaleProvider'
+
 import {
   addWishlistItem,
   getWishlistState,
@@ -21,7 +23,9 @@ import { isWishlistedProduct } from '@/lib/helpers/wishlist'
 type WishlistContextValue = {
   customerId: string | null
   productIds: string[]
+  loaded: boolean
   isWishlisted: (productId: string) => boolean
+  setWishlisted: (productId: string, wishlisted: boolean) => void
   toggle: (productId: string) => Promise<void>
 }
 
@@ -31,6 +35,7 @@ export const useWishlistContext = () => useContext(WishlistContext)
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
+  const locale = useLocale()
   const [customerId, setCustomerId] = useState<string | null>(null)
   const [productIds, setProductIds] = useState<string[]>([])
   const [loaded, setLoaded] = useState(false)
@@ -54,18 +59,26 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const setWishlisted = useCallback((productId: string, wishlisted: boolean) => {
+    setProductIds(ids =>
+      wishlisted
+        ? ids.includes(productId)
+          ? ids
+          : [...ids, productId]
+        : ids.filter(id => id !== productId)
+    )
+  }, [])
+
   const toggle = useCallback(
     async (productId: string) => {
       if (!loaded) return
       if (!customerId) {
-        router.push('/login')
+        router.push(`/${locale}/login`)
         return
       }
 
       const wasWishlisted = isWishlistedProduct(productIds, productId)
-      setProductIds(ids =>
-        wasWishlisted ? ids.filter(id => id !== productId) : [...ids, productId]
-      )
+      setWishlisted(productId, !wasWishlisted)
 
       try {
         if (wasWishlisted) {
@@ -76,27 +89,26 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             reference: 'product',
           })
         }
+        router.refresh()
       } catch (error) {
-        setProductIds(ids =>
-          wasWishlisted
-            ? [...ids, productId]
-            : ids.filter(id => id !== productId)
-        )
+        setWishlisted(productId, wasWishlisted)
         console.error(error)
       }
     },
-    [customerId, loaded, productIds, router]
+    [customerId, loaded, locale, productIds, router, setWishlisted]
   )
 
   const value = useMemo(
     () => ({
       customerId,
       productIds,
+      loaded,
       isWishlisted: (productId: string) =>
         isWishlistedProduct(productIds, productId),
+      setWishlisted,
       toggle,
     }),
-    [customerId, productIds, toggle]
+    [customerId, loaded, productIds, setWishlisted, toggle]
   )
 
   return (

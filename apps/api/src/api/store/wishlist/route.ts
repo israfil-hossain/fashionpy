@@ -57,10 +57,13 @@ export const GET = async (
     },
   });
 
-  const productIds: string[] = [];
-  wishlist.wishlist.products.forEach((product: ProductDTO) => {
-    productIds.push(product.id);
-  });
+  const productIds: string[] =
+    wishlist?.wishlist?.products?.map((product: ProductDTO) => product.id) ?? []
+
+  if (productIds.length === 0) {
+    res.json({ products: [], count: 0, offset: 0, limit: 0 })
+    return
+  }
 
   let context: object = {};
 

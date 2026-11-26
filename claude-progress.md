@@ -4,6 +4,25 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Wishlist 500 fix (2026-11-25), `main`
+
+The new global `WishlistProvider` calls `GET /store/wishlist` on every page for
+logged-in customers. That route dereferenced `wishlist.wishlist.products`
+without checking a row exists, so a customer with no wishlist produced a 500 on
+every page load (wishlist appeared empty/broken). Same bug in the registry copy.
+DELETE also threw for a missing wishlist.
+
+- Guarded both GET routes to return an empty product list and made DELETE
+  idempotent. Frontend: localized guest login redirects, exposed `loaded` and
+  `setWishlisted` on the context so prop-driven hearts sync with card hearts,
+  and `router.refresh()` after add/remove; early clicks no longer race the
+  initial load.
+- Evidence: API for a fresh customer returns 200 `{products:[],count:0}`
+  (was 500); add → 201 and GET shows 1 product; delete → 200 and GET back to
+  0; a second delete → 200 (was 404/500). Targeted lint clean, API tsc clean,
+  registry + storefront builds pass. Full `bun run lint` currently fails on
+  unrelated concurrent admin offer-table edits.
+
 ## Session — Visible active attribute chips (2026-11-25), `main`
 
 Selected product-option chips were technically marked with `border-primary`,

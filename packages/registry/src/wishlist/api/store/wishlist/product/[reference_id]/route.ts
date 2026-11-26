@@ -2,8 +2,6 @@ import {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework";
-import { MedusaError } from "@medusajs/framework/utils";
-
 import { deleteWishlistEntryWorkflow } from "../../../../../workflows/wishlist/workflows/delete-wishlist";
 import { getWishlistFromCustomerId } from "../../../../../modules/wishlist/utils";
 
@@ -17,10 +15,13 @@ export const DELETE = async (
   );
 
   if (!wishlist) {
-    throw new MedusaError(
-      MedusaError.Types.NOT_FOUND,
-      "Wishlist not found for current customer"
-    );
+    res.json({
+      id: null,
+      reference_id: req.params.reference_id,
+      object: "wishlist",
+      deleted: true,
+    });
+    return;
   }
 
   await deleteWishlistEntryWorkflow.run({
