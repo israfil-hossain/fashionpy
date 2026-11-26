@@ -9,9 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { useRouter } from 'next/navigation'
-
-import { useLocale } from '@/components/providers/Locale/LocaleProvider'
+import { useParams, useRouter } from 'next/navigation'
 
 import {
   addWishlistItem,
@@ -35,7 +33,8 @@ export const useWishlistContext = () => useContext(WishlistContext)
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
-  const locale = useLocale()
+  const params = useParams<{ locale?: string }>()
+  const locale = params?.locale || process.env.NEXT_PUBLIC_DEFAULT_REGION || 'bd'
   const [customerId, setCustomerId] = useState<string | null>(null)
   const [productIds, setProductIds] = useState<string[]>([])
   const [loaded, setLoaded] = useState(false)
@@ -81,13 +80,16 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       setWishlisted(productId, !wasWishlisted)
 
       try {
-        if (wasWishlisted) {
-          await removeWishlistItem({ reference_id: productId })
-        } else {
-          await addWishlistItem({
-            reference_id: productId,
-            reference: 'product',
-          })
+        const result = wasWishlisted
+          ? await removeWishlistItem({ reference_id: productId })
+          : await addWishlistItem({
+              reference_id: productId,
+              reference: 'product',
+            })
+
+        if (!result.ok) {
+          setWishlisted(productId, wasWishlisted)
+          return
         }
         router.refresh()
       } catch (error) {

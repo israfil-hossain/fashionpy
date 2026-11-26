@@ -20,7 +20,10 @@ const links = {
     { label: "Terms & Conditions", path: "/policies/terms" },
   ],
   seller: [
-    { label: "Become A Seller", path: "/sellers" },
+    {
+      label: "Become A Seller",
+      path: `${process.env.NEXT_PUBLIC_VENDOR_URL || "http://localhost:7002"}/register`,
+    },
     { label: "Seller Policy", path: "/policies/seller-policy" },
     { label: "Product Policy", path: "/policies/product-policy" },
     { label: "Pickup & Delivery Policy", path: "/policies/pickup-delivery" },

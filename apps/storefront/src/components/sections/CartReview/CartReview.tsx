@@ -5,8 +5,17 @@ import { PromoCode } from '@/components/organisms/PromoCode/PromoCode';
 
 import { CartItems } from './CartItems';
 import PaymentButton from './PaymentButton';
+import { PointsRedemption } from './PointsRedemption';
 
-const Review = ({ cart, isLoggedIn }: { cart: any; isLoggedIn?: boolean }) => {
+const Review = ({
+  cart,
+  isLoggedIn,
+  availablePoints = 0,
+}: {
+  cart: any;
+  isLoggedIn?: boolean;
+  availablePoints?: number;
+}) => {
   const paidByGiftcard = cart?.gift_cards && cart?.gift_cards?.length > 0 && cart?.total === 0;
 
   // Every seller in the cart must have a shipping method. The backend enforces
@@ -34,6 +43,16 @@ const Review = ({ cart, isLoggedIn }: { cart: any; isLoggedIn?: boolean }) => {
       <div className={'mb-6'}>
         <PromoCode cart={cart} />
       </div>
+
+      {isLoggedIn && availablePoints >= 100 && (
+        <div className="mb-6">
+          <PointsRedemption
+            cartId={cart.id}
+            itemSubtotal={cart.item_subtotal || 0}
+            availablePoints={availablePoints}
+          />
+        </div>
+      )}
 
       <div className="mb-6 w-full rounded-sm border p-4">
         <CartSummary

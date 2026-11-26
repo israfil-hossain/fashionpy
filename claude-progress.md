@@ -4,6 +4,35 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Wishlist errors, orders, profile, Bangladesh addresses (2026-11-25), `main`
+
+Implemented in the agreed order:
+
+- **Wishlist**: footer "Become A Seller" now links to the vendor register URL,
+  so the `/bd/sellers?_rsc=…` prefetch 404 is gone. Wishlist server actions
+  return `{ok,error}` instead of throwing (React #441), and locale comes from
+  route params rather than a provider mounted above `LocaleProvider`.
+- **Orders**: the list page now uses `/store/order-groups` via
+  `listOrderGroups()` — the same source as the notifications — instead of
+  `/store/orders` plus a filter that stripped every row because `order_group`
+  is not an allowed field there.
+- **Profile**: added `/user/profile` reusing `ProfileDetails`/`ProfilePassword`,
+  with sidebar + dropdown links and protected-route registration.
+- **Addresses**: default country `bd`; new Desh API adapter
+  (`lib/data/bangladesh-locations.ts`, 24h cache, bundled 8/64/495 fallback
+  JSON) and `BangladeshLocationSelects` cascade wired into checkout and the
+  address book. Mapping: `province`=division, `city`=district,
+  `metadata.thana`=upazila. Checkout can opt in to saving with a Home/Office
+  label; saves upsert by `address_name`, and saved addresses auto-fill the
+  cascade. Fixed the missing `await getCartId()` and stopped advancing when
+  address save fails.
+- Evidence: lint 0; new compare-addresses unit 2/2; storefront build passes;
+  tsc has no errors in the new files (only the known SDK-typing baseline).
+  Verified: footer href is the vendor URL, `/bd/user/profile` renders for a
+  logged-in customer, `/bd/user/orders` renders via order-groups, Desh API
+  returns divisions/districts/upazilas. Full address save/reuse browser flow
+  not exercised locally (dev server unstable under load).
+
 ## Session — Guest checkout order ownership (2026-11-25), `main`
 
 A guest could complete checkout: `placeOrder()` created the order with a guest

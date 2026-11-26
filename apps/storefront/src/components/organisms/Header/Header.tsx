@@ -6,10 +6,12 @@ import { CartDropdown } from "@/components/cells/CartDropdown/CartDropdown"
 import { UserDropdown } from "@/components/cells/UserDropdown/UserDropdown"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import { HeaderSearch } from "@/components/molecules/HeaderSearch/HeaderSearch"
+import { NotificationsButton } from "@/components/molecules/NotificationsButton/NotificationsButton"
 import { HeartIcon, SearchIcon } from "@/icons"
 import { listCategories } from "@/lib/data/categories"
 import { retrieveCustomer } from "@/lib/data/customer"
 import { retrieveStoreSettings } from "@/lib/data/store-settings"
+import { getLoyaltySummary } from "@/lib/data/rewards"
 import { AnnouncementBar } from "../AnnouncementBar/AnnouncementBar"
 import { HeaderShell } from "./HeaderShell"
 import { UtilityBar } from "../UtilityBar/UtilityBar"
@@ -23,6 +25,10 @@ export const Header = async ({
 }) => {
   const user = await retrieveCustomer().catch(() => null)
   const isLoggedIn = Boolean(user)
+  const points = user
+    ? (await getLoyaltySummary().catch(() => ({ available_points: 0 })))
+        .available_points
+    : 0
 
   // Tolerate a missing/unreachable backend during `next build` prerender
   // (Docker builds have no live API and api.fashionpy.com may not resolve).
@@ -117,6 +123,11 @@ export const Header = async ({
                 </a>
               </div>
 
+              <NotificationsButton
+                iconColor="currentColor"
+                label="Notifications"
+              />
+
               <LocalizedClientLink
                 href="/user/wishlist"
                 aria-label="Go to wishlist"
@@ -130,6 +141,8 @@ export const Header = async ({
               <CartDropdown iconColor="currentColor" label="Cart" />
               <UserDropdown
                 isLoggedIn={isLoggedIn}
+                user={user}
+                points={points}
                 iconColor="currentColor"
                 label="Profile"
               />

@@ -83,15 +83,25 @@ export function Footer() {
                 FashionPy Seller
               </h3>
               <nav className="space-y-3" aria-label="Seller navigation">
-                {seller.map(({ label, path }) => (
-                  <LocalizedClientLink
-                    key={label}
-                    href={path}
-                    className="block text-gray-700 hover:text-[rgb(var(--brand-500))] transition-colors duration-200 text-base"
-                  >
-                    {label}
-                  </LocalizedClientLink>
-                ))}
+                {seller.map(({ label, path }) =>
+                  path.startsWith("http") ? (
+                    <a
+                      key={label}
+                      href={path}
+                      className="block text-gray-700 hover:text-[rgb(var(--brand-500))] transition-colors duration-200 text-base"
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    <LocalizedClientLink
+                      key={label}
+                      href={path}
+                      className="block text-gray-700 hover:text-[rgb(var(--brand-500))] transition-colors duration-200 text-base"
+                    >
+                      {label}
+                    </LocalizedClientLink>
+                  )
+                )}
               </nav>
             </div>
 

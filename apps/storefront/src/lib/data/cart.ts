@@ -414,38 +414,132 @@ export async function deletePromotionCode(promoId: string) {
     .catch(medusaError);
 }
 
-export async function setAddresses(currentState: unknown, formData: FormData) {
+const saveCheckoutAddress = async (formData: FormData) => {
+  const headers = { ...(await getAuthHeaders()) };
+  if (!('authorization' in headers)) {
+    return;
+  }
+
+  const labelRaw = formData.get('address_name');
+  const addressName =
+    typeof labelRaw === 'string' && labelRaw.trim() ? labelRaw.trim() : 'Home';
+
+  let metadata: Record<string, string> | undefined;
+  const metadataRaw = formData.get('shipping_address.metadata');
+  if (typeof metadataRaw === 'string' && metadataRaw) {
+    try {
+      metadata = JSON.parse(metadataRaw) as Record<string, string>;
+    } catch {
+      metadata = undefined;
+    }
+  }
+
+  const payload = {
+    address_name: addressName,
+    first_name: formData.get('shipping_address.first_name'),
+    last_name: formData.get('shipping_address.last_name'),
+    address_1: formData.get('shipping_address.address_1'),
+    address_2: '',
+    company: formData.get('shipping_address.company'),
+    postal_code: formData.get('shipping_address.postal_code'),
+    city: formData.get('shipping_address.city'),
+    country_code: formData.get('shipping_address.country_code'),
+    province: formData.get('shipping_address.province'),
+    phone: formData.get('shipping_address.phone'),
+    ...(metadata ? { metadata } : {}),
+  };
+
+  const addressesRoute = (
+    sdk.store.customers as unknown as {
+      me: {
+        addresses: {
+          query: (input: Record<string, unknown>) => Promise<{
+            customer_addresses?: Array<{ id: string; address_name?: string }>
+          }>
+          mutate: (input: Record<string, unknown>) => Promise<unknown>
+          $addressId: {
+            mutate: (input: Record<string, unknown>) => Promise<unknown>
+          }
+        }
+      }
+    }
+  ).me.addresses;
+
+  const { customer_addresses } = await addressesRoute.query({
+    fields: 'id,address_name',
+    limit: 100,
+    fetchOptions: { headers, cache: 'no-store' }
+  });
+
+  const existing = customer_addresses?.find(
+    address => address.address_name === addressName
+  );
+
+  if (existing) {
+    await addressesRoute.$addressId.mutate({
+      $addressId: existing.id,
+      ...payload,
+      fetchOptions: { headers }
+    });
+  } else {
+    await addressesRoute.mutate({ ...payload, fetchOptions: { headers } });
+  }
+};
+
+export async function setAddresses(
+  currentState: string,
+  formData: FormData
+): Promise<string> {
   try {
     if (!formData) {
       throw new Error('No form data found when setting addresses');
     }
-    const cartId = getCartId();
+    const cartId = await getCartId();
     if (!cartId) {
       throw new Error('No existing cart found when setting addresses');
     }
 
+    let metadata: Record<string, unknown> | undefined;
+    const metadataRaw = formData.get('shipping_address.metadata');
+    if (typeof metadataRaw === 'string' && metadataRaw) {
+      try {
+        metadata = JSON.parse(metadataRaw) as Record<string, unknown>;
+      } catch {
+        metadata = undefined;
+      }
+    }
+
+    const shippingAddress = {
+      first_name: formData.get('shipping_address.first_name'),
+      last_name: formData.get('shipping_address.last_name'),
+      address_1: formData.get('shipping_address.address_1'),
+      address_2: '',
+      company: formData.get('shipping_address.company'),
+      postal_code: formData.get('shipping_address.postal_code'),
+      city: formData.get('shipping_address.city'),
+      country_code: formData.get('shipping_address.country_code'),
+      province: formData.get('shipping_address.province'),
+      phone: formData.get('shipping_address.phone'),
+      ...(metadata ? { metadata } : {}),
+    };
+
     const data = {
-      shipping_address: {
-        first_name: formData.get('shipping_address.first_name'),
-        last_name: formData.get('shipping_address.last_name'),
-        address_1: formData.get('shipping_address.address_1'),
-        address_2: '',
-        company: formData.get('shipping_address.company'),
-        postal_code: formData.get('shipping_address.postal_code'),
-        city: formData.get('shipping_address.city'),
-        country_code: formData.get('shipping_address.country_code'),
-        province: formData.get('shipping_address.province'),
-        phone: formData.get('shipping_address.phone')
-      },
+      shipping_address: shippingAddress,
+      billing_address: shippingAddress,
       email: formData.get('email')
-    } as any;
+    };
 
-    data.billing_address = data.shipping_address;
-
-    await updateCart(data);
+    await updateCart(data as never);
     await revalidatePath('/cart');
-  } catch (e: any) {
-    return e.message;
+
+    if (formData.get('save_address')) {
+      await saveCheckoutAddress(formData);
+      await revalidateTag(await getCacheTag('customers'), 'max');
+    }
+
+    return 'success';
+  } catch (error) {
+    return error instanceof Error ? error.message : 'Failed to save address';
   }
 }
 

@@ -1,4 +1,8 @@
 "use client"
+
+import { useRouter, usePathname } from "next/navigation"
+import { useState } from "react"
+
 import {
   Badge,
   Card,
@@ -6,46 +10,45 @@ import {
   LogoutButton,
   NavigationItem,
 } from "@/components/atoms"
+import { startOrderConversation } from "@/lib/data/messages"
+import { toast } from "@/lib/helpers/toast"
 import { useMessagesUnread } from "@/lib/hooks/useMessagesUnread"
-import { usePathname } from "next/navigation"
 
 const navigationItems = [
-  {
-    label: "Orders",
-    href: "/user/orders",
-  },
-  {
-    label: "Notifications",
-    href: "/user/notifications",
-  },
-  {
-    label: "Messages",
-    href: "/user/messages",
-  },
-  // {
-  //   label: "Returns",
-  //   href: "/user/returns",
-  // },
-  {
-    label: "Addresses",
-    href: "/user/addresses",
-  },
-  {
-    label: "Reviews",
-    href: "/user/reviews",
-  },
-  {
-    label: "Wishlist",
-    href: "/user/wishlist",
-  },
+  { label: "My Orders", href: "/user/orders" },
+  { label: "My Wishlist", href: "/user/wishlist" },
+  { label: "Vouchers", href: "/user/vouchers" },
+  { label: "My Addresses", href: "/user/addresses" },
+  { label: "Account Information", href: "/user/settings#account-information" },
+  { label: "Settings", href: "/user/settings" },
+  { label: "Notifications", href: "/user/notifications" },
+  { label: "Messages", href: "/user/messages" },
 ]
 
 export const UserNavigation = () => {
-  const unreadCount = useMessagesUnread()
+  const router = useRouter()
   const path = usePathname()
+  const unreadCount = useMessagesUnread()
+  const [openingSupport, setOpeningSupport] = useState(false)
+
+  const openHelpline = async () => {
+    if (openingSupport) return
+    setOpeningSupport(true)
+    const result = await startOrderConversation({ mode: "support" })
+    setOpeningSupport(false)
+
+    if (result.success && result.conversationId) {
+      router.push(`/user/messages?c=${result.conversationId}`)
+    } else {
+      toast.error({
+        title: "Helpline unavailable",
+        description: result.message || "Please try again in a moment.",
+      })
+    }
+  }
 
   return (
-    <Card className="h-min">
+    <Card className="h-min" data-testid="user-navigation">
       {navigationItems.map((item) => (
         <NavigationItem
           key={item.label}
@@ -55,19 +58,22 @@ export const UserNavigation = () => {
         >
           {item.label}
           {item.label === "Messages" && unreadCount > 0 && (
-            <Badge className="absolute top-3 left-24 w-4 h-4 p-0">
+            <Badge className="absolute left-24 top-3 h-4 w-4 p-0">
               {unreadCount}
             </Badge>
           )}
         </NavigationItem>
       ))}
-      <Divider className="my-2" />
-      <NavigationItem
-        href={"/user/settings"}
-        active={path === "/user/settings"}
+      <button
+        type="button"
+        onClick={() => void openHelpline()}
+        disabled={openingSupport}
+        className="label-md my-3 flex w-full items-center justify-between px-4 py-3 uppercase disabled:opacity-60 md:my-0"
+        data-testid="user-navigation-helpline"
       >
-        Settings
-      </NavigationItem>
+        FashionPy Helpline
+      </button>
+      <Divider className="my-2" />
       <LogoutButton className="w-full text-left" />
     </Card>
   )

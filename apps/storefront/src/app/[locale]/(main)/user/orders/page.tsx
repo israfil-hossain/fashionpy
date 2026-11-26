@@ -6,14 +6,18 @@ import { LoginForm } from '@/components/molecules/LoginForm/LoginForm';
 import { ParcelAccordion } from '@/components/molecules/ParcelAccordion/ParcelAccordion';
 import { UserNavigation } from '@/components/molecules/UserNavigation/UserNavigation';
 import { UserPanelBell } from '@/components/molecules/UserPanelBell/UserPanelBell';
+import { UserPanelIdentity } from '@/components/molecules/UserPanelIdentity/UserPanelIdentity';
+import { OrderTabs } from '@/components/molecules/OrderTabs/OrderTabs';
 import { OrdersPagination } from '@/components/organisms/OrdersPagination/OrdersPagination';
 import { retrieveCustomer } from '@/lib/data/customer';
-import { listOrders } from '@/lib/data/orders';
+import { getLoyaltySummary } from '@/lib/data/rewards';
+import { getReturns, listOrderGroups } from '@/lib/data/orders';
+import { matchesOrderTab, ORDER_TABS, type OrderForTab, type OrderStageRecord, type OrderTabKey } from '@/lib/helpers/order-tabs';
 
 const LIMIT = 10;
 
 export default function UserPage(props: {
-  searchParams: Promise<{ page: string }>;
+  searchParams: Promise<{ page: string; tab?: string }>;
 }) {
   return (
     <Suspense fallback={<RouteFallback />}>
@@ -25,47 +29,48 @@ export default function UserPage(props: {
 async function UserPageContent({
   searchParams
 }: {
-  searchParams: Promise<{ page: string }>;
+  searchParams: Promise<{ page: string; tab?: string }>;
 }) {
   const user = await retrieveCustomer();
 
   if (!user) return <LoginForm />;
 
-  const orders = await listOrders();
-
-  const { page } = await searchParams;
-
-  const pages = Math.ceil(orders.length / LIMIT);
+  const { page, tab } = await searchParams;
   const currentPage = +page || 1;
   const offset = (+currentPage - 1) * LIMIT;
+  const activeTab: OrderTabKey = ORDER_TABS.some(item => item.key === tab)
+    ? (tab as OrderTabKey)
+    : "all";
 
-  const orderGroupsGrouped = orders.reduce(
-    (acc, order) => {
-      const orderGroupId = (order as any).order_group.id;
-      if (!acc[orderGroupId]) {
-        acc[orderGroupId] = [];
-      }
-      acc[orderGroupId].push(order);
-      return acc;
-    },
-    {} as Record<string, typeof orders>
-  );
+  const [{ groups: allGroups }, { available_points }, returns] =
+    await Promise.all([
+      listOrderGroups(100, 0),
+      getLoyaltySummary(),
+      getReturns().catch(() => ({ order_return_requests: [] })),
+    ]);
 
-  const orderGroups = Object.entries(orderGroupsGrouped).map(([orderGroupId, orders]) => {
-    const firstOrder = orders[0];
-    const orderGroup = (firstOrder as any).order_group;
+  const stages: Record<string, OrderStageRecord> = {};
+  for (const record of returns.order_return_requests ?? []) {
+    const orderId =
+      typeof record.order_id === "string"
+        ? record.order_id
+        : typeof record.order === "string"
+        ? record.order
+        : null;
+    if (orderId) stages[orderId] = record as OrderStageRecord;
+  }
 
-    return {
-      id: orderGroupId,
-      orders: orders,
-      created_at: orderGroup.created_at,
-      display_id: orderGroup.display_id,
-      total: orders.reduce((sum, order) => sum + order.total, 0),
-      currency_code: firstOrder.currency_code
-    };
+  const filteredGroups = allGroups.filter(group => {
+    const order = (group.orders?.[0] ?? {}) as OrderForTab;
+    const stage = Object.values(stages).find(
+      record => record.order_id === group.id
+    );
+    return matchesOrderTab(order, activeTab, stage);
   });
 
-  const processedOrders = orderGroups.slice(offset, offset + LIMIT);
+  const count = filteredGroups.length;
+  const pages = Math.ceil(count / LIMIT) || 1;
+  const processedOrders = filteredGroups.slice(offset, offset + LIMIT);
 
   return (
     <main
@@ -78,11 +83,15 @@ async function UserPageContent({
           className="space-y-8 md:col-span-3"
           data-testid="orders-container"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <UserPanelIdentity user={user} points={available_points} />
             <UserPanelBell />
-            <h1 className="heading-md uppercase">Orders</h1>
           </div>
-          {isEmpty(orders) ? (
+          <div className="flex items-center gap-3">
+            <h1 className="heading-md uppercase">My Orders</h1>
+          </div>
+          <OrderTabs active={activeTab} />
+          {isEmpty(filteredGroups) ? (
             <div
               className="text-center"
               data-testid="orders-empty-state"
@@ -112,9 +121,13 @@ async function UserPageContent({
                     orderId={orderGroup.id}
                     orderDisplayId={`#${orderGroup.display_id}`}
                     createdAt={orderGroup.created_at}
-                    total={orderGroup.total}
+                    total={Number(orderGroup.total) || 0}
                     orders={orderGroup.orders || []}
-                    currency_code={orderGroup.currency_code}
+                    currency_code={
+                      typeof orderGroup.orders[0]?.currency_code === 'string'
+                        ? orderGroup.orders[0].currency_code
+                        : 'bdt'
+                    }
                   />
                 ))}
               </div>

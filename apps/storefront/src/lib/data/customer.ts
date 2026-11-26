@@ -179,6 +179,15 @@ export async function transferCart() {
   revalidateTag(cartCacheTag, "max");
 }
 
+const parseAddressMetadata = (value: FormDataEntryValue | null) => {
+  if (typeof value !== 'string' || !value) return undefined
+  try {
+    return JSON.parse(value) as Record<string, string>
+  } catch {
+    return undefined
+  }
+}
+
 export const addCustomerAddress = async (formData: FormData): Promise<any> => {
   const address = {
     address_name: formData.get('address_name') as string,
@@ -191,6 +200,7 @@ export const addCustomerAddress = async (formData: FormData): Promise<any> => {
     country_code: formData.get('country_code') as string,
     phone: formData.get('phone') as string,
     province: formData.get('province') as string,
+    metadata: parseAddressMetadata(formData.get('metadata')),
     is_default_billing: Boolean(formData.get('isDefaultBilling')),
     is_default_shipping: Boolean(formData.get('isDefaultShipping'))
   };
@@ -245,7 +255,8 @@ export const updateCustomerAddress = async (formData: FormData): Promise<any> =>
     city: formData.get('city') as string,
     postal_code: formData.get('postal_code') as string,
     province: formData.get('province') as string,
-    country_code: formData.get('country_code') as string
+    country_code: formData.get('country_code') as string,
+    metadata: parseAddressMetadata(formData.get('metadata'))
   } as HttpTypes.StoreUpdateCustomerAddress;
 
   const phone = formData.get('phone') as string;

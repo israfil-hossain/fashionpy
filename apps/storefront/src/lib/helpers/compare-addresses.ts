@@ -7,14 +7,20 @@ export default function compareAddresses(address1: any, address2: any) {
       "last_name",
       "address_1",
       "city",
+      "province",
+      "postal_code",
       "country_code",
+      "metadata",
     ]),
     pick(address2, [
       "first_name",
       "last_name",
       "address_1",
       "city",
+      "province",
+      "postal_code",
       "country_code",
+      "metadata",
     ])
   )
 }

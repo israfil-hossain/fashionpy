@@ -56,37 +56,49 @@ export const addWishlistItem = async ({
 }: {
   reference_id: string
   reference: 'product'
-}) => {
-  const headers = {
-    ...(await getAuthHeaders()),
-    'Content-Type': 'application/json',
+}): Promise<{ ok: boolean; error?: string }> => {
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json',
+    }
+
+    await sdk.store.wishlist.mutate({
+      reference,
+      reference_id,
+      fetchOptions: { headers },
+    } as never)
+
+    revalidatePath('/wishlist')
+    revalidatePath('/user/wishlist')
+    return { ok: true }
+  } catch (error) {
+    console.error('[wishlist] add failed:', error)
+    return { ok: false, error: 'Failed to add item to wishlist' }
   }
-
-  await sdk.store.wishlist.mutate({
-    reference,
-    reference_id,
-    fetchOptions: { headers },
-  } as never)
-
-  revalidatePath('/wishlist')
-  revalidatePath('/user/wishlist')
 }
 
 export const removeWishlistItem = async ({
   reference_id,
 }: {
   reference_id: string
-}) => {
-  const headers = {
-    ...(await getAuthHeaders()),
-    'Content-Type': 'application/json',
+}): Promise<{ ok: boolean; error?: string }> => {
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json',
+    }
+
+    await sdk.store.wishlist.product.$reference_id.delete({
+      $reference_id: reference_id,
+      fetchOptions: { headers },
+    } as never)
+
+    revalidatePath('/wishlist')
+    revalidatePath('/user/wishlist')
+    return { ok: true }
+  } catch (error) {
+    console.error('[wishlist] remove failed:', error)
+    return { ok: false, error: 'Failed to remove item from wishlist' }
   }
-
-  await sdk.store.wishlist.product.$reference_id.delete({
-    $reference_id: reference_id,
-    fetchOptions: { headers },
-  } as never)
-
-  revalidatePath('/wishlist')
-  revalidatePath('/user/wishlist')
 }

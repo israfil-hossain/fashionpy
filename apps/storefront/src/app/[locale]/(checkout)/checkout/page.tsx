@@ -12,6 +12,7 @@ import { retrieveCart } from '@/lib/data/cart';
 import { retrieveCustomer } from '@/lib/data/customer';
 import { listCartShippingMethods } from '@/lib/data/fulfillment';
 import { listCartPaymentMethods } from '@/lib/data/payment';
+import { getLoyaltySummary } from '@/lib/data/rewards';
 
 export const metadata: Metadata = {
   title: 'Checkout',
@@ -39,6 +40,9 @@ async function CheckoutPageContent() {
   const shippingMethods = await listCartShippingMethods(cart.id, false);
   const paymentMethods = await listCartPaymentMethods(cart.region?.id ?? '');
   const customer = await retrieveCustomer();
+  const { available_points } = customer
+    ? await getLoyaltySummary()
+    : { available_points: 0 };
 
   return (
     <PaymentWrapper cart={cart}>
@@ -60,7 +64,11 @@ async function CheckoutPageContent() {
           </div>
 
           <div className="lg:col-span-5" data-testid="checkout-review-container">
-            <CartReview cart={cart} isLoggedIn={!!customer} />
+            <CartReview
+              cart={cart}
+              isLoggedIn={!!customer}
+              availablePoints={available_points}
+            />
           </div>
         </div>
       </main>

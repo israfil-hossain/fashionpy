@@ -71,4 +71,4 @@ export const noDivisionCurrencies = [
   "xau",
 ]
 
-export const PROTECTED_ROUTES = ['/user', '/user/orders', '/user/settings', '/user/addresses', '/user/messages', '/user/returns']
+export const PROTECTED_ROUTES = ['/user', '/user/profile', '/user/orders', '/user/settings', '/user/addresses', '/user/messages', '/user/returns', '/user/wishlist', '/user/reviews', '/user/notifications']

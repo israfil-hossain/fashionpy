@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useState, type MouseEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 import { HttpTypes } from '@medusajs/types'
 
 import { Button } from '@/components/atoms'
 import { useWishlistContext } from '@/components/providers'
-import { useLocale } from '@/components/providers/Locale/LocaleProvider'
 import { HeartFilledIcon, HeartIcon } from '@/icons'
 import { addWishlistItem, removeWishlistItem } from '@/lib/data/wishlist'
 import { cn } from '@/lib/utils'
@@ -25,7 +24,8 @@ export const WishlistButton = ({
   className?: string
 }) => {
   const router = useRouter()
-  const locale = useLocale()
+  const params = useParams<{ locale?: string }>()
+  const locale = params?.locale || process.env.NEXT_PUBLIC_DEFAULT_REGION || 'bd'
   const context = useWishlistContext()
   const [isWishlistAdding, setIsWishlistAdding] = useState(false)
   const [localWishlisted, setLocalWishlisted] = useState<boolean | undefined>(
@@ -65,18 +65,21 @@ export const WishlistButton = ({
 
     try {
       setIsWishlistAdding(true)
-      if (isWishlisted) {
-        await removeWishlistItem({ reference_id: productId })
-        setLocalWishlisted(false)
-        context?.setWishlisted(productId, false)
-      } else {
-        await addWishlistItem({
-          reference_id: productId,
-          reference: 'product',
-        })
-        setLocalWishlisted(true)
-        context?.setWishlisted(productId, true)
+      const result = isWishlisted
+        ? await removeWishlistItem({ reference_id: productId })
+        : await addWishlistItem({
+            reference_id: productId,
+            reference: 'product',
+          })
+
+      if (!result.ok) {
+        setLocalWishlisted(isWishlisted)
+        context?.setWishlisted(productId, isWishlisted)
+        return
       }
+
+      setLocalWishlisted(!isWishlisted)
+      context?.setWishlisted(productId, !isWishlisted)
       router.refresh()
     } catch (error) {
       console.error(error)

@@ -8,7 +8,13 @@ import { useEffect, useState } from "react"
 
 const UNREAD_POLL_INTERVAL = 60_000
 
-export const NotificationsButton = ({ iconColor }: { iconColor?: string }) => {
+export const NotificationsButton = ({
+  iconColor,
+  label,
+}: {
+  iconColor?: string
+  label?: string
+}) => {
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
@@ -37,11 +43,14 @@ export const NotificationsButton = ({ iconColor }: { iconColor?: string }) => {
   return (
     <LocalizedClientLink
       href="/user/notifications"
-      className="relative"
+      className={label ? 'relative flex flex-col items-center gap-1' : 'relative'}
       aria-label="Notifications"
       data-testid="header-notifications"
     >
       <BellIcon size={20} color={iconColor} />
+      {label && (
+        <span className="hidden text-[11px] font-medium lg:block">{label}</span>
+      )}
       {unreadCount > 0 && (
         <Badge className="absolute -top-2 -right-2 min-w-4 h-4 p-0 flex items-center justify-center text-[10px] leading-none">
           {unreadCount > 99 ? "99+" : unreadCount}

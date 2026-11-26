@@ -9,6 +9,7 @@ import { FieldError, FieldValues, FormProvider, useForm, useFormContext } from '
 import { Button } from '@/components/atoms/Button/Button';
 import { LabeledInput } from '@/components/cells/LabeledInput/LabeledInput';
 import CountrySelect from '@/components/cells/CountrySelect/CountrySelect';
+import { BangladeshLocationSelects, type BangladeshLocationValues } from '@/components/molecules/BangladeshLocationSelects/BangladeshLocationSelects';
 import { addCustomerAddress, updateCustomerAddress } from '@/lib/data/customer';
 
 import { AddressFormData, addressSchema } from './schema';
@@ -26,7 +27,7 @@ export const emptyDefaultAddressValues = {
   lastName: '',
   address: '',
   city: '',
-  countryCode: '',
+  countryCode: 'bd',
   postalCode: '',
   company: '',
   province: '',
@@ -52,12 +53,27 @@ const Form: FC<Props> = ({ regions, handleClose }) => {
   const {
     handleSubmit,
     register,
+    setValue,
+    getValues,
     formState: { errors },
     watch
   } = useFormContext();
 
   const region = {
     countries: regions.flatMap(region => region.countries)
+  };
+
+  const metadata = getValues('metadata') as { thana?: string } | undefined;
+  const locationValues: BangladeshLocationValues = {
+    division: watch('province') || '',
+    district: watch('city') || '',
+    upazila: metadata?.thana || ''
+  };
+
+  const handleLocationChange = (values: BangladeshLocationValues) => {
+    setValue('province', values.division, { shouldValidate: true });
+    setValue('city', values.district, { shouldValidate: true });
+    setValue('metadata', values, { shouldValidate: true });
   };
 
   const submit = async (data: FieldValues) => {
@@ -74,6 +90,7 @@ const Form: FC<Props> = ({ regions, handleClose }) => {
     formData.append('postal_code', data.postalCode);
     formData.append('company', data.company);
     formData.append('phone', data.phone);
+    formData.append('metadata', JSON.stringify(data.metadata || {}));
 
     const res = data.addressId
       ? await updateCustomerAddress(formData)
@@ -132,26 +149,21 @@ const Form: FC<Props> = ({ regions, handleClose }) => {
             {...register('address')}
           />
           <LabeledInput
-            label="City"
-            placeholder="Type city"
-            error={errors.city as FieldError}
-            data-testid="address-form-city-input"
-            {...register('city')}
-          />
-          <LabeledInput
             label="Postal code"
             placeholder="Type postal code"
             error={errors.postalCode as FieldError}
             data-testid="address-form-postal-code-input"
             {...register('postalCode')}
           />
-          <LabeledInput
-            label="State / Province"
-            placeholder="Type state / province"
-            error={errors.province as FieldError}
-            data-testid="address-form-province-input"
-            {...register('province')}
+          <BangladeshLocationSelects
+            values={locationValues}
+            onChange={handleLocationChange}
           />
+          {errors.city && (
+            <p className="label-sm text-negative" data-testid="address-form-city-error">
+              {(errors.city as FieldError).message}
+            </p>
+          )}
           <div>
             <CountrySelect
               region={region as HttpTypes.StoreRegion}

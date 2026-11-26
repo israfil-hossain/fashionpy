@@ -23,7 +23,8 @@ import { SellerDTO } from "@mercurjs/types"
 import { toast } from "@/lib/helpers/toast"
 import { useCartContext } from "@/components/providers"
 import { useCartDrawer } from "@/components/providers/Cart/drawer"
-import { InfoIcon, MinusThinIcon, PlusIcon } from "@/icons"
+import { InfoIcon, MessageIcon, MinusThinIcon, PlusIcon } from "@/icons"
+import { startOrderConversation } from "@/lib/data/messages"
 import { ProductDeliveryTeaser } from "@/components/cells/ProductDeliveryTeaser/ProductDeliveryTeaser"
 import { SizeGuideDrawer } from "@/components/molecules/SizeGuideDrawer/SizeGuideDrawer"
 import { getSizeChart } from "@/lib/helpers/get-size-chart"
@@ -225,6 +226,30 @@ export const ProductBuyBox = ({
       className="border rounded-sm p-5 bg-primary sticky top-[112px]"
       data-testid="product-details-header"
     >
+      {seller && user && (
+        <button
+          type="button"
+          onClick={async () => {
+            const result = await startOrderConversation({
+              mode: "seller",
+              sellerId: seller.id,
+            })
+            if (result.success && result.conversationId) {
+              router.push(`/${locale}/user/messages?c=${result.conversationId}`)
+            } else {
+              toast.error({
+                title: "Message not sent",
+                description: result.message || "Please try again.",
+              })
+            }
+          }}
+          className="mb-3 flex w-full items-center justify-center gap-2 rounded-sm border py-2 label-md"
+          data-testid="product-message-seller"
+        >
+          <MessageIcon size={16} />
+          Message seller
+        </button>
+      )}
       {seller && (
         <div
           className="mb-3 flex items-center gap-2 border-b pb-3"

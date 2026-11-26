@@ -769,6 +769,7 @@ export type Routes = {
                 validate: typeof import("../src/api/store/fp/promotions/validate/route");
             };
             rewards: typeof import("../src/api/store/fp/rewards/route") & {
+                applyToCart: typeof import("../src/api/store/fp/rewards/apply-to-cart/route");
                 catalog: typeof import("../src/api/store/fp/rewards/catalog/route");
                 estimate: typeof import("../src/api/store/fp/rewards/estimate/route");
                 reservations: typeof import("../src/api/store/fp/rewards/reservations/route") & {

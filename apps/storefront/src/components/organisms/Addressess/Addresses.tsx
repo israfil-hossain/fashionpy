@@ -43,6 +43,7 @@ export const Addresses = ({
         company: address.company || "",
         province: address.province || "",
         phone: address.phone || user.phone || "",
+        metadata: (address.metadata ?? {}) as Record<string, string>,
       })
       setShowForm(true)
     }
@@ -114,6 +115,11 @@ export const Addresses = ({
                         )?.display_name || address.country_code?.toUpperCase()
                       }`}`}
                     </p>
+                    {(address.metadata as { thana?: string } | null)?.thana && (
+                      <p className="label-md text-secondary" data-testid={`address-${address.id}-thana`}>
+                        {`Thana: ${(address.metadata as { thana: string }).thana}`}
+                      </p>
+                    )}
                     <p className="label-md text-secondary" data-testid={`address-${address.id}-contact`}>
                       {`${user.email}, ${address.phone || user.phone}`}
                     </p>

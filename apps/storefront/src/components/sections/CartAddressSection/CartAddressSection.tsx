@@ -5,7 +5,7 @@ import { setAddresses } from "@/lib/data/cart"
 import compareAddresses from "@/lib/helpers/compare-addresses"
 import { HttpTypes } from "@medusajs/types"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useActionState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from '@/components/atoms/Button/Button';
 import ErrorMessage from "@/components/molecules/ErrorMessage/ErrorMessage"
 import Spinner from "@/icons/spinner"
@@ -41,7 +41,7 @@ export const CartAddressSection = ({
       : true
   )
 
-  const [message, formAction] = useActionState(setAddresses, sameAsBilling)
+  const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isAddress) {
@@ -72,7 +72,9 @@ export const CartAddressSection = ({
       </div>
       <form
         action={async (data) => {
-          await formAction(data)
+          const result = await setAddresses('success', data)
+          setMessage(result === 'success' ? null : result)
+          if (result !== 'success') return
           router.replace(`${pathname}?step=delivery`)
           router.refresh()
         }}
@@ -93,7 +95,7 @@ export const CartAddressSection = ({
               Save
             </Button>
             <ErrorMessage
-              error={message !== "success" && message}
+              error={message}
               data-testid="address-error-message"
             />
           </div>

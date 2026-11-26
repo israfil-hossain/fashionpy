@@ -6,6 +6,7 @@ import { Input } from '@/components/atoms/Input/Input';
 import AddressSelect from "@/components/cells/AddressSelect/AddressSelect"
 import CountrySelect from "@/components/cells/CountrySelect/CountrySelect"
 import { usePathname } from "next/navigation"
+import { BangladeshLocationSelects, type BangladeshLocationValues } from "@/components/molecules/BangladeshLocationSelects/BangladeshLocationSelects"
 
 const ShippingAddress = ({
   customer,
@@ -29,7 +30,7 @@ const ShippingAddress = ({
     "shipping_address.postal_code": cart?.shipping_address?.postal_code || "",
     "shipping_address.city": cart?.shipping_address?.city || "",
     "shipping_address.country_code":
-      cart?.shipping_address?.country_code || locale,
+      cart?.shipping_address?.country_code || "bd",
     "shipping_address.province": cart?.shipping_address?.province || "",
     "shipping_address.phone": cart?.shipping_address?.phone || "",
     email: cart?.email || "",
@@ -65,10 +66,43 @@ const ShippingAddress = ({
     ]
   )
 
+  const locationValues = useMemo<BangladeshLocationValues>(() => {
+    let thana = ""
+    try {
+      const metadata = JSON.parse(
+        formData["shipping_address.metadata"] || "{}"
+      ) as { thana?: string }
+      thana = metadata.thana || ""
+    } catch {
+      thana = ""
+    }
+
+    return {
+      division: formData["shipping_address.province"] || "",
+      district: formData["shipping_address.city"] || "",
+      upazila: thana,
+    }
+  }, [
+    formData["shipping_address.province"],
+    formData["shipping_address.city"],
+    formData["shipping_address.metadata"],
+  ])
+
+  const handleLocationChange = (values: BangladeshLocationValues) => {
+    setFormData((prevState: Record<string, any>) => ({
+      ...prevState,
+      "shipping_address.province": values.division,
+      "shipping_address.city": values.district,
+      "shipping_address.metadata": JSON.stringify(values),
+    }))
+  }
+
   const setFormAddress = (
     address?: HttpTypes.StoreCartAddress,
     email?: string
   ) => {
+    const metadata = (address?.metadata ?? {}) as { thana?: string }
+
     address &&
       setFormData((prevState: Record<string, any>) => ({
         ...prevState,
@@ -78,8 +112,13 @@ const ShippingAddress = ({
         "shipping_address.company": address?.company || "",
         "shipping_address.postal_code": address?.postal_code || "",
         "shipping_address.city": address?.city || "",
-        "shipping_address.country_code": address?.country_code || locale,
+        "shipping_address.country_code": address?.country_code || "bd",
         "shipping_address.province": address?.province || "",
+        "shipping_address.metadata": JSON.stringify({
+          division: address?.province || "",
+          district: address?.city || "",
+          thana: metadata.thana || "",
+        }),
         "shipping_address.phone": address?.phone || "",
       }))
 
@@ -176,15 +215,6 @@ const ShippingAddress = ({
           required
           data-testid="shipping-postal-code-input"
         />
-        <Input
-          label="City"
-          name="shipping_address.city"
-          autoComplete="address-level2"
-          value={formData["shipping_address.city"]}
-          onChange={handleChange}
-          required
-          data-testid="shipping-city-input"
-        />
         <CountrySelect
           name="shipping_address.country_code"
           autoComplete="country"
@@ -194,13 +224,9 @@ const ShippingAddress = ({
           required
           data-testid="shipping-country-select"
         />
-        <Input
-          label="State / Province"
-          name="shipping_address.province"
-          autoComplete="address-level1"
-          value={formData["shipping_address.province"]}
-          onChange={handleChange}
-          data-testid="shipping-province-input"
+        <BangladeshLocationSelects
+          values={locationValues}
+          onChange={handleLocationChange}
         />
       </div>
       <div className="grid grid-cols-2 gap-4 my-4">
@@ -224,6 +250,31 @@ const ShippingAddress = ({
           data-testid="shipping-phone-input"
         />
       </div>
+      {customer && (
+        <div className="my-4 flex flex-wrap items-center gap-4 rounded-sm border p-4">
+          <label className="flex items-center gap-2 label-md">
+            <input
+              type="checkbox"
+              name="save_address"
+              data-testid="shipping-save-address"
+            />
+            Save this address for next time
+          </label>
+          <label className="flex items-center gap-2 label-md">
+            Label
+            <select
+              name="address_name"
+              className="label-sm h-9 rounded-sm border border-primary bg-component px-2"
+              defaultValue="Home"
+              data-testid="shipping-address-label"
+            >
+              <option value="Home">Home</option>
+              <option value="Office">Office</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+        </div>
+      )}
     </>
   )
 }

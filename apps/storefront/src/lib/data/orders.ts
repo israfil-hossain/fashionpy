@@ -132,6 +132,40 @@ export const listOrders = async (
     .catch(err => medusaError(err));
 };
 
+export const listOrderGroups = async (
+  limit: number = 10,
+  offset: number = 0
+) => {
+  try {
+    const result = (await sdk.store.orderGroups.query({
+      limit,
+      offset,
+      order: '-created_at',
+      fetchOptions: {
+        headers: { ...(await getAuthHeaders()) },
+        cache: 'no-store'
+      }
+    } as never)) as unknown as {
+      order_groups: Array<{
+        id: string;
+        display_id: string | number;
+        created_at: string;
+        total: number | string;
+        orders: Array<Record<string, unknown>>;
+      }>;
+      count: number;
+    };
+
+    return {
+      groups: result.order_groups ?? [],
+      count: result.count ?? 0
+    };
+  } catch (error) {
+    console.error('[orders] failed to list order groups:', error);
+    return { groups: [], count: 0 };
+  }
+};
+
 export const createTransferRequest = async (
   state: {
     success: boolean;
