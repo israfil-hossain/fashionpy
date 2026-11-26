@@ -1,6 +1,6 @@
 "use client"
 
-import { CartProvider } from "@/components/providers"
+import { CartProvider, WishlistProvider } from "@/components/providers"
 import { Cart } from "@/types/cart"
 import type React from "react"
 
@@ -13,7 +13,7 @@ interface ProvidersProps extends PropsWithChildren {
 export function Providers({ children, cartPromise }: ProvidersProps) {
   return (
     <CartProvider cartPromise={cartPromise}>
-      {children}
+      <WishlistProvider>{children}</WishlistProvider>
     </CartProvider>
   )
 }

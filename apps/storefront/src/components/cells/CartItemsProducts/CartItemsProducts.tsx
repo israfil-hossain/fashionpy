@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { DeleteCartItemButton } from '@/components/molecules/DeleteCartItemButton/DeleteCartItemButton';
 import LocalizedClientLink from '@/components/molecules/LocalizedLink/LocalizedLink';
 import { UpdateCartItemButton } from '@/components/molecules/UpdateCartItemButton/UpdateCartItemButton';
+import { WishlistButton } from '@/components/cells/WishlistButton/WishlistButton';
 import { filterValidCartItems } from '@/lib/helpers/filter-valid-cart-items';
 import { convertToLocale } from '@/lib/helpers/money';
 
@@ -68,11 +69,15 @@ export const CartItemsProducts = ({
                     </h3>
                   </div>
                 </LocalizedClientLink>
-                {delete_item && (
-                  <div className="lg:flex">
-                    <DeleteCartItemButton id={product.id} />
-                  </div>
-                )}
+                <div className="flex items-center gap-1 lg:flex">
+                  {product.product_id && (
+                    <WishlistButton
+                      productId={product.product_id}
+                      className="h-8 w-8"
+                    />
+                  )}
+                  {delete_item && <DeleteCartItemButton id={product.id} />}
+                </div>
               </div>
               <div className="lg:flex justify-between -mt-4 lg:mt-0">
                 <div className="label-md text-secondary" data-testid="cart-item-details">

@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { sdk } from '@/lib/client'
 import { Wishlist } from '@/types/wishlist'
 import { getAuthHeaders } from './cookies'
+import { retrieveCustomer } from './customer'
 
 export const getUserWishlists = async () => {
   const headers = {
@@ -27,6 +28,26 @@ export const getUserWishlists = async () => {
     : []
 
   return { wishlists, count: count ?? 0 }
+}
+
+export const getWishlistState = async (): Promise<{
+  customerId: string | null
+  productIds: string[]
+}> => {
+  const customer = await retrieveCustomer()
+  if (!customer) {
+    return { customerId: null, productIds: [] }
+  }
+
+  try {
+    const { wishlists } = await getUserWishlists()
+    return {
+      customerId: customer.id,
+      productIds: (wishlists[0]?.products ?? []).map(product => product.id)
+    }
+  } catch {
+    return { customerId: customer.id, productIds: [] }
+  }
 }
 
 export const addWishlistItem = async ({

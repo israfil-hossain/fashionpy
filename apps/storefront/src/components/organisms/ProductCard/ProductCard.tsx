@@ -4,6 +4,7 @@ import Image from "next/image"
 import { HttpTypes } from "@medusajs/types"
 import { cn } from "@/lib/utils"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
+import { WishlistButton } from "@/components/cells/WishlistButton/WishlistButton"
 import { getProductPrice } from "@/lib/helpers/get-product-price"
 import { Product } from "@/types/product"
 
@@ -114,8 +115,13 @@ export const ProductCard = ({
               -{discountPct}% OFF
             </span>
           )}
-          {/* Wishlist button omitted for clean card layout */}
         </LocalizedClientLink>
+        <div
+          className="absolute right-2 top-2 z-10"
+          data-testid="product-card-wishlist"
+        >
+          <WishlistButton productId={String(product.id)} />
+        </div>
       </div>
       <LocalizedClientLink
         href={`/products/${product.handle}`}

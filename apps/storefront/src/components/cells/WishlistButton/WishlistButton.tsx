@@ -1,60 +1,75 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
+import { useRouter } from 'next/navigation'
 
 import { HttpTypes } from '@medusajs/types'
 
 import { Button } from '@/components/atoms'
+import { useWishlistContext } from '@/components/providers'
 import { HeartFilledIcon, HeartIcon } from '@/icons'
 import { addWishlistItem, removeWishlistItem } from '@/lib/data/wishlist'
+import { cn } from '@/lib/utils'
 import { Wishlist } from '@/types/wishlist'
 
 export const WishlistButton = ({
   productId,
   wishlist,
   user,
+  className,
 }: {
   productId: string
   wishlist?: Wishlist[]
   user?: HttpTypes.StoreCustomer | null
+  className?: string
 }) => {
+  const router = useRouter()
+  const context = useWishlistContext()
   const [isWishlistAdding, setIsWishlistAdding] = useState(false)
-  const [isWishlisted, setIsWishlisted] = useState(
-    wishlist?.[0]?.products?.some((item) => item.id === productId)
+  const [localWishlisted, setLocalWishlisted] = useState<boolean | undefined>(
+    undefined
   )
 
+  const usesProps = wishlist !== undefined
+
   useEffect(() => {
-    setIsWishlisted(
-      wishlist?.[0]?.products?.some((item) => item.id === productId)
+    if (!usesProps) return
+    setLocalWishlisted(
+      wishlist?.[0]?.products?.some(item => item.id === productId) ?? false
     )
-  }, [wishlist, productId])
+  }, [usesProps, wishlist, productId])
 
-  if (!user) {
-    return null
-  }
+  const isWishlisted =
+    localWishlisted ??
+    (usesProps ? false : context?.isWishlisted(productId) ?? false)
+  const hasUser = Boolean(user?.id || context?.customerId)
 
-  const handleAddToWishlist = async () => {
-    try {
-      setIsWishlistAdding(true)
-      await addWishlistItem({
-        reference_id: productId,
-        reference: 'product',
-      })
-      setIsWishlisted(true)
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setIsWishlistAdding(false)
+  const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (!hasUser) {
+      router.push('/login')
+      return
     }
-  }
 
-  const handleRemoveFromWishlist = async () => {
+    if (!usesProps) {
+      await context?.toggle(productId)
+      return
+    }
+
     try {
       setIsWishlistAdding(true)
-      await removeWishlistItem({
-        reference_id: productId,
-      })
-      setIsWishlisted(false)
+      if (isWishlisted) {
+        await removeWishlistItem({ reference_id: productId })
+        setLocalWishlisted(false)
+      } else {
+        await addWishlistItem({
+          reference_id: productId,
+          reference: 'product',
+        })
+        setLocalWishlisted(true)
+      }
     } catch (error) {
       console.error(error)
     } finally {
@@ -64,13 +79,14 @@ export const WishlistButton = ({
 
   return (
     <Button
-      onClick={
-        isWishlisted
-          ? () => handleRemoveFromWishlist()
-          : () => handleAddToWishlist()
-      }
+      onClick={handleClick}
       variant="tonal"
-      className="w-10 h-10 p-0 flex items-center justify-center"
+      aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+      title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+      className={cn(
+        'w-10 h-10 p-0 flex items-center justify-center',
+        className
+      )}
       loading={isWishlistAdding}
       disabled={isWishlistAdding}
       data-testid="wishlist-button"
