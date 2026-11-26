@@ -14,6 +14,7 @@ import {
 import { sdk } from "../../lib/client"
 import { queryClient } from "../../lib/query-client"
 import { queryKeysFactory } from "../../lib/query-key-factory"
+import { productsQueryKeys } from "./products"
 
 const OFFERS_QUERY_KEY = "offers" as const
 export const offerQueryKeys = queryKeysFactory(OFFERS_QUERY_KEY)
@@ -77,6 +78,7 @@ export const useDeleteOffer = (
     mutationFn: () => sdk.admin.offers.$id.delete({ $id: id }),
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: offerQueryKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: productsQueryKeys.all })
       queryClient.removeQueries({ queryKey: offerQueryKeys.detail(id) })
       options?.onSuccess?.(data, variables, context)
     },
@@ -111,6 +113,7 @@ export const useBulkDeleteOffers = (
     },
     onSuccess: (result, variables, context) => {
       queryClient.invalidateQueries({ queryKey: offerQueryKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: productsQueryKeys.all })
       result.succeeded.forEach((id) => {
         queryClient.removeQueries({ queryKey: offerQueryKeys.detail(id) })
       })

@@ -1,10 +1,12 @@
 import { toast, usePrompt } from "@medusajs/ui"
-import { useMemo } from "react"
+import { useMemo, useRef } from "react"
 import { useTranslation } from "react-i18next"
 
 import type { Permission } from "@mercurjs/dashboard-sdk"
+import type { OfferDTO } from "@mercurjs/types"
 
 import { useBulkDeleteOffers } from "../../../hooks/api/offers"
+import { resolveOfferIdsForSelection } from "./resolve-offer-ids"
 
 type OfferTableCommand = {
   label: string
@@ -14,11 +16,15 @@ type OfferTableCommand = {
 }
 
 export const useOfferTableCommands = (options?: {
+  rows?: OfferDTO[]
   onDeleted?: () => void
 }): OfferTableCommand[] => {
   const { t } = useTranslation()
   const prompt = usePrompt()
   const { mutateAsync: bulkDelete } = useBulkDeleteOffers()
+  const rows = options?.rows ?? []
+  const rowsRef = useRef(rows)
+  rowsRef.current = rows
   const onDeleted = options?.onDeleted
 
   return useMemo(
@@ -28,7 +34,10 @@ export const useOfferTableCommands = (options?: {
         shortcut: "d",
         permission: "offers:manage",
         action: async (currentSelection) => {
-          const offerIds = Object.keys(currentSelection)
+          const offerIds = resolveOfferIdsForSelection(
+            rowsRef.current,
+            currentSelection
+          )
           if (offerIds.length === 0) {
             return
           }

@@ -49,6 +49,7 @@ export const OfferListDataTable = () => {
     [baseFilters, extFilters],
   )
   const commands = useOfferTableCommands({
+    rows,
     onDeleted: () => setSelection({}),
   })
 
