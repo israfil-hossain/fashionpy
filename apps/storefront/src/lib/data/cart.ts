@@ -244,7 +244,7 @@ export async function updateLineItem({ lineId, quantity }: { lineId: string; qua
   const cartCacheTag = await getCacheTag('carts');
   await revalidateTag(cartCacheTag, "max");
 
-  return res;
+  return retrieveCart(cartId);
 }
 
 export async function deleteLineItem(lineId: string) {
@@ -269,6 +269,8 @@ export async function deleteLineItem(lineId: string) {
       await revalidateTag(cartCacheTag, "max");
     })
     .catch(medusaError);
+
+  return retrieveCart(cartId);
 }
 
 export async function setShippingMethod({

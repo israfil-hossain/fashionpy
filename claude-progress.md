@@ -4,6 +4,22 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Primary checkout logo + cart delete persistence (2026-11-25), `main`
+
+- Checkout header now mirrors the storefront header brand: `/f_logo.svg` icon
+  plus the "FashionPy" text (same sizing/colors), and the cart review/drawer
+  seller-avatar fallbacks use the same icon.
+- Deleted cart lines came back because `deleteLineItem` and `updateLineItem`
+  resolved to `undefined`/a `{cart}` wrapper; `CartProvider.mutate` wrote that
+  into `confirmedCart`, whose `undefined` sentinel means "fall back to the
+  stale streamed seed". Both actions now return `retrieveCart(cartId)`, and
+  `mutate` refetches on an undefined result before storing it.
+- Evidence: Playwright on `/bd/cart` — delete removes the line immediately and
+  it stays gone after 1.5s/6.5s, API confirms 0 items, and a reload still shows
+  0. Checkout logo loads (`/f_logo.svg`, icon + "FashionPy" text). Lint 0;
+  storefront build passes; tsc has no new errors in touched files. Temp
+  inventory row removed.
+
 ## Session — PDP options, 80 BDT Dhaka, checkout fixes (2026-11-25), `main`
 
 Four reported issues:

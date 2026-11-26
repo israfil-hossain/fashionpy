@@ -21,15 +21,19 @@ export default async function RootLayout({
             </LocalizedClientLink>
           </div>
           <div className="flex items-center justify-center pl-4 lg:pl-0 w-full">
-            <LocalizedClientLink href="/" className="text-2xl font-bold">
+            <LocalizedClientLink
+              href="/"
+              className="flex items-center gap-2 text-base font-bold lg:text-2xl lg:text-[rgb(var(--brand-500))]"
+            >
               <Image
-                src="/fashionpy.svg"
-                width={128}
-                height={32}
+                src="/f_logo.svg"
+                width={40}
+                height={40}
                 alt="FashionPy"
-                className="h-8 w-auto"
+                className="h-7 w-auto lg:h-9"
                 priority
               />
+              <span>FashionPy</span>
             </LocalizedClientLink>
           </div>
         </div>

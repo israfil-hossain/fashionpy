@@ -122,7 +122,7 @@ export function CartProvider({ cartPromise, children }: CartProviderProps) {
     seededCart: Cart | null,
     optimisticAction: OptimisticCartAction,
     pendingKey: string,
-    mutation: () => Promise<Cart | null>
+    mutation: () => Promise<Cart | null | undefined>
   ) => {
     if (confirmedCart === undefined) {
       setConfirmedCart(seededCart);
@@ -136,7 +136,8 @@ export function CartProvider({ cartPromise, children }: CartProviderProps) {
         markPending(pendingKey);
 
         try {
-          const cart = await mutation();
+          const result = await mutation();
+          const cart = result === undefined ? await retrieveCart() : result;
           setConfirmedCart(cart);
           resolve();
         } catch (error) {
