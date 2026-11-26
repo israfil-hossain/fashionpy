@@ -9,14 +9,31 @@ import React, { useEffect, useState } from "react"
 import { Button } from '@/components/atoms/Button/Button';
 import { orderErrorFormatter } from "@/lib/helpers/order-error-formatter"
 import { toast } from "@/lib/helpers/toast"
+import { useLocale } from "@/components/providers/Locale/LocaleProvider"
 
 type PaymentButtonProps = {
   cart: HttpTypes.StoreCart
+  isLoggedIn?: boolean
   "data-testid": string
+}
+
+const useRequireLoginForOrder = (isLoggedIn?: boolean) => {
+  const locale = useLocale()
+
+  return () => {
+    if (isLoggedIn) return true
+
+    const returnTo = `${window.location.pathname}${window.location.search}`
+    window.location.assign(
+      `/${locale}/login?redirect=${encodeURIComponent(returnTo)}`
+    )
+    return false
+  }
 }
 
 const PaymentButton: React.FC<PaymentButtonProps> = ({
   cart,
+  isLoggedIn,
   "data-testid": dataTestId,
 }) => {
   const notReady =
@@ -34,13 +51,18 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
         <StripePaymentButton
           notReady={notReady}
           cart={cart}
+          isLoggedIn={isLoggedIn}
           data-testid={dataTestId}
         />
       )
     case isManual(paymentSession?.provider_id):
     case isCod(paymentSession?.provider_id):
       return (
-        <ManualTestPaymentButton notReady={notReady} data-testid={dataTestId} />
+        <ManualTestPaymentButton
+          notReady={notReady}
+          isLoggedIn={isLoggedIn}
+          data-testid={dataTestId}
+        />
       )
     default:
       return (
@@ -54,12 +76,15 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
 const StripePaymentButton = ({
   cart,
   notReady,
+  isLoggedIn,
   "data-testid": dataTestId,
 }: {
   cart: HttpTypes.StoreCart
   notReady: boolean
+  isLoggedIn?: boolean
   "data-testid"?: string
 }) => {
+  const requireLogin = useRequireLoginForOrder(isLoggedIn)
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [disabled, setDisabled] = useState(true)
@@ -95,6 +120,8 @@ const StripePaymentButton = ({
   }, [card, stripe, elements, cart])
 
   const handlePayment = async () => {
+    if (!requireLogin()) return
+
     setSubmitting(true)
 
     if (!stripe || !elements || !card || !cart) {
@@ -168,7 +195,14 @@ const StripePaymentButton = ({
   )
 }
 
-const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
+const ManualTestPaymentButton = ({
+  notReady,
+  isLoggedIn,
+}: {
+  notReady: boolean
+  isLoggedIn?: boolean
+}) => {
+  const requireLogin = useRequireLoginForOrder(isLoggedIn)
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -190,6 +224,7 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
   }
 
   const handlePayment = () => {
+    if (!requireLogin()) return
     onPaymentCompleted()
   }
 

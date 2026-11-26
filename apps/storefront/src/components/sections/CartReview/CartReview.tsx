@@ -6,7 +6,7 @@ import { PromoCode } from '@/components/organisms/PromoCode/PromoCode';
 import { CartItems } from './CartItems';
 import PaymentButton from './PaymentButton';
 
-const Review = ({ cart }: { cart: any }) => {
+const Review = ({ cart, isLoggedIn }: { cart: any; isLoggedIn?: boolean }) => {
   const paidByGiftcard = cart?.gift_cards && cart?.gift_cards?.length > 0 && cart?.total === 0;
 
   // Every seller in the cart must have a shipping method. The backend enforces
@@ -49,6 +49,7 @@ const Review = ({ cart }: { cart: any }) => {
       {previousStepsCompleted && (
         <PaymentButton
           cart={cart}
+          isLoggedIn={isLoggedIn}
           data-testid="submit-order-button"
         />
       )}

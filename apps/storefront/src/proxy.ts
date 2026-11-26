@@ -19,6 +19,10 @@ const makeAuthRedirect = (
   const redirectUrl = new URL(`/${locale}/login`, req.url);
 
   redirectUrl.searchParams.set(reason, 'true');
+  redirectUrl.searchParams.set(
+    'redirect',
+    `${req.nextUrl.pathname}${req.nextUrl.search}`
+  );
 
   const response = NextResponse.redirect(redirectUrl);
 

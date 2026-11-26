@@ -4,6 +4,27 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Guest checkout order ownership (2026-11-25), `main`
+
+A guest could complete checkout: `placeOrder()` created the order with a guest
+customer id, deleted `_medusa_cart_id`, then redirected to protected
+`/user/orders/<id>`. The auth proxy sent them to `/login?sessionRequired=true`
+without a return target, and by then `LoginForm`'s `transferCart()` had no cart
+to transfer — after login the order didn't belong to the customer.
+
+- Guests must now sign in **before** Place order: `PaymentButton` (Stripe and
+  manual/COD) redirects to `/{locale}/login?redirect=<checkout url>` via
+  `useRequireLoginForOrder`, leaving the cart intact so `LoginForm.transferCart()`
+  attaches it to the customer. After returning to review, placing the order
+  creates it with the customer id and the existing `/user/orders/<id>` redirect
+  works. `isLoggedIn` flows from the checkout page through `CartReview`.
+- The auth proxy now also preserves the original URL as `redirect` for any
+  protected-route login bounce (verified: `/bd/user/orders` →
+  `/bd/login?sessionRequired=true&redirect=%2Fbd%2Fuser%2Forders`).
+- Evidence: lint 0; storefront build passes; tsc unchanged at the 136-line
+  baseline. Full guest place-order click path not browser-tested locally
+  because this DB has no seller shipping options to complete the review step.
+
 ## Session — Wishlist 500 fix (2026-11-25), `main`
 
 The new global `WishlistProvider` calls `GET /store/wishlist` on every page for

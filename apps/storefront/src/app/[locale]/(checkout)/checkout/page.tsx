@@ -60,7 +60,7 @@ async function CheckoutPageContent() {
           </div>
 
           <div className="lg:col-span-5" data-testid="checkout-review-container">
-            <CartReview cart={cart} />
+            <CartReview cart={cart} isLoggedIn={!!customer} />
           </div>
         </div>
       </main>
