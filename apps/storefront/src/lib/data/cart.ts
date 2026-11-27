@@ -160,11 +160,13 @@ const revalidateCartCache = async () => {
 export async function addToCart({
   offerId,
   quantity,
-  countryCode
+  countryCode,
+  metadata
 }: {
   offerId: string;
   quantity: number;
   countryCode: string;
+  metadata?: Record<string, unknown>;
 }): Promise<{ ok: boolean; error?: string }> {
   try {
     if (!offerId) {
@@ -184,8 +186,11 @@ export async function addToCart({
     // Line items are offer-scoped: the same variant sold by two sellers are two
     // distinct offers and two distinct lines. Dedup by the offer stamped on
     // `metadata.offer_id` (requested by `retrieveCart`).
+    const fingerprint = metadata?.customization_fingerprint;
     const currentItem = cart.items?.find(
-      item => item.metadata?.offer_id === offerId
+      item =>
+        item.metadata?.offer_id === offerId &&
+        (item.metadata?.customization_fingerprint ?? null) === (fingerprint ?? null)
     );
 
     if (currentItem) {
@@ -203,6 +208,7 @@ export async function addToCart({
           $id: cart.id,
           offer_id: offerId,
           quantity,
+          ...(metadata ? { metadata } : {}),
           fetchOptions: { headers }
         } as never) as unknown as Promise<{ cart: HttpTypes.StoreCart }>)
         .catch(medusaError);

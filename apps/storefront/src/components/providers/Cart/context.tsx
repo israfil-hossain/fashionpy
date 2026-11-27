@@ -9,6 +9,7 @@ interface AddToCartParams {
   offerId: string;
   optimisticItem?: { currencyCode: string; item: StoreCartLineItemOptimisticUpdate };
   quantity: number;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CartContextValue {
@@ -25,7 +26,10 @@ export interface CartContextValue {
 
 export const CartContext = createContext<CartContextValue | null>(null);
 
-export const getOfferPendingKey = (offerId: string) => `offer:${offerId}`;
+export const getOfferPendingKey = (
+  offerId: string,
+  fingerprint?: string
+) => `offer:${offerId}${fingerprint ? `:${fingerprint}` : ""}`;
 
 // Suspends until the streamed server cart resolves, so callers that render cart
 // data belong under a Suspense boundary whose fallback matches their geometry.
@@ -46,7 +50,11 @@ export function useCartContext() {
       const offerId = line.metadata?.offer_id;
       return (
         (!!line.id && context.pendingKeys.includes(line.id)) ||
-        (typeof offerId === 'string' && context.pendingKeys.includes(getOfferPendingKey(offerId)))
+        (typeof offerId === 'string' &&
+          (context.pendingKeys.includes(getOfferPendingKey(offerId)) ||
+            context.pendingKeys.some(key =>
+              key.startsWith(`offer:${offerId}:`)
+            )))
       );
     },
     isRemovingItem: context.isRemovingItem,

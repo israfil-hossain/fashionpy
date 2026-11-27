@@ -31,6 +31,7 @@ import {
   subscribeVariantsToAttributes,
 } from "../../utils";
 import { ProductCreateAttributesForm } from "../product-create-attributes-form";
+import { ProductCreateCustomizationForm } from "../product-create-customization-form/product-create-customization-form";
 import { ProductCreateDetailsForm } from "../product-create-details-form";
 import { ProductCreateOrganizeForm } from "../product-create-organize-form";
 import { ProductCreateVariantsForm } from "../product-create-variants-form";
@@ -40,7 +41,7 @@ import { DeepPartial } from "react-hook-form";
 const SAVE_DRAFT_BUTTON = "save-draft-button";
 
 // The variants tab is a data grid: its fields are per-variant columns.
-const FORM_TABS = ["details", "organize", "attributes"];
+const FORM_TABS = ["details", "organize", "attributes", "customization"];
 const VARIANTS_TAB = "variants";
 
 type ProductCreateFormProps = {
@@ -255,6 +256,7 @@ export const ProductCreateForm = ({
       <ProductCreateDetailsForm key="details" />,
       <ProductCreateOrganizeForm key="organize" />,
       <ProductCreateAttributesForm key="attributes" />,
+      <ProductCreateCustomizationForm key="customization" />,
       <ProductCreateVariantsForm key="variants" />,
     ],
     [],

@@ -1,3 +1,4 @@
+import { CustomizationDisplay } from "@/components/cells/CustomizationDisplay/CustomizationDisplay"
 import { convertToLocale } from "@/lib/helpers/money"
 import { HttpTypes } from "@medusajs/types"
 import Image from "next/image"
@@ -53,6 +54,7 @@ export const Item = ({
             <p>
               Quantity: <span className="text-primary">{item.quantity}</span>
             </p>
+            <CustomizationDisplay metadata={item.metadata} />
           </div>
           <div className="lg:text-right flex lg:block items-center gap-2 mt-4 lg:mt-0">
             {total !== original_total && (

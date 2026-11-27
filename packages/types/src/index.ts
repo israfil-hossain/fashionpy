@@ -63,6 +63,7 @@ export * from "./policy-page"
 // `requires_action` is no longer a product status — it's a computed
 // boolean derived from `ProductChange`.
 export { ProductStatus } from "./product/status"
+export * from "./product/customization"
 export {
   AttributeType,
   ProductChangeStatus,

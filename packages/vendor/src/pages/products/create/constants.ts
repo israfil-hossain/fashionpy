@@ -97,6 +97,15 @@ export const ProductCreateSchema = z
           })
         })
       }),
+    customization_enabled: z.boolean().optional(),
+    customization_fields: z.array(z.object({
+      key: z.string().min(1),
+      label: z.string().min(1),
+      type: z.enum(["text", "file"]),
+      required: z.boolean().optional(),
+      max_length: z.coerce.number().min(0).optional(),
+      extra_price: z.coerce.number().min(0).optional(),
+    })).optional(),
     variants: z.array(ProductCreateVariantSchema).min(1),
     media: z.array(MediaSchema).optional(),
     additional_data: z.record(z.string(), z.unknown()).optional(),
@@ -163,6 +172,8 @@ export const PRODUCT_CREATE_FORM_DEFAULTS: Partial<
     },
   ]),
   attributes: [],
+  customization_enabled: false,
+  customization_fields: [],
   media: [],
   category_id: "",
   collection_id: "",

@@ -3,6 +3,7 @@ import {
   refineAdditionalData,
   useExtension,
 } from "@mercurjs/dashboard-shared"
+import { ProductCreateCustomizationForm } from "../product-create-customization-form/product-create-customization-form";
 import { MercurFeatureFlags } from "@mercurjs/types"
 import { Button, toast } from "@medusajs/ui"
 import { ReactNode, useCallback, useEffect, useMemo, Children } from "react"
@@ -42,7 +43,7 @@ type ProductCreateFormProps = {
 type UploadedFile = { id?: string; url: string }
 
 // The variants tab is a data grid: its fields are per-variant columns.
-const FORM_TABS = ["details", "organize", "attributes"]
+const FORM_TABS = ["details", "organize", "attributes", "customization"]
 const VARIANTS_TAB = "variants"
 
 export const ProductCreateForm = ({
@@ -232,6 +233,7 @@ export const ProductCreateForm = ({
       <ProductCreateDetailsForm key="details" />,
       <ProductCreateOrganizeForm key="organize" />,
       <ProductCreateAttributesForm key="attributes" />,
+      <ProductCreateCustomizationForm key="customization" />,
       <ProductCreateVariantsForm key="variants" />,
     ],
     []

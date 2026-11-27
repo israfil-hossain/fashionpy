@@ -77,7 +77,12 @@ function applyOptimisticAction(cart: Cart | null, action: OptimisticCartAction):
   if (!newItem) return cart;
 
   const offerId = newItem.metadata?.offer_id;
-  const existing = currentItems.find(item => item.metadata?.offer_id === offerId);
+  const fingerprint = newItem.metadata?.customization_fingerprint;
+  const existing = currentItems.find(
+    item =>
+      item.metadata?.offer_id === offerId &&
+      (item.metadata?.customization_fingerprint ?? null) === (fingerprint ?? null)
+  );
 
   const items = existing
     ? currentItems.map(item =>
@@ -85,7 +90,10 @@ function applyOptimisticAction(cart: Cart | null, action: OptimisticCartAction):
           ? scaleLine(item, (item.quantity || 0) + (newItem.quantity || 0))
           : item
       )
-    : [...currentItems, { ...newItem, id: `optimistic:${offerId}` }];
+    : [
+        ...currentItems,
+        { ...newItem, id: `optimistic:${offerId}:${fingerprint ?? ""}` },
+      ];
 
   return withItems(cart, items, currencyCode);
 }
@@ -151,7 +159,7 @@ export function CartProvider({ cartPromise, children }: CartProviderProps) {
 
   const addToCart: CartContextValue['addToCart'] = (
     seededCart,
-    { offerId, optimisticItem, quantity, countryCode }
+    { offerId, optimisticItem, quantity, countryCode, metadata }
   ) =>
     mutate(
       seededCart,
@@ -160,9 +168,14 @@ export function CartProvider({ cartPromise, children }: CartProviderProps) {
         item: optimisticItem?.item,
         type: 'add'
       },
-      getOfferPendingKey(offerId),
+      getOfferPendingKey(offerId, metadata?.customization_fingerprint as string | undefined),
       async () => {
-        const result = await apiAddToCart({ countryCode, offerId, quantity });
+        const result = await apiAddToCart({
+          countryCode,
+          offerId,
+          quantity,
+          metadata,
+        });
         if (!result.ok) {
           throw new Error(result.error);
         }

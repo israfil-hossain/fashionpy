@@ -501,7 +501,8 @@
         "details": "Details",
         "organize": "Organize",
         "variants": "Variants",
-        "attributes": "Attributes"
+        "attributes": "Attributes",
+        "customization": "Customization"
       },
       "defaults": {
         "optionTitle": "Default option",

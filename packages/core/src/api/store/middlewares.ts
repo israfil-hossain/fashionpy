@@ -17,6 +17,7 @@ import { storeStoreSettingsMiddlewares } from "./store-settings/middlewares"
 import { storeNotificationFeedMiddlewares } from "./notifications/middlewares"
 import { storeMessagingMiddlewares } from "./messages/middlewares"
 import { storeChatbotMiddlewares } from "./chatbot/middlewares"
+import { storeUploadsMiddlewares } from "./uploads/middlewares"
 
 export const storeMiddlewares: MiddlewareRoute[] = [
   ...storeCartsMiddlewares,
@@ -36,4 +37,5 @@ export const storeMiddlewares: MiddlewareRoute[] = [
   ...storeStoreSettingsMiddlewares,
   ...storeNotificationFeedMiddlewares,
   ...storeChatbotMiddlewares,
+  ...storeUploadsMiddlewares,
 ]

@@ -459,6 +459,17 @@ const Item = ({
             <Text size="small">
               {item.variant?.options?.map((o) => o.value).join(" · ")}
             </Text>
+            {item.metadata && typeof item.metadata.customization === "object" && item.metadata.customization !== null && (
+              <div className="mt-1 flex flex-col gap-y-0.5" data-testid={`order-summary-item-${item.id}-customization`}>
+                {Object.entries(item.metadata.customization as Record<string, unknown>).map(([key, value]) => (
+                  <Text key={key} size="small" className="text-ui-fg-subtle">
+                    {key.replace(/_/g, " ")}: {typeof value === "object" && value !== null && "url" in value ? (
+                      <a href={(value as { url: string }).url} target="_blank" rel="noreferrer" className="underline">View file</a>
+                    ) : String(value)}
+                  </Text>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

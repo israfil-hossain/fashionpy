@@ -13,6 +13,7 @@ import { useCartContext } from "@/components/providers"
 import { useCartDrawer } from "@/components/providers/Cart/drawer"
 import { CloseIcon } from "@/icons"
 import Spinner from "@/icons/spinner"
+import { CustomizationDisplay } from "@/components/cells/CustomizationDisplay/CustomizationDisplay"
 import { filterValidCartItems } from "@/lib/helpers/filter-valid-cart-items"
 import { convertToLocale } from "@/lib/helpers/money"
 
@@ -212,6 +213,7 @@ const CartDrawerLine = ({
                 </p>
               ))}
               {sellerName && <p>Sold by {sellerName}</p>}
+              <CustomizationDisplay metadata={item.metadata} />
             </div>
           </div>
           <span

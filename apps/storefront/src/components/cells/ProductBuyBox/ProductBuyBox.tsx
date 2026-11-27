@@ -19,7 +19,14 @@ import {
 } from "@/lib/helpers/buybox"
 import { Chat } from "@/components/organisms/Chat/Chat"
 import { CompareOffersModal } from "@/components/organisms/CompareOffersModal/CompareOffersModal"
-import { SellerDTO } from "@mercurjs/types"
+import {
+  customizationFingerprint,
+  parseProductCustomization,
+  validateCustomizationValues,
+  SellerDTO,
+  type CustomizationValues,
+} from "@mercurjs/types"
+import { ProductCustomization } from "@/components/cells/ProductCustomization/ProductCustomization"
 import { toast } from "@/lib/helpers/toast"
 import { useCartContext } from "@/components/providers"
 import { useCartDrawer } from "@/components/providers/Cart/drawer"
@@ -70,8 +77,16 @@ export const ProductBuyBox = ({
   const [isCompareOpen, setIsCompareOpen] = useState(false)
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false)
   const [quantity, setQuantity] = useState(1)
+  const [customizationValues, setCustomizationValues] =
+    useState<CustomizationValues>({})
+  const [customizationErrors, setCustomizationErrors] = useState<
+    Record<string, string>
+  >({})
 
   const sizeChart = getSizeChart(product.metadata)
+  const customizationConfig = parseProductCustomization(
+    product.metadata?.customization
+  )
 
   const { cheapestVariant, cheapestPrice } = getProductPrice({
     product,
@@ -175,6 +190,30 @@ export const ProductBuyBox = ({
   const addSelectedOffer = async (showCartDrawer: boolean) => {
     if (!winnerOffer || isAddToCartDisabled) return false
 
+    if (customizationConfig) {
+      const errors = validateCustomizationValues(
+        customizationConfig,
+        customizationValues
+      )
+      if (Object.keys(errors).length) {
+        setCustomizationErrors(errors)
+        toast.error({
+          title: "Complete product customization",
+          description: "Please fill in the required customization fields.",
+        })
+        return false
+      }
+      setCustomizationErrors({})
+    }
+
+    const customizationMetadata = customizationConfig
+      ? {
+          customization: customizationValues,
+          customization_fingerprint:
+            customizationFingerprint(customizationValues),
+        }
+      : {}
+
     const total = offerAmount as number
     const subtotal =
       winnerOffer.calculated_price?.calculated_amount_without_tax ?? total
@@ -189,7 +228,7 @@ export const ProductBuyBox = ({
       variant_id: variantId,
       product_id: product.id,
       variant: product.variants?.find(({ id }) => id === variantId),
-      metadata: { offer_id: winnerOffer.id },
+      metadata: { offer_id: winnerOffer.id, ...customizationMetadata },
     }
 
     if (showCartDrawer) {
@@ -202,6 +241,7 @@ export const ProductBuyBox = ({
         offerId: winnerOffer.id,
         quantity: selectedQuantity,
         countryCode: locale,
+        metadata: customizationMetadata,
         optimisticItem: { item: storeCartLineItem, currencyCode: offerCurrency },
       })
       return true
@@ -361,6 +401,15 @@ export const ProductBuyBox = ({
 
       {hasAnyPrice && (
         <ProductVariants product={product} selectedVariant={selectedVariant} />
+      )}
+
+      {customizationConfig && (
+        <ProductCustomization
+          metadata={product.metadata}
+          values={customizationValues}
+          onChange={setCustomizationValues}
+          errors={customizationErrors}
+        />
       )}
 
       {sizeChart && (

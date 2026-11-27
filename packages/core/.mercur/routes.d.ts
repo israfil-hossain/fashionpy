@@ -801,6 +801,7 @@ export type Routes = {
             $id: typeof import("../src/api/store/reviews/[id]/route");
         };
         storeSettings: typeof import("../src/api/store/store-settings/route");
+        uploads: typeof import("../src/api/store/uploads/route");
     };
     vendor: {
         campaigns: typeof import("../src/api/vendor/campaigns/route") & {

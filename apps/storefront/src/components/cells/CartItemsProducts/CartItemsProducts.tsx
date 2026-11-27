@@ -5,6 +5,7 @@ import { DeleteCartItemButton } from '@/components/molecules/DeleteCartItemButto
 import LocalizedClientLink from '@/components/molecules/LocalizedLink/LocalizedLink';
 import { UpdateCartItemButton } from '@/components/molecules/UpdateCartItemButton/UpdateCartItemButton';
 import { WishlistButton } from '@/components/cells/WishlistButton/WishlistButton';
+import { CustomizationDisplay } from '@/components/cells/CustomizationDisplay/CustomizationDisplay';
 import { filterValidCartItems } from '@/lib/helpers/filter-valid-cart-items';
 import { convertToLocale } from '@/lib/helpers/money';
 
@@ -96,6 +97,7 @@ export const CartItemsProducts = ({
                       Quantity: <span className="text-primary">{product.quantity}</span>
                     </p>
                   )}
+                  <CustomizationDisplay metadata={product.metadata} />
                 </div>
                 <div className="mt-4 flex items-center gap-2 lg:mt-0 lg:block lg:text-right">
                   <p className="label-lg" data-testid="cart-item-price">{total}</p>

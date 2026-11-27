@@ -32,7 +32,23 @@ export const normalizeProductFormValues = (
     })
   }
 
+  const customization =
+    values.customization_enabled && values.customization_fields?.length
+      ? {
+          enabled: true,
+          fields: values.customization_fields.map((field) => ({
+            key: field.key.trim(),
+            label: field.label.trim(),
+            type: field.type,
+            required: Boolean(field.required),
+            ...(field.max_length ? { max_length: field.max_length } : {}),
+            ...(field.extra_price ? { extra_price: field.extra_price } : {}),
+          })),
+        }
+      : null
+
   return {
+    metadata: customization ? { customization } : undefined,
     is_giftcard: false,
     status: values.status,
     tags: values?.tags?.length
