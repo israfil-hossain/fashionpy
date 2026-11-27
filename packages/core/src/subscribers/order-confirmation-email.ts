@@ -1,37 +1,43 @@
 import { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
-import {
-  ContainerRegistrationKeys,
-} from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 
+import { sendEmail } from "../email/send-email"
+import { orderConfirmationHtml } from "../email/templates"
 import { OrderGroupWorkflowEvents } from "../workflows/events"
-import { sendOrderConfirmationEmail } from "../chatbot/email"
 
-/**
- * Sends the order confirmation email (Resend when configured) once per
- * checkout, alongside the existing in-app notification fan-out.
- */
+type GroupRecord = {
+  id: string
+  display_id: number | null
+  total?: number | string | null
+  customer?: { email?: string | null } | null
+  orders?: Array<{
+    currency_code?: string | null
+    items?: Array<{ title?: string | null; quantity?: number | null }> | null
+  }> | null
+}
+
+const formatTotal = (total: number | string | null | undefined, currency: string) => {
+  if (total === null || total === undefined) return null
+  return `${(Number(total) / 100).toFixed(2)} ${currency.toUpperCase()}`
+}
+
 export default async function orderConfirmationEmailHandler({
   event,
   container,
 }: SubscriberArgs<{ id?: string }>) {
-  if (event.name !== OrderGroupWorkflowEvents.CREATED || !event.data.id) {
-    return
-  }
+  if (event.name !== OrderGroupWorkflowEvents.CREATED || !event.data.id) return
 
   const query = container.resolve(ContainerRegistrationKeys.QUERY)
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
 
   try {
-    const {
-      data: [group],
-    } = await query.graph({
+    const { data } = await query.graph({
       entity: "order_group",
       fields: [
         "id",
         "display_id",
         "total",
         "customer.email",
-        "customer_id",
         "orders.currency_code",
         "orders.items.title",
         "orders.items.quantity",
@@ -39,42 +45,45 @@ export default async function orderConfirmationEmailHandler({
       filters: { id: event.data.id },
     })
 
-    if (!group) {
-      return
-    }
+    const group = data[0] as GroupRecord | undefined
+    if (!group) return
 
-    const email = (group as any).customer?.email
+    const email = group.customer?.email
     if (!email) {
-      logger.debug(
-        `order-confirmation-email: no customer email for group ${group.id}`
-      )
+      logger.debug(`order-confirmation-email: no customer email for ${group.id}`)
       return
     }
 
-    const firstOrder = (group as any).orders?.[0]
-    const items = ((firstOrder?.items ?? []) as Array<{
-      title: string
-      quantity: number
-    }>).slice(0, 20)
+    const firstOrder = group.orders?.[0]
+    const currency = firstOrder?.currency_code || "bdt"
+    const items = (firstOrder?.items ?? []).slice(0, 20).map(item => ({
+      title: item.title || "Item",
+      quantity: item.quantity || 1,
+    }))
+    const displayId = group.display_id ? `#${group.display_id}` : group.id
 
-    await sendOrderConfirmationEmail(container, {
-      email,
-      order_group_id: group.id,
-      display_id: group.display_id,
-      total: (group as any).total ?? null,
-      currency_code: firstOrder?.currency_code ?? null,
-      items,
+    await sendEmail({
+      container,
+      to: email,
+      kind: "order_confirmation",
+      subject: `Order confirmed ${displayId}`,
+      html: orderConfirmationHtml({
+        displayId,
+        total: formatTotal(group.total, currency),
+        items,
+        orderGroupId: group.id,
+      }),
+      data: {
+        display_id: group.display_id,
+        order_group_id: group.id,
+      },
     })
-  } catch (err) {
-    logger.warn(
-      `order-confirmation-email handler failed: ${(err as Error).message}`
-    )
+  } catch (error) {
+    logger.warn(`order-confirmation-email handler failed: ${(error as Error).message}`)
   }
 }
 
 export const config: SubscriberConfig = {
   event: OrderGroupWorkflowEvents.CREATED,
-  context: {
-    subscriberId: "order-confirmation-email-handler",
-  },
+  context: { subscriberId: "order-confirmation-email-handler" },
 }

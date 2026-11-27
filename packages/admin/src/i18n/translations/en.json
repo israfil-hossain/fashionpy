@@ -1,4 +1,7 @@
 {
+  "email": {
+    "domain": "Email notifications"
+  },
   "$schema": "./$schema.json",
   "general": {
     "unknownError": "An unknown error occurred",

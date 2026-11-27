@@ -1630,6 +1630,15 @@ export function getRouteMap({
                 lazy: () => import("./pages/settings/chatbot"),
               },
               {
+                path: "email",
+                errorElement: <ErrorBoundary />,
+                handle: {
+                  breadcrumb: () => t("email.domain", "Email notifications"),
+                  permissions: "store:edit",
+                },
+                lazy: () => import("./pages/settings/email"),
+              },
+              {
                 path: "commissions",
                 errorElement: <ErrorBoundary />,
                 element: <Outlet />,

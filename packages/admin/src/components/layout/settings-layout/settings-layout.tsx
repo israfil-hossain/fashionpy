@@ -89,6 +89,10 @@ const useSettingRoutes = (): INavItem[] => {
         label: t("courier.domain"),
         to: "/settings/courier",
       },
+      {
+        label: t("email.domain", "Email notifications"),
+        to: "/settings/email",
+      },
 
       {
         label: t("users.domain"),
