@@ -6,7 +6,6 @@ import { CartDropdown } from "@/components/cells/CartDropdown/CartDropdown"
 import { UserDropdown } from "@/components/cells/UserDropdown/UserDropdown"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import { HeaderSearch } from "@/components/molecules/HeaderSearch/HeaderSearch"
-import { NotificationsButton } from "@/components/molecules/NotificationsButton/NotificationsButton"
 import { HeartIcon, SearchIcon } from "@/icons"
 import { listCategories } from "@/lib/data/categories"
 import { retrieveCustomer } from "@/lib/data/customer"
@@ -122,11 +121,6 @@ export const Header = async ({
                   Login as Seller
                 </a>
               </div>
-
-              <NotificationsButton
-                iconColor="currentColor"
-                label="Notifications"
-              />
 
               <LocalizedClientLink
                 href="/user/wishlist"

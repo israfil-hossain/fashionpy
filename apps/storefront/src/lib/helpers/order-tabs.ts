@@ -25,7 +25,10 @@ export type OrderStageRecord = {
 }
 
 const isShipping = (status?: string | null) =>
-  status === "shipped" || status === "partially_shipped"
+  status === "fulfilled" ||
+  status === "partially_fulfilled" ||
+  status === "shipped" ||
+  status === "partially_shipped"
 
 const isDelivered = (status?: string | null) =>
   status === "delivered" || status === "partially_delivered"
@@ -49,8 +52,11 @@ export const matchesOrderTab = (
   const shipping = isShipping(order.fulfillment_status)
   const pending =
     order.status === "pending" ||
+    order.status === "requires_action" ||
     order.payment_status === "awaiting" ||
-    order.payment_status === "not_paid"
+    order.payment_status === "not_paid" ||
+    order.payment_status === "requires_action" ||
+    order.fulfillment_status === "not_fulfilled"
 
   switch (tab) {
     case "all":

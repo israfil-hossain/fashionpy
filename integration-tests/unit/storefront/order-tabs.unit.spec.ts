@@ -17,6 +17,21 @@ describe("matchesOrderTab", () => {
     expect(matchesOrderTab(order, "delivered")).toBe(false)
   })
 
+  test("treats fulfilled as shipping and not fulfilled as pending", () => {
+    expect(
+      matchesOrderTab(
+        { ...order, fulfillment_status: "fulfilled" },
+        "shipping"
+      )
+    ).toBe(true)
+    expect(
+      matchesOrderTab(
+        { ...order, fulfillment_status: "not_fulfilled" },
+        "pending"
+      )
+    ).toBe(true)
+  })
+
   test("delivered orders also appear in To Review", () => {
     const delivered: OrderForTab = { ...order, fulfillment_status: "delivered" }
     expect(matchesOrderTab(delivered, "delivered")).toBe(true)

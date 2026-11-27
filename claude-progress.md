@@ -4,6 +4,23 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Wishlist page 500 fix (2026-11-26), `main`
+
+`/bd/user/wishlist` rendered "Something went wrong" for customers with items.
+Two causes: the page (and notifications page) imported `UserSidebar` from the
+molecules barrel, which didn't export it — a build-time export error; and
+wishlist products came back without prices, so `WishlistItem` called
+`convertToLocale` with `undefined` → `amount.toString()` threw during SSR.
+
+- Fixed the imports to use `components/molecules/UserSidebar/UserSidebar` and
+  exported it from the barrel. `getUserWishlists` now falls back to the buybox
+  offer price when the wishlist endpoint has no calculated price; added
+  `calculated_price` to the wishlist query defaults in API + registry.
+  `WishlistItem` guards the price and safely decodes thumbnails.
+- Evidence: with a fresh customer and a wishlist item the page returns 200 and
+  renders `wishlist-item` rows (no error boundary); lint 0; storefront build
+  passes.
+
 ## Session — Wishlist errors, orders, profile, Bangladesh addresses (2026-11-25), `main`
 
 Implemented in the agreed order:

@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { RouteFallback } from "@/components/molecules/RouteFallback/RouteFallback"
-import { UserNavigation } from '@/components/molecules/UserNavigation/UserNavigation';
+import { UserSidebar } from '@/components/molecules/UserSidebar/UserSidebar';
 import { retrieveCustomer } from "@/lib/data/customer"
 import { Button } from '@/components/atoms/Button/Button';
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
@@ -35,7 +35,7 @@ async function UserPageContent({
   return (
     <main className="container">
       <div className="grid grid-cols-1 md:grid-cols-4 mt-6 gap-5 md:gap-8">
-        <UserNavigation />
+        <UserSidebar />
         <div className="md:col-span-3">
           <LocalizedClientLink href="/user/orders">
             <Button

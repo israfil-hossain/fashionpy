@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import { RouteFallback } from "@/components/molecules/RouteFallback/RouteFallback"
 import { Button } from "@/components/atoms/Button/Button"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
-import { UserNavigation } from "@/components/molecules/UserNavigation/UserNavigation"
+import { UserSidebar } from "@/components/molecules/UserSidebar/UserSidebar"
 
 export default function RequestSuccessPage(props: {
   params: Promise<{ id: string }>
@@ -24,7 +24,7 @@ async function RequestSuccessPageContent({
   return (
     <main className="container">
       <div className="grid grid-cols-1 md:grid-cols-4 mt-6 gap-5 md:gap-8">
-        <UserNavigation />
+        <UserSidebar />
         <div className="md:col-span-3 text-center">
           <h1 className="heading-md uppercase">Return requested</h1>
           <p className="label-md text-secondary w-96 mx-auto my-8">

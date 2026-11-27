@@ -1,9 +1,5 @@
-import {
-  LoginForm,
-  UserNavigation,
-} from "@/components/molecules"
-import { UserPanelBell } from "@/components/molecules/UserPanelBell/UserPanelBell"
-import { UserPanelIdentity } from "@/components/molecules/UserPanelIdentity/UserPanelIdentity"
+import { LoginForm } from "@/components/molecules"
+import { UserSidebar } from "@/components/molecules/UserSidebar/UserSidebar"
 import LocalizedClientLink from "@/components/molecules/LocalizedLink/LocalizedLink"
 import { Button } from "@/components/atoms"
 import { retrieveCustomer } from "@/lib/data/customer"
@@ -25,13 +21,8 @@ export default async function VouchersPage() {
   return (
     <main className="container" data-testid="vouchers-page">
       <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-4 md:gap-8">
-        <UserNavigation />
+        <UserSidebar />
         <div className="space-y-6 md:col-span-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <UserPanelIdentity user={user} points={available_points} />
-            <UserPanelBell />
-          </div>
-
           <div className="flex items-center gap-3">
             <h1 className="heading-md uppercase">Vouchers &amp; Points</h1>
           </div>

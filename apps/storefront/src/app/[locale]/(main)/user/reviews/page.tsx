@@ -2,8 +2,7 @@ import { Suspense } from "react"
 import { Badge, Card, StarRating } from "@/components/atoms"
 import { RouteFallback } from "@/components/molecules/RouteFallback/RouteFallback"
 import { LoginForm } from "@/components/molecules/LoginForm/LoginForm"
-import { UserNavigation } from "@/components/molecules/UserNavigation/UserNavigation"
-import { UserPanelBell } from "@/components/molecules/UserPanelBell/UserPanelBell"
+import { UserSidebar } from "@/components/molecules/UserSidebar/UserSidebar"
 import { retrieveCustomer } from "@/lib/data/customer"
 import { listMyReviews, MyReview } from "@/lib/data/reviews"
 
@@ -31,10 +30,9 @@ async function ReviewsPageContent() {
   return (
     <main className="container" data-testid="reviews-page">
       <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-4 md:gap-8">
-        <UserNavigation />
+        <UserSidebar />
         <div className="space-y-4 md:col-span-3">
           <div className="flex items-center gap-3">
-            <UserPanelBell />
             <h1 className="heading-md uppercase">Reviews</h1>
           </div>
 

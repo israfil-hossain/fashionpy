@@ -26,6 +26,7 @@ export const storeWishlistFields = [
   "updated_at",
   "deleted_at",
   "variant_id",
+  "calculated_price",
 ];
 
 export const storeWishlistQueryConfig = {

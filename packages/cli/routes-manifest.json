@@ -423,6 +423,7 @@
   "/store/fp/products/:id/recommendations": "typeof import(\"@mercurjs/core/api/store/fp/products/[id]/recommendations/route\")",
   "/store/fp/promotions/validate": "typeof import(\"@mercurjs/core/api/store/fp/promotions/validate/route\")",
   "/store/fp/rewards": "typeof import(\"@mercurjs/core/api/store/fp/rewards/route\")",
+  "/store/fp/rewards/apply-to-cart": "typeof import(\"@mercurjs/core/api/store/fp/rewards/apply-to-cart/route\")",
   "/store/fp/rewards/catalog": "typeof import(\"@mercurjs/core/api/store/fp/rewards/catalog/route\")",
   "/store/fp/rewards/estimate": "typeof import(\"@mercurjs/core/api/store/fp/rewards/estimate/route\")",
   "/store/fp/rewards/reservations": "typeof import(\"@mercurjs/core/api/store/fp/rewards/reservations/route\")",

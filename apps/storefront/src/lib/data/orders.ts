@@ -141,6 +141,8 @@ export const listOrderGroups = async (
       limit,
       offset,
       order: '-created_at',
+      fields:
+        'id,display_id,created_at,total,orders.id,orders.status,orders.payment_status,orders.fulfillment_status,orders.currency_code,orders.total',
       fetchOptions: {
         headers: { ...(await getAuthHeaders()) },
         cache: 'no-store'

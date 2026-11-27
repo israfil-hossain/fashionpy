@@ -4,13 +4,10 @@ import { isEmpty } from 'lodash';
 
 import { LoginForm } from '@/components/molecules/LoginForm/LoginForm';
 import { ParcelAccordion } from '@/components/molecules/ParcelAccordion/ParcelAccordion';
-import { UserNavigation } from '@/components/molecules/UserNavigation/UserNavigation';
-import { UserPanelBell } from '@/components/molecules/UserPanelBell/UserPanelBell';
-import { UserPanelIdentity } from '@/components/molecules/UserPanelIdentity/UserPanelIdentity';
+import { UserSidebar } from '@/components/molecules/UserSidebar/UserSidebar';
 import { OrderTabs } from '@/components/molecules/OrderTabs/OrderTabs';
 import { OrdersPagination } from '@/components/organisms/OrdersPagination/OrdersPagination';
 import { retrieveCustomer } from '@/lib/data/customer';
-import { getLoyaltySummary } from '@/lib/data/rewards';
 import { getReturns, listOrderGroups } from '@/lib/data/orders';
 import { matchesOrderTab, ORDER_TABS, type OrderForTab, type OrderStageRecord, type OrderTabKey } from '@/lib/helpers/order-tabs';
 
@@ -42,12 +39,10 @@ async function UserPageContent({
     ? (tab as OrderTabKey)
     : "all";
 
-  const [{ groups: allGroups }, { available_points }, returns] =
-    await Promise.all([
-      listOrderGroups(100, 0),
-      getLoyaltySummary(),
-      getReturns().catch(() => ({ order_return_requests: [] })),
-    ]);
+  const [{ groups: allGroups }, returns] = await Promise.all([
+    listOrderGroups(100, 0),
+    getReturns().catch(() => ({ order_return_requests: [] })),
+  ]);
 
   const stages: Record<string, OrderStageRecord> = {};
   for (const record of returns.order_return_requests ?? []) {
@@ -78,15 +73,11 @@ async function UserPageContent({
       data-testid="orders-page"
     >
       <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-4 md:gap-8">
-        <UserNavigation />
+        <UserSidebar />
         <div
           className="space-y-8 md:col-span-3"
           data-testid="orders-container"
         >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <UserPanelIdentity user={user} points={available_points} />
-            <UserPanelBell />
-          </div>
           <div className="flex items-center gap-3">
             <h1 className="heading-md uppercase">My Orders</h1>
           </div>

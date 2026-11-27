@@ -21,10 +21,22 @@ export const WishlistItem = ({
   wishlist: Wishlist[]
   user?: HttpTypes.StoreCustomer | null
 }) => {
-  const price = convertToLocale({
-    amount: product.calculated_amount,
-    currency_code: product.currency_code,
-  })
+  const price =
+    typeof product.calculated_amount === 'number' && product.currency_code
+      ? convertToLocale({
+          amount: product.calculated_amount,
+          currency_code: product.currency_code,
+        })
+      : 'Price unavailable'
+
+  let thumbnail = '/images/placeholder.svg'
+  if (product.thumbnail) {
+    try {
+      thumbnail = decodeURIComponent(product.thumbnail)
+    } catch {
+      thumbnail = product.thumbnail
+    }
+  }
 
   return (
     <div
@@ -45,8 +57,8 @@ export const WishlistItem = ({
           <div className="overflow-hidden rounded-sm w-full h-full flex justify-center align-center ">
             {product.thumbnail ? (
               <Image
-                src={decodeURIComponent(product.thumbnail)}
-                alt={product.title}
+              src={thumbnail}
+              alt={product.title}
                 width={360}
                 height={360}
                 className="object-cover aspect-square w-full object-center h-full lg:group-hover:-mt-14 transition-all duration-300 rounded-xs"

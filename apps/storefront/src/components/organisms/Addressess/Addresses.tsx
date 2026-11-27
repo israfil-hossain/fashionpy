@@ -3,7 +3,6 @@ import { Button } from '@/components/atoms/Button/Button';
 import { Card } from '@/components/atoms/Card/Card';
 import { AddressForm } from '@/components/molecules/AddressForm/AddressForm';
 import { Modal } from '@/components/molecules/Modal/Modal';
-import { UserPanelBell } from '@/components/molecules/UserPanelBell/UserPanelBell';
 import { emptyDefaultAddressValues } from "@/components/molecules/AddressForm/AddressForm"
 import { AddressFormData } from "@/components/molecules/AddressForm/schema"
 import { deleteCustomerAddress } from "@/lib/data/customer"
@@ -70,7 +69,6 @@ export const Addresses = ({
         data-testid="addresses-container"
       >
         <div className="flex items-center gap-3">
-          <UserPanelBell />
           <h1 className="heading-md uppercase" data-testid="addresses-heading">Addresses</h1>
         </div>
         {isEmpty(user.addresses) ? (

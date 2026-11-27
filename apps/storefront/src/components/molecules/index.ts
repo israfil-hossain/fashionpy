@@ -36,6 +36,7 @@ import { SellerScore } from './SellerScore/SellerScore';
 import { TabsContent } from './TabsContent/TabsContent';
 import { TabsList } from './TabsList/TabsList';
 import { UserNavigation } from './UserNavigation/UserNavigation';
+import { UserSidebar } from './UserSidebar/UserSidebar';
 
 export {
   PrimeCategoryNavbar,
@@ -70,6 +71,7 @@ export {
   LoginForm,
   RegisterForm,
   UserNavigation,
+  UserSidebar,
   ParcelAccordion,
   AddressForm,
   ProfileDetails,
