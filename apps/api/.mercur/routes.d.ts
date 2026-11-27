@@ -931,4 +931,5 @@ export type Routes = {
         stores: typeof import("@mercurjs/core/api/vendor/stores/route");
         uploads: typeof import("@mercurjs/core/api/vendor/uploads/route");
     };
+    mcp: typeof import("../src/api/mcp/route");
 };

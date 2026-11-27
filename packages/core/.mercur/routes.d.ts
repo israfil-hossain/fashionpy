@@ -756,6 +756,9 @@ export type Routes = {
                 };
             };
         };
+        email: {
+            unsubscribe: typeof import("../src/api/store/email/unsubscribe/route");
+        };
         fp: {
             bundles: typeof import("../src/api/store/fp/bundles/route") & {
                 $id: typeof import("../src/api/store/fp/bundles/[id]/route");

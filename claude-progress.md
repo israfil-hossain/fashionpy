@@ -4,6 +4,30 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — FashionPy commerce MCP (2026-11-28), `main`
+
+Added a commerce MCP server foundation under `apps/api/src/mcp` plus
+`POST/GET /mcp` (`apps/api/src/api/mcp/route.ts`):
+
+- Streamable HTTP (stateless transport) with OAuth protected-resource metadata,
+  Google Workspace ID-token verification (aud/email_verified/hd), mapping to an
+  existing admin `user` or seller `member`, and a short-lived scoped Medusa JWT.
+  Seller id is derived from membership, never from tool args. Dev bypass via
+  `MCP_DEV_EMAIL`/`MCP_DEV_TOKEN`.
+- Tools: `whoami`, seller `list_categories`, `list_shipping_profiles`,
+  `list_stock_locations`, `draft_product_from_source`, `create_product`
+  (always `proposed`), `update_product`, `create_offer`; admin-only
+  `list_pending_products`, `confirm_product(product_id, confirm:true)`,
+  `reject_product`. Seller tokens never see admin tools.
+- Local stdio adapter (`apps/api/src/scripts/mcp-stdio.ts`) with env identity,
+  smoke client, integration spec for metadata/401, and docs section in
+  `apps/docs/resources/ai/mcp.mdx`.
+- Evidence: api tsc clean; lint clean; stdio smoke lists correct tools per
+  actor type; seller `list_categories` and admin `list_pending_products` calls
+  succeeded against the live API; HTTP `/mcp` metadata 200 and unauth POST 401.
+  Repo-wide core build is currently blocked by an unrelated concurrent edit in
+  `packages/core/src/modules/seller/service.ts` (undefined jwt_secret).
+
 ## Session — Orders page undefined reduce fix (2026-11-26), `main`
 
 The client-side `TypeError: Cannot read properties of undefined (reading

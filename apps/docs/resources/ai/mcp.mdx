@@ -143,6 +143,19 @@ Use it when you need to look up API references, understand how a module works, f
 
 ---
 
+## FashionPy commerce MCP
+
+FashionPy also exposes a **commerce MCP server** at `https://<your-api-host>/mcp`. Sellers and admins can connect it to ChatGPT, Claude, Gemini or Grok and create/update products with natural language. Every product created through MCP is submitted as `proposed` and must be verified by an admin before it is published.
+
+- **Auth:** Google Workspace account linked to a FashionPy seller member or admin user. The endpoint returns OAuth protected-resource metadata and requires a verified Google ID token as a bearer token.
+- **Seller tools:** `list_categories`, `list_shipping_profiles`, `list_stock_locations`, `draft_product_from_source`, `create_product`, `update_product`, `create_offer`.
+- **Admin tools:** `list_pending_products`, `confirm_product` (requires `confirm: true`), `reject_product`. These are never advertised to seller tokens.
+- **Local stdio:** `MCP_ACTOR_ID=<user-or-member-id> MCP_ACTOR_TYPE=user|member bun apps/api/src/scripts/mcp-stdio.ts`.
+
+Set `MCP_GOOGLE_WORKSPACE_DOMAIN` to restrict sign-in to your Workspace, `MCP_PUBLIC_URL` to the public API origin, and `MCP_ALLOWED_ORIGINS` to a comma-separated origin allowlist.
+
+---
+
 ## Choosing an approach
 
 | Approach | Best for |

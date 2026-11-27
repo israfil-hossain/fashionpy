@@ -2,14 +2,18 @@
   "name": "mercur",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev --filter='!@mercurjs/core' --filter='!@mercurjs/dashboard-sdk' --filter='!@mercurjs/dashboard-shared'",
+    "build": "node init && turbo run build",
+    "dev": "node init && turbo run dev --filter='!@mercurjs/core' --filter='!@mercurjs/dashboard-sdk' --filter='!@mercurjs/dashboard-shared'",
     "lint": "oxlint --quiet",
     "test:unit": "cd integration-tests && bun run test:unit",
     "test:integration:http": "cd integration-tests && bun run test:integration:http"
   },
   "dependencies": {
-    "@mercurjs/core": "workspace:*"
+    "@mercurjs/core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@types/jsonwebtoken": "^9.0.10",
+    "jsonwebtoken": "^9.0.3",
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
