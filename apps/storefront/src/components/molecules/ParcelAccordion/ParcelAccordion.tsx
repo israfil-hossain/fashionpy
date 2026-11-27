@@ -72,7 +72,7 @@ export const ParcelAccordion = ({
         className="w-full"
         data-testid="order-items-list"
       >
-        {orders.map((order, index) => (
+        {(orders ?? []).map((order, index) => (
           <ParcelAccordionItems
             key={order.id}
             order={order}

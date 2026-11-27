@@ -38,7 +38,11 @@ export const ParcelAccordionItems = ({
 
   const status = parcelStatuses(order.fulfillment_status);
 
-  const totalItems = order.items.reduce((acc: number, item: any) => acc + item.quantity, 0);
+  const items = Array.isArray(order?.items) ? order.items : []
+  const totalItems = items.reduce(
+    (acc: number, item: any) => acc + (item.quantity ?? 0),
+    0
+  );
 
   return (
     <Card
@@ -54,7 +58,7 @@ export const ParcelAccordionItems = ({
           <span className="font-semibold uppercase text-primary">{steps[status]}</span>
         </p>
         <p className="label-md col-span-2 px-2">
-          Seller: <span className="font-semibold text-primary">{order.seller.name}</span>
+          Seller: <span className="font-semibold text-primary">{order.seller?.name ?? 'Seller'}</span>
         </p>
         <p className="label-md col-span-2 px-2 text-center">
           Shipping:{' '}
@@ -62,7 +66,7 @@ export const ParcelAccordionItems = ({
             className="font-semibold text-primary"
             data-testid={shippingPriceTestId}
           >
-            {convertToLocale({ amount: order.shipping_total, currency_code })}
+            {convertToLocale({ amount: order.shipping_total ?? 0, currency_code })}
           </span>
         </p>
 
@@ -86,7 +90,7 @@ export const ParcelAccordionItems = ({
         }}
       >
         <div className="p-4">
-          {order.items.map((item: any) => (
+          {items.map((item: any) => (
             <OrderProductListItem
               key={item.id + item.variant_id}
               item={item}

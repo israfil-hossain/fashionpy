@@ -4,6 +4,19 @@ This is the session log and current-state tracker. Keep it short: prune old
 session detail aggressively. The per-spec source of truth lives in
 `docs/specs/SPEC-*.md` (status + Evidence) — this file is just the running log.
 
+## Session — Orders page undefined reduce fix (2026-11-26), `main`
+
+The client-side `TypeError: Cannot read properties of undefined (reading
+'reduce')` on `/user/orders` came from order rows whose `items` array was
+missing (and a missing `seller`), plus `OrderTotals` assuming `orderGroup`
+always exists. Hardened `ParcelAccordionItems` (`order.items` guarded,
+`seller?.name`, `shipping_total ?? 0`), `ParcelAccordion` (`orders ?? []`) and
+`OrderTotals` (`orderGroup?.orders`/`total`).
+
+- Evidence: lint 0; storefront build passes; logged-in orders page returns 200
+  and renders normally. Production data with partial order rows should now
+  render with fallbacks instead of hitting the error boundary.
+
 ## Session — Wishlist page 500 fix (2026-11-26), `main`
 
 `/bd/user/wishlist` rendered "Something went wrong" for customers with items.

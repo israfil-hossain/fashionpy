@@ -5,14 +5,14 @@ import { convertToLocale } from "@/lib/helpers/money"
 export const OrderTotals = ({ orderGroup }: { orderGroup: any }) => {
   // The order group only exposes a computed `total`; per-seller monetary
   // breakdowns live on its child orders, so aggregate them here.
-  const orders: any[] = orderGroup.orders ?? []
+  const orders: any[] = Array.isArray(orderGroup?.orders) ? orderGroup.orders : []
 
   const delivery = orders.reduce(
     (sum, order) => sum + (order.shipping_total ?? 0),
     0
   )
   const total =
-    orderGroup.total ?? orders.reduce((sum, order) => sum + (order.total ?? 0), 0)
+    orderGroup?.total ?? orders.reduce((sum, order) => sum + (order.total ?? 0), 0)
   const subtotal = total - delivery
 
   const currency_code =
